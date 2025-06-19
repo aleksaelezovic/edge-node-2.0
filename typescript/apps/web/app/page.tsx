@@ -1,6 +1,5 @@
 import Image, { type ImageProps } from "next/image";
 import { Button } from "@repo/ui/button";
-import { add } from "@repo/math/add";
 import styles from "./page.module.css";
 
 type Props = Omit<ImageProps, "src"> & {
@@ -15,7 +14,6 @@ const ThemeImage = (props: Props) => {
     <>
       <Image {...rest} src={srcLight} className="imgLight" />
       <Image {...rest} src={srcDark} className="imgDark" />
-      <div>{add(1, 2)}</div>
     </>
   );
 };
