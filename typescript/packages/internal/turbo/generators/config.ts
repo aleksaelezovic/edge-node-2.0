@@ -1,5 +1,7 @@
 import type { PlopTypes } from "@turbo/gen";
 
+import { version as dkgPluginsVersion } from "../../../plugins/package.json";
+
 export default function generator(plop: PlopTypes.NodePlopAPI): void {
   plop.setGenerator("package", {
     description: "Adds a new package to the monorepo",
@@ -28,6 +30,7 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
               "check-types": "tsc --noEmit",
             },
             devDependencies: {
+              "@dkg/eslint-config": "*",
               "@dkg/typescript-config": "*",
               eslint: "^9.29.0",
               typescript: "undefined",
@@ -68,6 +71,32 @@ export default config;
         type: "add",
         path: "../{{kebabCase name}}/src/index.ts",
         template: "// Your code goes here",
+      },
+    ],
+  });
+
+  plop.setGenerator("plugin", {
+    description: "Adds a new DKG plugin package to the monorepo",
+    prompts: [
+      {
+        type: "input",
+        name: "name",
+        message: "What is the name of the plugin?",
+      },
+    ],
+    actions: [
+      ...(plop.getGenerator("package").actions as []),
+      {
+        type: "append",
+        path: "../{{kebabCase name}}/package.json",
+        pattern: /"@dkg\/eslint-config": "\*",(?<insertion>)/g,
+        template: `    "@dkg/plugins": "${dkgPluginsVersion}",`,
+      },
+      {
+        type: "modify",
+        path: "../{{kebabCase name}}/src/index.ts",
+        pattern: /.*$/,
+        templateFile: "templates/plugin.hbs",
       },
     ],
   });
