@@ -16,56 +16,17 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
       {
         type: "add",
         path: "../{{kebabCase name}}/package.json",
-        template: JSON.stringify(
-          {
-            name: "@dkg/{{kebabCase name}}",
-            version: "0.0.1",
-            description: "",
-            main: "./dist/index.js",
-            module: "./dist/index.mjs",
-            types: "./dist/index.d.ts",
-            scripts: {
-              dev: "tsup src/*.ts --format cjs,esm --dts --watch",
-              build: "tsup src/*.ts --format cjs,esm --dts",
-              "check-types": "tsc --noEmit",
-            },
-            devDependencies: {
-              "@dkg/eslint-config": "*",
-              "@dkg/typescript-config": "*",
-              eslint: "^9.29.0",
-              typescript: "undefined",
-              tsup: "^8.5.0",
-            },
-          },
-          null,
-          2,
-        ),
+        templateFile: "templates/package-package.json",
       },
       {
         type: "add",
         path: "../{{kebabCase name}}/tsconfig.json",
-        template: JSON.stringify(
-          {
-            extends: "@dkg/typescript-config/base.json",
-            compilerOptions: {
-              outDir: "dist",
-              rootDir: "src",
-            },
-            include: ["src"],
-            exclude: ["node_modules", "dist"],
-          },
-          null,
-          2,
-        ),
+        templateFile: "templates/package-tsconfig.json",
       },
       {
         type: "add",
         path: "../{{kebabCase name}}/eslint.config.mjs",
-        template: `import { config } from "@dkg/eslint-config/base";
-
-/** @type {import("eslint").Linter.Config} */
-export default config;
-`,
+        templateFile: "templates/package-eslint.config.mjs",
       },
       {
         type: "add",
