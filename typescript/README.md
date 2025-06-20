@@ -25,6 +25,8 @@ Run 'turbo ls' to see the full list.
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
+Use `turbo gen` to generate new apps and packages.
+
 ### Utilities
 
 This Turborepo has some additional tools already setup for you:
