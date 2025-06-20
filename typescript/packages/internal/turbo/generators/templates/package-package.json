@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "tsup src/*.ts --format cjs,esm --dts --watch",
     "build": "tsup src/*.ts --format cjs,esm --dts",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
