@@ -2,22 +2,26 @@
 
 This Turborepo starter is maintained by the Turborepo core team.
 
-## Using this example
+## Requirements
 
-Run the following command:
+1. Node.js >= 18 and npm
+2. Turbo installed globally
 
 ```sh
-npx create-turbo@latest
+npm i -g turbo
 ```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
 
 ### Apps and Packages
 
+Run 'turbo ls' to see the full list.
+
+- `@dkg/mcp-server`: DKG MCP Server app
+- `@dkg/example-edge-node`: Example of an edge node (Expo)
+
+- `@dkg/plugins`: Utility package for creating DKG plugins
 - `@dkg/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `@dkg/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- `@dkg/internal`: Internal utilities and helpers for managing this monorepo
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
@@ -34,8 +38,7 @@ This Turborepo has some additional tools already setup for you:
 To build all apps and packages, run the following command:
 
 ```
-cd my-turborepo
-pnpm build
+npm run build
 ```
 
 ### Develop
@@ -43,8 +46,7 @@ pnpm build
 To develop all apps and packages, run the following command:
 
 ```
-cd my-turborepo
-pnpm dev
+npm run dev
 ```
 
 ### Remote Caching
