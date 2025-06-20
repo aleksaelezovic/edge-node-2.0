@@ -2,7 +2,12 @@ import { Hono } from "hono";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerMcp } from "./registerMcp";
 
-type DkgContext = {};
+//@ts-ignore
+import type DKG from "dkg.js";
+
+type DkgContext = {
+  dkg: DKG;
+};
 type DkgPlugin = (ctx: DkgContext, mcp: McpServer, api: Hono) => void;
 
 export const defineDkgPlugin = (plugin: DkgPlugin) => plugin;

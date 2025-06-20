@@ -12,14 +12,15 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.0",
+    "dkg.js": "^8.0.14",
     "fetch-to-node": "^2.1.0",
     "hono": "^4.8.1"
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.13.0",
     "@dkg/typescript-config": "*",
+    "@modelcontextprotocol/sdk": "^1.13.0",
     "eslint": "^9.29.0",
-    "typescript": "undefined",
-    "tsup": "^8.5.0"
+    "tsup": "^8.5.0",
+    "typescript": "undefined"
   }
 }

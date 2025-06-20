@@ -16,6 +16,7 @@
     "@hono/node-server": "^1.14.4",
     "@hono/swagger-ui": "^0.5.2",
     "@hono/zod-validator": "^0.4.3",
+    "dkg.js": "^8.0.14",
     "hono-openapi": "^0.4.8",
     "zod": "^3.25.67",
     "zod-openapi": "^4.2.4"
