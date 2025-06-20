@@ -4,9 +4,9 @@ import { z } from "zod";
 import "zod-openapi/extend";
 import { describeRoute, openAPISpecs } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { swaggerUI } from "@hono/swagger-ui";
 
 import { version } from "../package.json";
-import { swaggerUI } from "@hono/swagger-ui";
 
 const api = createPluginApi({
   name: "DKG API",
