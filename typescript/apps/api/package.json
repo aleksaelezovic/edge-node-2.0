@@ -1,0 +1,30 @@
+{
+  "name": "@dkg/api",
+  "version": "0.0.1",
+  "description": "",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "tsup src/*.ts --format cjs,esm --dts --watch --onSuccess 'node dist/index.js'",
+    "build": "tsup src/*.ts --format cjs,esm --dts",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "dependencies": {
+    "@dkg/plugins": "*",
+    "@hono/node-server": "^1.14.4",
+    "@hono/swagger-ui": "^0.5.2",
+    "@hono/zod-validator": "^0.4.3",
+    "hono-openapi": "^0.4.8",
+    "zod": "^3.25.67",
+    "zod-openapi": "^4.2.4"
+  },
+  "devDependencies": {
+    "@dkg/eslint-config": "*",
+    "@dkg/typescript-config": "*",
+    "eslint": "^9.29.0",
+    "tsup": "^8.5.0",
+    "typescript": "undefined"
+  }
+}
