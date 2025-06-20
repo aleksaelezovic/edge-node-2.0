@@ -1,25 +1,28 @@
 import { defineDkgPlugin } from "@dkg/plugins";
 import { swaggerUI } from "@hono/swagger-ui";
 import { openAPISpecs } from "hono-openapi";
+import type { OpenAPIV3 } from "openapi-types";
 
-export default defineDkgPlugin((ctx, _mcp, api) => {
-  api.get(
-    "/openapi",
-    openAPISpecs(api, {
-      documentation: {
-        info: {
-          title: "DKG API",
-          version: ctx.version,
-          description: "DKG plugins API",
-        },
-        servers: [
-          {
-            url: "http://localhost:9200",
-            description: "Local server",
+export default ({
+  version,
+  servers,
+}: {
+  version: string;
+  servers?: OpenAPIV3.ServerObject[];
+}) =>
+  defineDkgPlugin((ctx, _mcp, api) => {
+    api.get(
+      "/openapi",
+      openAPISpecs(api, {
+        documentation: {
+          info: {
+            title: "DKG API",
+            version: version,
+            description: "DKG plugins API",
           },
-        ],
-      },
-    }),
-  );
-  api.get("/swagger", swaggerUI({ url: "/openapi" }));
-});
+          servers,
+        },
+      }),
+    );
+    api.get("/swagger", swaggerUI({ url: "/openapi" }));
+  });

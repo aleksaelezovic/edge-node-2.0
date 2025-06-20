@@ -7,9 +7,20 @@ import { version } from "../package.json";
 
 const api = createPluginApi({
   name: "DKG API",
-  version: version,
-  plugins: [examplePlugin, swaggerPlugin],
-  engineUrl: "http://localhost:8900",
+  version,
+  plugins: [
+    examplePlugin,
+    swaggerPlugin({
+      version,
+      servers: [
+        {
+          url: "http://localhost:9200",
+          description: "Local development server",
+        },
+      ],
+    }),
+  ],
+  context: {},
 });
 
 const server = serve({
