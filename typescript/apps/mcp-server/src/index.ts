@@ -1,32 +1,9 @@
-import { createPluginApi, defineDkgPlugin } from "@dkg/plugins";
+import { createPluginApi } from "@dkg/plugins";
 import examplePlugin from "@dkg/plugin-example";
+import swaggerPlugin from "@dkg/plugin-swagger";
 import { serve } from "@hono/node-server";
-import { openAPISpecs } from "hono-openapi";
-import { swaggerUI } from "@hono/swagger-ui";
 
 import { version } from "../package.json";
-
-const swaggerPlugin = defineDkgPlugin((_, __, api) => {
-  api.get(
-    "/openapi",
-    openAPISpecs(api, {
-      documentation: {
-        info: {
-          title: "DKG API",
-          version: version,
-          description: "DKG plugins API",
-        },
-        servers: [
-          {
-            url: "http://localhost:9200",
-            description: "Local server",
-          },
-        ],
-      },
-    }),
-  );
-  api.get("/swagger", swaggerUI({ url: "/openapi" }));
-});
 
 const api = createPluginApi({
   name: "DKG API",
