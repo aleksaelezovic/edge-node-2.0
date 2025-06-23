@@ -39,7 +39,7 @@ const api = createPluginApi({
       },
       requireAuthByDefault: false,
     }),
-    examplePlugin,
+    examplePlugin.withNamespace("example"),
     swaggerPlugin({
       version,
       servers: [
