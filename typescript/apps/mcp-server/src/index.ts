@@ -30,18 +30,21 @@ const api = createPluginApi({
   plugins: [
     authPlugin({
       secret: "my-secret-key",
-      schema: z.object({ username: z.string(), password: z.string() }),
+      schema: z.object({
+        username: z.string().openapi({ example: "admin" }),
+        password: z.string().openapi({ example: "admin123" }),
+      }),
       async login({ username, password }) {
         if (username !== "admin" || password !== "admin123") {
           throw new Error("Invalid credentials");
         }
-        return ["mcp", "test123"];
+        return ["mcp", "scope123"];
       },
       requireAuthByDefault: false,
     }),
     examplePlugin.withNamespace("example"),
     examplePlugin.withNamespace("protected", {
-      middlewares: [authorized(["test123"])],
+      middlewares: [authorized(["scope123"])],
     }),
     swaggerPlugin({
       version,
@@ -51,6 +54,16 @@ const api = createPluginApi({
           description: "Local development server",
         },
       ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
+        },
+      },
+      security: [{ bearerAuth: [] }],
     }),
   ],
 });
