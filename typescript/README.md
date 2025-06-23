@@ -1,6 +1,6 @@
-# Turborepo starter
+# DKG Turborepo
 
-This Turborepo starter is maintained by the Turborepo core team.
+This project was created via Turborepo starter maintained by the Turborepo core team.
 
 ## Requirements
 
@@ -50,6 +50,8 @@ To develop all apps and packages, run the following command:
 ```
 npm run dev
 ```
+
+**NOTE:** If you are having problems with the `dev` command, try deleting "@sinclair" directory inside of the `packages/plugins/node_modules` directory.
 
 ### Remote Caching
 
