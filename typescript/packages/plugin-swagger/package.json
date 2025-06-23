@@ -13,14 +13,13 @@
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
-    "@dkg/plugins": "0.0.1",
     "@dkg/typescript-config": "*",
     "eslint": "^9.29.0",
     "tsup": "^8.5.0",
     "typescript": "undefined"
   },
   "dependencies": {
-    "@hono/swagger-ui": "^0.5.2",
-    "hono-openapi": "^0.4.8"
+    "@dkg/plugins": "^0.0.1",
+    "@hono/swagger-ui": "^0.5.2"
   }
 }

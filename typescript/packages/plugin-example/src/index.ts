@@ -1,8 +1,5 @@
 import { defineDkgPlugin } from "@dkg/plugins";
-import { z } from "zod";
-import "zod-openapi/extend";
-import { describeRoute } from "hono-openapi";
-import { resolver, validator as zValidator } from "hono-openapi/zod";
+import { z, describeRoute, resolver, validator } from "@dkg/plugins/hono";
 
 export default defineDkgPlugin((_, mcp, api) => {
   mcp.registerTool(
@@ -36,7 +33,7 @@ export default defineDkgPlugin((_, mcp, api) => {
         },
       },
     }),
-    zValidator(
+    validator(
       "query",
       z
         .object({

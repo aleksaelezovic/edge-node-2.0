@@ -1,6 +1,6 @@
 import { defineDkgPlugin } from "@dkg/plugins";
+import { openAPISpecs } from "@dkg/plugins/hono";
 import { swaggerUI } from "@hono/swagger-ui";
-import { openAPISpecs } from "hono-openapi";
 import type { OpenAPIV3 } from "openapi-types";
 
 export default ({
