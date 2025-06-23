@@ -90,7 +90,7 @@ export const authorized = (scope: Scope) =>
 
     const payload = c.get("jwtPayload");
     const userScope: Scope = payload?.scope?.split(" ") ?? [];
-    if (scope.every((s) => s in userScope)) return next();
+    if (scope.every((s) => userScope.includes(s))) return next();
 
     return c.json({ error: "Unauthorized." }, 403);
   });
