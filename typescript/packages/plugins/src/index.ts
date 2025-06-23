@@ -24,13 +24,13 @@ export const createPluginApi = ({
   plugins: DkgPlugin[];
 }) => {
   const api = new Hono();
+  plugins.forEach((plugin) =>
+    plugin(context, new McpServer({ name, version }), api),
+  );
   registerMcp(api, () => {
     const server = new McpServer({ name, version });
     plugins.forEach((plugin) => plugin(context, server, new Hono()));
     return server;
   });
-  plugins.forEach((plugin) =>
-    plugin(context, new McpServer({ name, version }), api),
-  );
   return api;
 };
