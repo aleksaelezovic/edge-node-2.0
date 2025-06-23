@@ -1,4 +1,6 @@
 import { createPluginApi } from "@dkg/plugins";
+import { z } from "@dkg/plugins/hono";
+import authPlugin from "@dkg/plugin-auth";
 import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
 import { serve } from "@hono/node-server";
@@ -10,18 +12,6 @@ import { version } from "../package.json";
 const api = createPluginApi({
   name: "DKG API",
   version,
-  plugins: [
-    examplePlugin,
-    swaggerPlugin({
-      version,
-      servers: [
-        {
-          url: "http://localhost:9200",
-          description: "Local development server",
-        },
-      ],
-    }),
-  ],
   context: {
     dkg: new DKG({
       endpoint: "http://localhost",
@@ -37,6 +27,28 @@ const api = createPluginApi({
       nodeApiVersion: "/v1",
     }),
   },
+  plugins: [
+    authPlugin({
+      secret: "my-secret-key",
+      schema: z.object({ username: z.string(), password: z.string() }),
+      async login({ username, password }) {
+        if (username !== "admin" || password !== "admin123") {
+          throw new Error("Invalid credentials");
+        }
+        return ["mcp", "test123"];
+      },
+    }),
+    examplePlugin,
+    swaggerPlugin({
+      version,
+      servers: [
+        {
+          url: "http://localhost:9200",
+          description: "Local development server",
+        },
+      ],
+    }),
+  ],
 });
 
 const server = serve({
