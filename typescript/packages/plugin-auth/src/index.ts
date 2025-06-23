@@ -56,7 +56,7 @@ export default <Credentials>({
       async (c) => {
         try {
           const credentials = c.req.valid("json");
-          const scope = await login(credentials);
+          const scope = await login(credentials).then((arr) => arr.join(" "));
           const token = await sign(
             { scope, exp: Math.floor(Date.now() / 1000) + exp },
             secret,
@@ -89,7 +89,7 @@ export const authorized = (scope: Scope) =>
     if (scope.length === 1 && scope[0] === "*") return next();
 
     const payload = c.get("jwtPayload");
-    const userScope: Scope = payload.scope?.split(" ") ?? [];
+    const userScope: Scope = payload?.scope?.split(" ") ?? [];
     if (scope.every((s) => s in userScope)) return next();
 
     return c.json({ error: "Unauthorized." }, 403);
