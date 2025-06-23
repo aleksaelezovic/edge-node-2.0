@@ -37,6 +37,7 @@ const api = createPluginApi({
         }
         return ["mcp", "test123"];
       },
+      requireAuthByDefault: false,
     }),
     examplePlugin,
     swaggerPlugin({
