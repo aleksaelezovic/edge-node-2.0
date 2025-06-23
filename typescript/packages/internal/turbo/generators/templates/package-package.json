@@ -11,6 +11,7 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0"
   },
+  "dependencies": {},
   "devDependencies": {
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",

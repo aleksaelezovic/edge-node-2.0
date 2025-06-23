@@ -50,8 +50,8 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
       {
         type: "append",
         path: "../{{kebabCase name}}/package.json",
-        pattern: /"@dkg\/eslint-config": "\*",(?<insertion>)/g,
-        template: `    "@dkg/plugins": "${dkgPluginsVersion}",`,
+        pattern: /"dependencies": {(?<insertion>)/g,
+        template: `    "@dkg/plugins": "^${dkgPluginsVersion}"\n  `,
       },
       {
         type: "modify",
