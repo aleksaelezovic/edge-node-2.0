@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, MiddlewareHandler } from "hono";
 import { describeRoute } from "hono-openapi";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerMcp } from "./registerMcp";
@@ -11,16 +11,24 @@ export type DkgContext = {
 };
 export type DkgPlugin = (ctx: DkgContext, mcp: McpServer, api: Hono) => void;
 export type DkgPluginBuilderMethods = {
-  withNamespace: (namespace: string) => DkgPluginBuilder;
+  withNamespace: (
+    namespace: string,
+    options?: { middlewares: MiddlewareHandler[] },
+  ) => DkgPluginBuilder;
 };
 export type DkgPluginBuilder = DkgPlugin & DkgPluginBuilderMethods;
 
 export const defineDkgPlugin = (plugin: DkgPlugin): DkgPluginBuilder =>
   Object.assign(plugin, {
-    withNamespace(namespace: string) {
+    withNamespace(
+      namespace: string,
+      options?: { middlewares: MiddlewareHandler[] },
+    ) {
       return defineDkgPlugin((ctx, mcp, api) => {
         const router = new Hono();
         router.use(describeRoute({ tags: [namespace] }));
+        options?.middlewares.forEach((m) => router.use(m));
+
         plugin(ctx, mcp, router);
         api.route("/" + namespace, router);
       });
