@@ -1,6 +1,6 @@
 import { createPluginApi } from "@dkg/plugins";
 import { z } from "@dkg/plugins/hono";
-import authPlugin from "@dkg/plugin-auth";
+import authPlugin, { authorized } from "@dkg/plugin-auth";
 import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
 import { serve } from "@hono/node-server";
@@ -40,6 +40,9 @@ const api = createPluginApi({
       requireAuthByDefault: false,
     }),
     examplePlugin.withNamespace("example"),
+    examplePlugin.withNamespace("protected", {
+      middlewares: [authorized(["test123"])],
+    }),
     swaggerPlugin({
       version,
       servers: [
