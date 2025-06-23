@@ -6,9 +6,13 @@ import type { OpenAPIV3 } from "openapi-types";
 export default ({
   version,
   servers,
+  components,
+  security,
 }: {
   version: string;
   servers?: OpenAPIV3.ServerObject[];
+  components?: OpenAPIV3.ComponentsObject;
+  security?: OpenAPIV3.SecurityRequirementObject[];
 }) =>
   defineDkgPlugin((ctx, _mcp, api) => {
     api.get(
@@ -21,6 +25,8 @@ export default ({
             description: "DKG plugins API",
           },
           servers,
+          components,
+          security,
         },
       }),
     );
