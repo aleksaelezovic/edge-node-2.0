@@ -23,15 +23,17 @@ Make sure you are inside of this (`typescript`) directory.
 > **NOTE:** If you are having problems with the `dev` command, try deleting "@sinclair" directory inside of the `packages/plugins/node_modules` directory.
 
 To run commands for a specific package or application you can either:
+
 - go into it's directory and run `npm run` to see available commands or
 - run i.e `turbo @dkg/plugins#build` to run the "build" command for "plugins" ("@dkg/plugins") package.
 
 Before committing changes run `turbo format check-types lint build` and make sure there are no errors or warnings.
 
 Use `turbo gen` to generate new apps, packages or plugins.
+
 - After you created a new package, run `npm install` and `npm run build`.
 - To install a dependency inside of a package/app just run `npm install --save <package-name>`
-and it will be added to the package.json file and installed in global node_modules directory.
+  and it will be added to the package.json file and installed in global node_modules directory.
 - You can use your new package in another package/app by running `npm install --save <your-package-name>` inside of another package's directory. (You can find "your-package-name" in the package.json file of your new package)
 
 > [!TIP]
