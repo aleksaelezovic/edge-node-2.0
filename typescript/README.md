@@ -11,11 +11,33 @@ This project was created via Turborepo starter maintained by the Turborepo core 
 npm i -g turbo
 ```
 
+## Quick start
+
+Make sure you are inside of this (`typescript`) directory.
+
+1. Run `npm install`
+2. Run `npm run build` to build all packages and applications
+3. Run `npm run dev` to start all applications and packages in dev mode (with automatic reload)
+
+**NOTE:** If you are having problems with the `dev` command, try deleting "@sinclair" directory inside of the `packages/plugins/node_modules` directory.
+
+To run commands for a specific package or application you can either:
+- go into it's directory and run `npm run` to see available commands or
+- run i.e `turbo @dkg/plugins#build` to run the "build" command for "plugins" ("@dkg/plugins") package.
+
+Before committing changes run `turbo format check-types lint build` and make sure there are no errors or warnings.
+
+Use `turbo gen` to generate new apps, packages or plugins.
+- After you created a new package, run `npm install` and `npm run build`.
+- To install a dependency inside of a package/app just run `npm install --save <package-name>`
+and it will be added to the package.json file and installed in global node_modules directory.
+- You can use your new package in another package/app by running `npm install --save <your-package-name>` inside of another package's directory. (You can find "your-package-name" in the package.json file of your new package)
+
 ### Apps and Packages
 
-Run 'turbo ls' to see the full list.
+Run `turbo ls` to see the full list.
 
-- `@dkg/mcp-server`: DKG MCP Server app
+- `@dkg/mcp-server`: DKG MCP Server app, running on port 9200
 - `@dkg/example-edge-node`: Example of an edge node (Expo)
 
 - `@dkg/plugins`: Utility package for creating DKG plugins
@@ -34,24 +56,6 @@ This Turborepo has some additional tools already setup for you:
 - [TypeScript](https://www.typescriptlang.org/) for static type checking
 - [ESLint](https://eslint.org/) for code linting
 - [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-npm run build
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-npm run dev
-```
-
-**NOTE:** If you are having problems with the `dev` command, try deleting "@sinclair" directory inside of the `packages/plugins/node_modules` directory.
 
 ### Remote Caching
 

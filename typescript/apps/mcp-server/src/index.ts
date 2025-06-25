@@ -29,22 +29,24 @@ const api = createPluginApi({
   },
   plugins: [
     authPlugin({
-      secret: "my-secret-key",
+      secret: "my-secret-key", // Secret key for JWT token generation
       schema: z.object({
         username: z.string().openapi({ example: "admin" }),
         password: z.string().openapi({ example: "admin123" }),
       }),
       async login({ username, password }) {
+        // Allows logging in with default credentials, username: "admin", password: "admin123"
+        // Change this as needed
         if (username !== "admin" || password !== "admin123") {
           throw new Error("Invalid credentials");
         }
-        return ["mcp", "scope123"];
+        return ["mcp", "scope123"]; // Scopes that the user has access to
       },
       requireAuthByDefault: false,
     }),
     examplePlugin.withNamespace("example"),
     examplePlugin.withNamespace("protected", {
-      middlewares: [authorized(["scope123"])],
+      middlewares: [authorized(["scope123"])], // Allow only users with the "scope123" scope
     }),
     swaggerPlugin({
       version,
