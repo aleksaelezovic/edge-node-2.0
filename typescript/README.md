@@ -19,7 +19,8 @@ Make sure you are inside of this (`typescript`) directory.
 2. Run `npm run build` to build all packages and applications
 3. Run `npm run dev` to start all applications and packages in dev mode (with automatic reload)
 
-**NOTE:** If you are having problems with the `dev` command, try deleting "@sinclair" directory inside of the `packages/plugins/node_modules` directory.
+> [!TIP]
+> **NOTE:** If you are having problems with the `dev` command, try deleting "@sinclair" directory inside of the `packages/plugins/node_modules` directory.
 
 To run commands for a specific package or application you can either:
 - go into it's directory and run `npm run` to see available commands or
@@ -32,6 +33,9 @@ Use `turbo gen` to generate new apps, packages or plugins.
 - To install a dependency inside of a package/app just run `npm install --save <package-name>`
 and it will be added to the package.json file and installed in global node_modules directory.
 - You can use your new package in another package/app by running `npm install --save <your-package-name>` inside of another package's directory. (You can find "your-package-name" in the package.json file of your new package)
+
+> [!TIP]
+> If your editor cannot find reference to some of the local packages or recognize types, try running `npm install` in the root directory of the monorepo and also `npm run build`.
 
 ### Apps and Packages
 
