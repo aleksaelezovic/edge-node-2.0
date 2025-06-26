@@ -19,7 +19,9 @@ Make sure you are inside of this (`typescript`) directory.
 2. Run `npm run build` to build all packages and applications
 3. Run `npm run dev` to start all applications and packages in dev mode (with automatic reload)
 
-> [!TIP] > **NOTE:** If you are having problems with the `dev` command, try deleting "@sinclair" directory inside of the `packages/plugins/node_modules` directory.
+> [!TIP]
+> If you are having problems with the `dev` command, try deleting "@sinclair" directory inside of
+> the `packages/plugins/node_modules` directory.
 
 To run commands for a specific package or application you can either:
 
