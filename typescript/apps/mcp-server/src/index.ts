@@ -44,7 +44,6 @@ const api = createPluginApi({
       },
       requireAuthByDefault: false,
     }),
-    examplePlugin.withNamespace("example"),
     examplePlugin.withNamespace("protected", {
       middlewares: [authorized(["scope123"])], // Allow only users with the "scope123" scope
     }),
