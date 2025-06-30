@@ -20,6 +20,10 @@ Make sure you are inside of this (`typescript`) directory.
 3. Run `npm run dev` to start all applications and packages in dev mode (with automatic reload)
 
 > [!TIP]
+> If you are having problems with the `install` command, try deleting node_modules and package-lock.json
+> and then try again.
+
+> [!TIP]
 > If you are having problems with the `dev` command, try deleting "@sinclair" directory inside of
 > the `packages/plugins/node_modules` directory.
 
