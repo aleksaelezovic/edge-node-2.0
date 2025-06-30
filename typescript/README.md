@@ -76,6 +76,10 @@ You can register your plugins inside of the `createPluginApi` function, as shown
 `apps/mcp-server/src/index.ts`.
 Here you can also configure these plugins with extension methods (i.e `.withNamespace`) as shown in the example.
 
+1. Inside of mcp-server directory, run `npm install --save @dkg/plugin-<your-name>`
+2. Inside of src/index.ts file, import your plugin (`import myPlugin from '@dkg/plugin-<your-name>'`)
+3. Inside of src/index.ts file, in the `createPluginApi` function, add your plugin to the array of plugins.
+
 > [!TIP]
 > See how the already existing plugins are created by looking into `packages/plugin-auth` and `packages/plugin-example`.
 
