@@ -16,7 +16,6 @@
     "@dkg/plugin-example": "^0.0.1",
     "@dkg/plugin-swagger": "^0.0.1",
     "@dkg/plugins": "^0.0.1",
-    "@hono/node-server": "^1.14.4",
     "dkg.js": "^8.0.14"
   },
   "devDependencies": {
