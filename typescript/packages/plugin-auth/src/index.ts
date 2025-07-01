@@ -1,13 +1,9 @@
 import { defineDkgPlugin } from "@dkg/plugins";
-import {
-  z,
-  describeRoute,
-  resolver,
-  validator,
-  createMiddleware,
-  jwt,
-  sign,
-} from "@dkg/plugins/hono";
+import { z } from "@dkg/plugins/helpers";
+import type { express } from "@dkg/plugins/types";
+import passport from "passport";
+import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
+import { sign } from "jsonwebtoken";
 
 type Scope = string[];
 
@@ -27,70 +23,64 @@ export default <Credentials>({
   requireAuthByDefault?: boolean;
 }) =>
   defineDkgPlugin((ctx, mcp, api) => {
-    api.post(
-      "/login",
-      describeRoute({
-        description: "Authenticate user and return JWT token",
-        responses: {
-          200: {
-            description: "JWT token",
-            content: {
-              "application/json": {
-                schema: resolver(z.object({ token: z.string() })),
-              },
-            },
-          },
-          401: {
-            description: "Invalid credentials",
-            content: {
-              "application/json": {
-                schema: resolver(
-                  z.object({ error: z.literal("Invalid credentials.") }),
-                ),
-              },
-            },
-          },
+    passport.use(
+      new JwtStrategy(
+        {
+          jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+          secretOrKey: secret,
+          algorithms: ["HS256"],
         },
-      }),
-      validator("json", schema),
-      async (c) => {
-        try {
-          const credentials = c.req.valid("json");
-          const scope = await login(credentials).then((arr) => arr.join(" "));
-          const token = await sign(
-            { scope, exp: Math.floor(Date.now() / 1000) + exp },
-            secret,
-            "HS256",
-          );
-
-          return c.json({ token });
-        } catch {
-          return c.json({ error: "Invalid credentials." }, 401);
-        }
-      },
+        (payload, done) => {
+          done(null, payload);
+        },
+      ),
     );
 
+    api.post("/login", async (req, res) => {
+      try {
+        const credentials = schema.parse(req.body);
+        const scope = await login(credentials).then((arr) => arr.join(" "));
+        const token = sign(
+          { scope, exp: Math.floor(Date.now() / 1000) + exp },
+          secret,
+          { algorithm: "HS256" },
+        );
+
+        res.json({ token });
+      } catch {
+        res.status(401).json({ error: "Invalid credentials." });
+      }
+    });
+
     if (requireAuthByDefault) {
-      api.use("*", jwt({ secret }));
+      api.use("*", authorized([]));
       api.use("/mcp", authorized(["mcp"]));
     } else {
-      api.use("*", async (c, next) => jwt({ secret })(c, next).catch(next));
+      api.use("*", authorized([]));
     }
 
-    api.post("/logout", async (c) => {
+    api.post("/logout", async (_, res) => {
       if (logout) await logout();
-      return c.status(200);
+      res.status(200);
     });
   });
 
-export const authorized = (scope: Scope) =>
-  createMiddleware(async (c, next) => {
-    if (scope.length === 0) return next();
-    if (scope.length === 1 && scope[0] === "*") return next();
+export const authorized =
+  (scope: Scope): express.RequestHandler =>
+  (req, res, next) =>
+    passport.authenticate(
+      "jwt",
+      {},
+      (err: unknown, user: Record<string, string> | false) => {
+        if (err) return next(err);
+        if (!user) return res.status(401).json({ error: "Unauthorized." });
 
-    const payload = c.get("jwtPayload");
-    const userScope: Scope = payload?.scope?.split(" ") ?? [];
-    if (scope.every((s) => userScope.includes(s))) return next();
+        const userScope = user.scope?.split(" ") ?? [];
+        if (scope.some((s) => !userScope.includes(s))) {
+          return res.status(403).json({ error: "Forbidden." });
+        }
 
-    return c.json({ error: "Unauthorized." }, 403);
-  });
+        req.user = user;
+        next();
+      },
+    )(req, res, next);

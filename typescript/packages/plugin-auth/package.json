@@ -12,13 +12,17 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
-    "@dkg/plugins": "^0.0.1"
+    "@dkg/plugins": "^0.0.1",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
+    "@types/passport": "^1.0.17",
+    "@types/passport-jwt": "^4.0.1",
     "eslint": "^9.29.0",
-    "typescript": "undefined",
-    "tsup": "^8.5.0"
+    "tsup": "^8.5.0",
+    "typescript": "undefined"
   }
 }
