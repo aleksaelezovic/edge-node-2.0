@@ -1,6 +1,6 @@
 import expoFlatConfig from "eslint-config-expo/flat.js";
 import eslintConfigPrettier from "eslint-config-prettier";
-import { config as baseConfig } from "./base.js";
+// import { config as baseConfig } from "./base.js";
 
 /**
  * A custom ESLint configuration for libraries that use Next.js.
@@ -8,7 +8,7 @@ import { config as baseConfig } from "./base.js";
  * @type {import("eslint").Linter.Config[]}
  * */
 export const expoConfig = [
-  ...baseConfig,
+  //  ...baseConfig,
   ...expoFlatConfig,
   eslintConfigPrettier,
 ];
