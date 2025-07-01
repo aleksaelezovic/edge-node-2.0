@@ -53,10 +53,10 @@ export default <Credentials>({
     });
 
     if (requireAuthByDefault) {
-      api.use("*", authorized([]));
+      api.use("/", authorized([]));
       api.use("/mcp", authorized(["mcp"]));
     } else {
-      api.use("*", authorized([]));
+      api.use("/", authorized([]));
     }
 
     api.post("/logout", async (_, res) => {
