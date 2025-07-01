@@ -1,9 +1,8 @@
 import { createPluginApi } from "@dkg/plugins";
-import { z } from "@dkg/plugins/hono";
+import { z } from "@dkg/plugins/helpers";
 import authPlugin, { authorized } from "@dkg/plugin-auth";
 import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
-import { serve } from "@hono/node-server";
 //@ts-expect-error No types for dkg.js ...
 import DKG from "dkg.js";
 
@@ -69,20 +68,25 @@ const api = createPluginApi({
   ],
 });
 
-const server = serve({
-  fetch: api.fetch,
-  port: 9200,
-});
-process.on("SIGINT", () => {
-  server.close();
-  process.exit(0);
-});
-process.on("SIGTERM", () => {
-  server.close((err) => {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
+const port = 9200;
+const server = api.listen(port, (err) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+  console.log(`Server running at http://localhost:${port}/`);
+
+  process.on("SIGINT", () => {
+    server.close();
     process.exit(0);
+  });
+  process.on("SIGTERM", () => {
+    server.close((err) => {
+      if (err) {
+        console.error(err);
+        process.exit(1);
+      }
+      process.exit(0);
+    });
   });
 });
