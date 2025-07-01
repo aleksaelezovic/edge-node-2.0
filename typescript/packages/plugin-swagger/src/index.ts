@@ -14,6 +14,7 @@ export default ({
   security?: OpenAPIV3.SecurityRequirementObject[];
 }) =>
   defineDkgPlugin((ctx, _mcp, api) => {
+    // TODO: Generate OpenAPI spec from DKG plugins
     api.get("/openapi", (req, res) => {
       res.json({
         openapi: "3.0.0",
