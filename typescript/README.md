@@ -66,7 +66,7 @@ The `defineDkgPlugin` function exposes 3 arguments that will be injected by the 
   - ...
 - `mcp` (MCP Server instance): Instance of the MCP Server from `@modelcontextprotocol/sdk` npm package.
   Use it to register MCP tools and resources.
-- `api` (API Server instance): Hono server instance from [`hono`](https://hono.dev/) npm package.
+- `api` (API Server instance): Express server instance from [`express`](https://expressjs.com/) npm package.
   Use it to expose API routes from you plugin.
 
 Registered routes and MCP tools/resources will be available as part of the Edge Node API server.
