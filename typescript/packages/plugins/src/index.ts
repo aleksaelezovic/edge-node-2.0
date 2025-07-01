@@ -37,7 +37,7 @@ export const defineDkgPlugin = (plugin: DkgPlugin): DkgPluginBuilder =>
     },
   } satisfies DkgPluginBuilderMethods);
 
-export const createPluginApi = ({
+export const createPluginServer = ({
   name,
   version,
   context,
@@ -48,14 +48,14 @@ export const createPluginApi = ({
   context: DkgContext;
   plugins: DkgPlugin[];
 }) => {
-  const api = express();
+  const server = express();
   plugins.forEach((plugin) =>
-    plugin(context, new McpServer({ name, version }), api),
+    plugin(context, new McpServer({ name, version }), server),
   );
-  registerMcp(api, () => {
-    const server = new McpServer({ name, version });
-    plugins.forEach((plugin) => plugin(context, server, express.Router()));
-    return server;
+  registerMcp(server, () => {
+    const mcp = new McpServer({ name, version });
+    plugins.forEach((plugin) => plugin(context, mcp, express.Router()));
+    return mcp;
   });
-  return api;
+  return server;
 };

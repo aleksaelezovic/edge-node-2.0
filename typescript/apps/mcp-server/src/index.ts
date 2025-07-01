@@ -1,4 +1,4 @@
-import { createPluginApi } from "@dkg/plugins";
+import { createPluginServer } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
 import authPlugin, { authorized } from "@dkg/plugin-auth";
 import examplePlugin from "@dkg/plugin-example";
@@ -8,7 +8,7 @@ import DKG from "dkg.js";
 
 import { version } from "../package.json";
 
-const api = createPluginApi({
+const app = createPluginServer({
   name: "DKG API",
   version,
   context: {
@@ -69,7 +69,7 @@ const api = createPluginApi({
 });
 
 const port = 9200;
-const server = api.listen(port, (err) => {
+const server = app.listen(port, (err) => {
   if (err) {
     console.error(err);
     process.exit(1);
