@@ -1,77 +1,56 @@
-import type { Context, Hono } from "hono";
+import express from "express";
 import { randomUUID } from "node:crypto";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
-import { toFetchResponse, toReqRes } from "fetch-to-node";
-import { describeRoute } from "hono-openapi";
 
-export const registerMcp = (api: Hono, getServer: () => McpServer) => {
+export const registerMcp = (
+  api: express.Router,
+  getServer: () => McpServer,
+) => {
   const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
-  const handleSessionRequest = async (c: Context) => {
-    const sessionId = c.req.header("Mcp-Session-Id")?.toString() ?? "";
+  const handleSessionRequest: express.RequestHandler = async (req, res) => {
+    const sessionId = req.headers["mcp-session-id"]?.toString() ?? "";
     if (!sessionId || !transports[sessionId]) {
-      return c.text("Invalid or missing session ID", 400);
+      res.status(400).send("Invalid or missing session ID");
+    } else {
+      const transport = transports[sessionId];
+      await transport.handleRequest(req, res);
     }
-
-    const transport = transports[sessionId];
-    const { req, res } = toReqRes(c.req.raw);
-    await transport.handleRequest(req, res);
-    return toFetchResponse(res);
   };
 
-  api
-    .post(
-      "/mcp",
-      describeRoute({
-        description: "MCP Server JSON-RPC Endpoint",
-        tags: ["MCP"],
-      }),
-      async (c) => {
-        const sessionId = c.req.header("Mcp-Session-Id")?.toString() ?? "";
-        const body = await c.req.json();
-        let transport = transports[sessionId];
-        if (!transport && isInitializeRequest(body)) {
-          transport = new StreamableHTTPServerTransport({
-            sessionIdGenerator: () => randomUUID(),
-            onsessioninitialized: (sessionId) => {
-              transports[sessionId] = transport!;
-            },
-          });
-          transport.onerror = console.error.bind(console);
-          transport.onclose = () => {
-            if (transport?.sessionId) {
-              delete transports[transport.sessionId];
-            }
-          };
-          await getServer().connect(transport);
+  api.post("/mcp", async (req, res) => {
+    const sessionId = req.headers["mcp-session-id"]?.toString() ?? "";
+    let transport = transports[sessionId];
+    if (!transport && isInitializeRequest(req.body)) {
+      transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        onsessioninitialized: (sessionId) => {
+          transports[sessionId] = transport!;
+        },
+      });
+      transport.onerror = console.error.bind(console);
+      transport.onclose = () => {
+        if (transport?.sessionId) {
+          delete transports[transport.sessionId];
         }
-        if (!transport) {
-          return c.json(
-            {
-              jsonrpc: "2.0",
-              error: {
-                code: -32000,
-                message: "Bad Request: No valid session ID provided",
-              },
-              id: null,
-            },
-            400,
-          );
-        }
-
-        const { req, res } = toReqRes(c.req.raw);
-        await transport.handleRequest(req, res, body);
-        return toFetchResponse(res);
-      },
-    )
-    .get(
-      describeRoute({ description: "Get Session Information", tags: ["MCP"] }),
-      handleSessionRequest,
-    )
-    .delete(
-      describeRoute({ description: "Delete Session", tags: ["MCP"] }),
-      handleSessionRequest,
-    );
+      };
+      await getServer().connect(transport);
+    }
+    if (!transport) {
+      res.status(400).json({
+        jsonrpc: "2.0",
+        error: {
+          code: -32000,
+          message: "Bad Request: No valid session ID provided",
+        },
+        id: null,
+      });
+    } else {
+      await transport.handleRequest(req, res, req.body);
+    }
+  });
+  api.get("/mcp", handleSessionRequest);
+  api.delete("/mcp", handleSessionRequest);
 };
