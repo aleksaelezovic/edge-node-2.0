@@ -1,4 +1,4 @@
-import { createPluginServer } from "@dkg/plugins";
+import { createPluginServer, defaultPlugin } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
 import authPlugin, { authorized } from "@dkg/plugin-auth";
 import examplePlugin from "@dkg/plugin-example";
@@ -27,6 +27,7 @@ const app = createPluginServer({
     }),
   },
   plugins: [
+    defaultPlugin,
     authPlugin({
       secret: "my-secret-key", // Secret key for JWT token generation
       schema: z.object({

@@ -1,4 +1,6 @@
 import express from "express";
+import cors from "cors";
+import morgan from "morgan";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerMcp } from "./registerMcp";
 
@@ -37,6 +39,17 @@ export const defineDkgPlugin = (plugin: DkgPlugin): DkgPluginBuilder =>
     },
   } satisfies DkgPluginBuilderMethods);
 
+export const defaultPlugin = defineDkgPlugin((ctx, mcp, api) => {
+  api.use(express.json());
+  api.use(express.urlencoded());
+  api.use(cors());
+  api.use(morgan("tiny"));
+
+  api.get("/health", (_, res) => {
+    res.status(200).json({ status: "ok" });
+  });
+});
+
 export const createPluginServer = ({
   name,
   version,
@@ -49,6 +62,7 @@ export const createPluginServer = ({
   plugins: DkgPlugin[];
 }) => {
   const server = express();
+  server.disable("x-powered-by");
   plugins.forEach((plugin) =>
     plugin(context, new McpServer({ name, version }), server),
   );
