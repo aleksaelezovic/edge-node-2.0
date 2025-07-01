@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import compression from "compression";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerMcp } from "./registerMcp";
 
@@ -44,6 +45,7 @@ export const defaultPlugin = defineDkgPlugin((ctx, mcp, api) => {
   api.use(express.urlencoded());
   api.use(cors());
   api.use(morgan("tiny"));
+  api.use(compression());
 
   api.get("/health", (_, res) => {
     res.status(200).json({ status: "ok" });
