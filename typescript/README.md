@@ -23,10 +23,6 @@ Make sure you are inside of this (`typescript`) directory.
 > If you are having problems with the `install` command, try deleting node_modules and package-lock.json
 > and then try again.
 
-> [!TIP]
-> If you are having problems with the `dev` command, try deleting "@sinclair" directory inside of
-> the `packages/plugins/node_modules` directory.
-
 To run commands for a specific package or application you can either:
 
 - go into it's directory and run `npm run` to see available commands or
