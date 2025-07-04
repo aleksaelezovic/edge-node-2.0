@@ -1,5 +1,35 @@
 import { defineDkgPlugin } from "@dkg/plugins";
+import { z } from "@dkg/plugins/helpers";
 
 export default defineDkgPlugin((ctx, mcp, api) => {
-  // Your plugin implementation goes here
+  // Custom code shared by MCP and API
+  function add(a: number, b: number): number {
+    return a + b;
+  }
+
+  // Example MCP Tool definition, using @modelcontextprotocol/sdk
+  mcp.registerTool(
+    "add",
+    {
+      title: "Addition Tool",
+      description: "Add two numbers",
+      inputSchema: { a: z.number(), b: z.number() },
+    },
+    async ({ a, b }) => {
+      return {
+        content: [{ type: "text", text: String(add(a, b)) }],
+      };
+    },
+  );
+
+  // Example API route definition, using express.js framework
+  api.get("/add", (req, res) => {
+    const a = Number(req.query.a);
+    const b = Number(req.query.b);
+    if (Number.isNaN(a) || Number.isNaN(b)) {
+      res.status(400).json({ error: "Invalid input" });
+      return;
+    }
+    res.json({ result: add(a, b) });
+  });
 });
