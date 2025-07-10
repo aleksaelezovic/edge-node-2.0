@@ -59,9 +59,6 @@ export default ({
         const clientScope = client.scope?.split(" ") || [];
         if (!params.scopes || params.scopes.length === 0)
           params.scopes = clientScope;
-        if (!params.scopes.every((s) => clientScope.includes(s))) {
-          throw new Error("Invalid scope");
-        }
 
         try {
           await implementation.saveCode(code, client, params);
@@ -69,7 +66,7 @@ export default ({
           throw new Error("Failed to save code: " + String(err));
         }
 
-        const redirectUri = client.redirect_uris.at(0);
+        const redirectUri = params.redirectUri || client.redirect_uris.at(0);
         if (!redirectUri) {
           throw new Error("No redirect URIs provided");
         }

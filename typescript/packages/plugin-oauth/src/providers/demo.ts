@@ -22,7 +22,7 @@ export default class DemoProvider implements Implementation {
     client: OAuthClientInformationFull,
   ): OAuthClientInformationFull {
     console.dir(client);
-    client.scope = "mcp";
+    client.scope = "mcp scope123";
     this._clients.set(client.client_id, client);
     return client;
   }
