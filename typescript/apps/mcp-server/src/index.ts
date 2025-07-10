@@ -1,6 +1,6 @@
 import { createPluginServer, defaultPlugin } from "@dkg/plugins";
-import { z } from "@dkg/plugins/helpers";
-import authPlugin, { authorized } from "@dkg/plugin-auth";
+//import { z } from "@dkg/plugins/helpers";
+import authPlugin, { authorized } from "@dkg/plugin-oauth";
 import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
 //@ts-expect-error No types for dkg.js ...
@@ -29,21 +29,13 @@ const app = createPluginServer({
   plugins: [
     defaultPlugin,
     authPlugin({
-      secret: "my-secret-key", // Secret key for JWT token generation
-      schema: z.object({
-        username: z.string().openapi({ example: "admin" }),
-        password: z.string().openapi({ example: "admin123" }),
-      }),
-      async login({ username, password }) {
-        // Allows logging in with default credentials, username: "admin", password: "admin123"
-        // Change this as needed
-        if (username !== "admin" || password !== "admin123") {
-          throw new Error("Invalid credentials");
-        }
-        return ["mcp", "scope123"]; // Scopes that the user has access to
-      },
-      requireAuthByDefault: false,
+      issuerUrl: new URL("http://localhost:9200"),
+      scopesSupported: ["scope123", "mcp"],
     }),
+
+    (_, __, api) => {
+      api.use("/mcp", authorized(["mcp"]));
+    },
     examplePlugin.withNamespace("protected", {
       middlewares: [authorized(["scope123"])], // Allow only users with the "scope123" scope
     }),

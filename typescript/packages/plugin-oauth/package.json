@@ -1,23 +1,19 @@
 {
-  "name": "@dkg/mcp-server",
+  "name": "@dkg/plugin-oauth",
   "version": "0.0.1",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "dev": "tsup src/*.ts --format cjs,esm --dts --watch --onSuccess 'node dist/index.js'",
+    "dev": "tsup src/*.ts --format cjs,esm --dts --watch",
     "build": "tsup src/*.ts --format cjs,esm --dts",
     "check-types": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
-    "@dkg/plugin-auth": "^0.0.1",
-    "@dkg/plugin-example": "^0.0.1",
-    "@dkg/plugin-oauth": "^0.0.1",
-    "@dkg/plugin-swagger": "^0.0.1",
     "@dkg/plugins": "^0.0.1",
-    "dkg.js": "^8.0.14"
+    "@modelcontextprotocol/sdk": "^1.15.0"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
