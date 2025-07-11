@@ -1,5 +1,5 @@
 import { createPluginServer, defaultPlugin } from "@dkg/plugins";
-//import { z } from "@dkg/plugins/helpers";
+import { z } from "@dkg/plugins/helpers";
 import authPlugin, { authorized } from "@dkg/plugin-oauth";
 import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
@@ -31,6 +31,20 @@ const app = createPluginServer({
     authPlugin({
       issuerUrl: new URL("http://localhost:9200"),
       scopesSupported: ["scope123", "mcp"],
+      schema: z.object({
+        username: z.string(),
+        password: z.string(),
+      }),
+      async login(credentials) {
+        if (
+          credentials.username === "admin" &&
+          credentials.password === "admin123"
+        ) {
+          return { scopes: ["mcp", "scope123"] };
+        }
+        throw new Error("Invalid credentials");
+      },
+      loginPageUrl: new URL("http://localhost:8081/login"),
     }),
 
     (_, __, api) => {

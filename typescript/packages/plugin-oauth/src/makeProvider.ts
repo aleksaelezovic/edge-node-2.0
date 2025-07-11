@@ -1,0 +1,193 @@
+import { randomUUID } from "node:crypto";
+import {
+  OAuthServerProvider,
+  AuthorizationParams,
+} from "@modelcontextprotocol/sdk/server/auth/provider.js";
+import { OAuthClientInformationFull } from "@modelcontextprotocol/sdk/shared/auth.js";
+import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+
+export default function makeProvider({
+  storage,
+  scopesSupported,
+  tokenExpirationInSeconds,
+  loginPageUrl,
+}: {
+  storage: StorageImplementation;
+  scopesSupported?: string[];
+  tokenExpirationInSeconds: number;
+  loginPageUrl: URL;
+}): OAuthServerProvider & {
+  authorizeConfirm: (
+    authorizationCode: string,
+    allowedScope: string[],
+  ) => Promise<URL>;
+} {
+  return {
+    clientsStore: {
+      getClient(clientId) {
+        return storage.getClient(clientId);
+      },
+      async registerClient(client) {
+        client.scope = scopesSupported?.join(" ");
+        await storage.saveClient(client);
+        return client;
+      },
+    },
+    async authorizeConfirm(authorizationCode, allowedScope) {
+      const codeData = await storage.getCodeData(authorizationCode);
+      if (!codeData) throw new Error("Invalid authorization code");
+
+      const { client, params } = codeData;
+      const redirectUri = params.redirectUri || client.redirect_uris.at(0);
+      if (!redirectUri) throw new Error("No redirect URIs provided");
+
+      if (!params.scopes?.every((s) => allowedScope.includes(s))) {
+        throw new Error("Scope not allowed");
+      }
+
+      await storage.confirmCode(authorizationCode);
+
+      const targetUrl = new URL(redirectUri);
+      const searchParams = new URLSearchParams({ code: authorizationCode });
+      if (params.state !== undefined) searchParams.set("state", params.state);
+      targetUrl.search = searchParams.toString();
+      return targetUrl;
+    },
+    async authorize(client, params, res) {
+      const code = randomUUID();
+
+      const clientScope = client.scope?.split(" ") || [];
+      if (!params.scopes || params.scopes.length === 0)
+        params.scopes = clientScope;
+
+      try {
+        await storage.saveCode(code, client, params);
+      } catch (err) {
+        throw new Error("Failed to save code: " + String(err));
+      }
+
+      const targetUrl = new URL(loginPageUrl);
+      targetUrl.search = new URLSearchParams({ code }).toString();
+      res.redirect(targetUrl.toString());
+    },
+    async challengeForAuthorizationCode(
+      client,
+      authorizationCode,
+    ): Promise<string> {
+      const codeData = await storage.getCodeData(authorizationCode);
+      if (!codeData) {
+        throw new Error("Invalid authorization code");
+      }
+
+      return codeData.params.codeChallenge;
+    },
+    async exchangeAuthorizationCode(client, authorizationCode) {
+      const codeData = await storage.getCodeData(authorizationCode);
+      if (!codeData) {
+        throw new Error("Invalid authorization code");
+      }
+
+      if (codeData.client.client_id !== client.client_id) {
+        throw new Error(
+          `Authorization code was not issued to this client, ${codeData.client.client_id} != ${client.client_id}`,
+        );
+      }
+
+      if (
+        storage.validateResource &&
+        !storage.validateResource(codeData.params.resource)
+      ) {
+        throw new Error(`Invalid resource: ${codeData.params.resource}`);
+      }
+
+      if (!(await storage.isCodeConfirmed(authorizationCode))) {
+        throw new Error("Code not confirmed");
+      }
+
+      try {
+        await storage.deleteCode(authorizationCode);
+      } catch (err) {
+        throw new Error("Error deleting authorization code: " + String(err));
+      }
+
+      const token = randomUUID();
+      try {
+        await storage.saveToken(token, {
+          token,
+          clientId: client.client_id,
+          scopes: codeData.params.scopes || [],
+          expiresAt: Date.now() + tokenExpirationInSeconds * 1000,
+          resource: codeData.params.resource,
+          // type: "access",
+        });
+      } catch (err) {
+        throw new Error("Error deleting authorization code: " + String(err));
+      }
+
+      return {
+        access_token: token,
+        token_type: "bearer",
+        expires_in: tokenExpirationInSeconds,
+        scope: (codeData.params.scopes || []).join(" "),
+      };
+    },
+    async exchangeRefreshToken(
+      _client: OAuthClientInformationFull,
+      _refreshToken: string,
+      _scopes?: string[],
+      _resource?: URL,
+    ) {
+      console.log(_client, _refreshToken, _scopes, _resource);
+      throw new Error("Not implemented for example demo");
+    },
+    async verifyAccessToken(token: string): Promise<AuthInfo> {
+      const tokenData = await storage.getTokenData(token);
+      if (
+        !tokenData ||
+        !tokenData.expiresAt ||
+        tokenData.expiresAt < Date.now()
+      ) {
+        throw new Error("Invalid or expired token");
+      }
+
+      console.log("TOKEN DATA", tokenData);
+      return {
+        token,
+        clientId: tokenData.clientId,
+        scopes: tokenData.scopes,
+        expiresAt: Math.floor(tokenData.expiresAt / 1000),
+        resource: tokenData.resource,
+      };
+    },
+    async revokeToken(client, request) {
+      console.log(client, request);
+      throw new Error("Not implemented for example demo");
+    },
+  };
+}
+
+export type StorageImplementation = {
+  saveCode: (
+    code: string,
+    client: OAuthClientInformationFull,
+    params: AuthorizationParams,
+  ) => Promise<void>;
+  confirmCode: (code: string) => Promise<void>;
+  isCodeConfirmed: (code: string) => Promise<boolean>;
+  getCodeData: (code: string) => Promise<
+    | {
+        client: OAuthClientInformationFull;
+        params: AuthorizationParams;
+      }
+    | undefined
+    | null
+  >;
+  deleteCode: (code: string) => Promise<void>;
+  saveToken: (token: string, tokenData: AuthInfo) => Promise<void>;
+  getTokenData: (token: string) => Promise<AuthInfo | undefined | null>;
+  validateResource?: (resource?: URL) => Promise<boolean>;
+  saveClient: (client: OAuthClientInformationFull) => Promise<void>;
+  getClient: (
+    clientId: string,
+  ) => Promise<OAuthClientInformationFull | undefined>;
+};

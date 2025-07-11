@@ -1,9 +1,10 @@
-import { Implementation } from "..";
+import { StorageImplementation } from "../makeProvider";
+
 import { OAuthClientInformationFull } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 
-export default class DemoProvider implements Implementation {
+export default class DemoStorageProvider implements StorageImplementation {
   private _clients: Map<string, OAuthClientInformationFull> = new Map();
   private _codes: Map<
     string,
@@ -13,18 +14,14 @@ export default class DemoProvider implements Implementation {
     }
   > = new Map();
   private _tokens: Map<string, AuthInfo> = new Map();
+  private _codeConfirmed: Map<string, boolean> = new Map();
 
-  getClient(id: string): OAuthClientInformationFull | undefined {
+  async getClient(id: string): Promise<OAuthClientInformationFull | undefined> {
     return this._clients.get(id);
   }
 
-  registerClient(
-    client: OAuthClientInformationFull,
-  ): OAuthClientInformationFull {
-    console.dir(client);
-    client.scope = "mcp scope123";
+  async saveClient(client: OAuthClientInformationFull): Promise<void> {
     this._clients.set(client.client_id, client);
-    return client;
   }
 
   async saveCode(
@@ -33,6 +30,14 @@ export default class DemoProvider implements Implementation {
     params: AuthorizationParams,
   ) {
     this._codes.set(code, { params, client });
+  }
+
+  async confirmCode(code: string) {
+    this._codeConfirmed.set(code, true);
+  }
+
+  async isCodeConfirmed(code: string): Promise<boolean> {
+    return this._codeConfirmed.get(code) || false;
   }
 
   async getCodeData(
