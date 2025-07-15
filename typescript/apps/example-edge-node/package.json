@@ -44,7 +44,6 @@
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
     "@types/react": "~19.0.10",
-    "typescript": "undefined",
     "eslint": "^9.29.0"
   },
   "private": true

@@ -7,7 +7,6 @@
   },
   "devDependencies": {
     "@dkg/typescript-config": "*",
-    "@turbo/gen": "^2.5.0",
-    "typescript": "undefined"
+    "@turbo/gen": "^2.5.0"
   }
 }
