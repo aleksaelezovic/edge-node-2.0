@@ -111,7 +111,9 @@ export default function Chat() {
   const { code } = useLocalSearchParams<{ code?: string }>();
   const [tools, setTools] = useState<OpenAI.ChatCompletionTool[]>([]);
   const [message, setMessage] = useState<string>("");
-  const [messages, setMessages] = useState<OpenAI.ChatCompletionMessage[]>([]);
+  const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
+    [],
+  );
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
@@ -145,6 +147,23 @@ export default function Chat() {
     });
   }, [connected]);
 
+  useEffect(() => {
+    if (messages.at(-1)?.role === "user")
+      openai.chat.completions
+        .create({
+          model: "gpt-4",
+          messages,
+          tools,
+        })
+        .then((r) => r.choices[0]?.message)
+        .then((m) => {
+          if (!m) throw new Error("No message received");
+          setMessages((prevMessages) => [...prevMessages, m]);
+        });
+  }, [messages, tools]);
+
+  console.log(messages);
+
   return (
     <>
       <View>
@@ -159,32 +178,58 @@ export default function Chat() {
         <Button
           title="Send"
           onPress={() => {
-            openai.chat.completions
-              .create({
-                model: "gpt-4",
-                messages: [],
-                tools,
-              })
-              .then((r) => r.choices[0]?.message)
-              .then((m) => {
-                if (!m) throw new Error("No message received");
-                setMessages((prevMessages) => [...prevMessages, m]);
-              });
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              { role: "user", content: message },
+            ]);
+            setMessage("");
           }}
         />
         <View>
           {messages.map((m, i) => (
-            <View key={i}>
-              <Text>{m.content}</Text>
-              <View>
-                <Text>Tool calls:</Text>
-                {m.tool_calls?.map((tc, j) => (
-                  <View key={j}>
-                    <Text>{tc.function.name}</Text>
-                    <Text>{tc.function.arguments}</Text>
-                  </View>
-                ))}
-              </View>
+            <View key={i} style={{ marginVertical: 8 }}>
+              <Text>{m.role}</Text>
+              {m.role === "user" && <Text>{m.content.toString()}</Text>}
+              {m.role === "tool" && (
+                <Text>
+                  {typeof m.content === "string"
+                    ? m.content
+                    : m.content.map((item, index) => (
+                        <Text key={index}>{item.text}</Text>
+                      ))}
+                </Text>
+              )}
+              {m.role === "assistant" && (
+                <View>
+                  <Text>Tool calls:</Text>
+                  {m.tool_calls?.map((tc, j) => (
+                    <View key={j}>
+                      <Text>{tc.function.name}</Text>
+                      <Text>{tc.function.arguments}</Text>
+                      <Button
+                        title="Call"
+                        onPress={() => {
+                          mcp
+                            .callTool({
+                              name: tc.function.name,
+                              arguments: JSON.parse(tc.function.arguments),
+                            })
+                            .then((result) => {
+                              setMessages((prevMessages) => [
+                                ...prevMessages,
+                                {
+                                  role: "tool",
+                                  tool_call_id: tc.id,
+                                  content: result.content as string,
+                                },
+                              ]);
+                            });
+                        }}
+                      />
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
           ))}
         </View>
