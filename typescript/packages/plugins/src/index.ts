@@ -43,7 +43,12 @@ export const defineDkgPlugin = (plugin: DkgPlugin): DkgPluginBuilder =>
 export const defaultPlugin = defineDkgPlugin((ctx, mcp, api) => {
   api.use(express.json());
   api.use(express.urlencoded());
-  api.use(cors());
+  api.use(
+    cors({
+      allowedHeaders: "*",
+      exposedHeaders: "*",
+    }),
+  );
   api.use(morgan("tiny"));
   api.use(compression());
 
