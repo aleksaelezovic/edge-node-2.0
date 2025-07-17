@@ -1,0 +1,18 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "build:web", "build:server"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"]
+    },
+    "build:web": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/app/**"]
+    },
+    "build:server": {
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "src/server"],
+      "outputs": ["dist/*"]
+    }
+  }
+}
