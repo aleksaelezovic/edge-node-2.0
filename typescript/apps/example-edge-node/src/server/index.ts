@@ -1,4 +1,5 @@
 import path from "node:path";
+import dotenv from "dotenv";
 import { createPluginServer, defaultPlugin } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
 import authPlugin, { authorized } from "@dkg/plugin-oauth";
@@ -7,6 +8,8 @@ import examplePlugin from "@dkg/plugin-example";
 import DKG from "dkg.js";
 
 import webInterfacePlugin from "./webInterfacePlugin";
+
+dotenv.config();
 
 const app = createPluginServer({
   name: "DKG API",
@@ -29,7 +32,7 @@ const app = createPluginServer({
   plugins: [
     defaultPlugin,
     authPlugin({
-      issuerUrl: new URL("http://localhost:9200"),
+      issuerUrl: new URL(process.env.EXPO_PUBLIC_MCP_URL),
       scopesSupported: ["scope123", "mcp"],
       schema: z.object({
         username: z.string(),
@@ -44,7 +47,7 @@ const app = createPluginServer({
         }
         throw new Error("Invalid credentials");
       },
-      loginPageUrl: new URL("http://localhost:9200/login"),
+      loginPageUrl: new URL(process.env.EXPO_PUBLIC_APP_URL + "/login"),
     }),
     (_, __, api) => {
       api.use("/mcp", authorized(["mcp"]));

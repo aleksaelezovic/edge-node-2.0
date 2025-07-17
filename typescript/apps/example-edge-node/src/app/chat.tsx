@@ -93,20 +93,20 @@ class InMemoryOAuthClientProvider implements OAuthClientProvider {
 
 const mcp = new Client({ name: "edge-node-agent", version: "1.0.0" });
 const openai = new OpenAI({
-  apiKey: process.env.EXPO_PUBLIC_OPEN_API_KEY || "?",
+  apiKey: process.env.EXPO_PUBLIC_OPEN_API_KEY,
   dangerouslyAllowBrowser: true,
 });
 const transport = new StreamableHTTPClientTransport(
-  new URL("http://localhost:9200/mcp"),
+  new URL(process.env.EXPO_PUBLIC_MCP_URL + "/mcp"),
   {
     fetch: (url, opts) => fetch(url.toString(), opts as any),
     authProvider: new InMemoryOAuthClientProvider(
-      "http://localhost:9200/chat",
+      process.env.EXPO_PUBLIC_APP_URL + "/chat",
       {
-        redirect_uris: ["http://localhost:9200/chat"],
+        redirect_uris: [process.env.EXPO_PUBLIC_APP_URL + "/chat"],
         client_name: "Edge Node Agent",
-        client_uri: "http://localhost:9200",
-        logo_uri: "http://localhost:9200/logo.png",
+        client_uri: process.env.EXPO_PUBLIC_APP_URL,
+        logo_uri: process.env.EXPO_PUBLIC_APP_URL + "/logo.png",
         scope: "mcp",
       },
       async (url) => {

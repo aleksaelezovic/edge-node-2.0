@@ -19,7 +19,9 @@ export default function Login() {
   function login() {
     setError("");
     fetch(
-      "http://localhost:9200/login?code=" + encodeURIComponent(code ?? ""),
+      process.env.EXPO_PUBLIC_MCP_URL +
+        "/login?code=" +
+        encodeURIComponent(code ?? ""),
       {
         method: "POST",
         body: JSON.stringify({ username, password }),
