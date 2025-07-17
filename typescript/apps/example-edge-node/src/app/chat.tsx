@@ -15,7 +15,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import * as Linking from "expo-linking";
 import OpenAI from "openai";
