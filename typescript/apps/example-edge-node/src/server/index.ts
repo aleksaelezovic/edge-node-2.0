@@ -1,16 +1,16 @@
+import path from "node:path";
 import { createPluginServer, defaultPlugin } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
 import authPlugin, { authorized } from "@dkg/plugin-oauth";
 import examplePlugin from "@dkg/plugin-example";
-import swaggerPlugin from "@dkg/plugin-swagger";
 //@ts-expect-error No types for dkg.js ...
 import DKG from "dkg.js";
 
-import { version } from "../package.json";
+import webInterfacePlugin from "./webInterfacePlugin";
 
 const app = createPluginServer({
   name: "DKG API",
-  version,
+  version: "1.0.0",
   context: {
     dkg: new DKG({
       endpoint: "http://localhost",
@@ -44,34 +44,15 @@ const app = createPluginServer({
         }
         throw new Error("Invalid credentials");
       },
-      loginPageUrl: new URL("http://localhost:8081/login"),
+      loginPageUrl: new URL("http://localhost:9200/login"),
     }),
-
     (_, __, api) => {
       api.use("/mcp", authorized(["mcp"]));
     },
     examplePlugin.withNamespace("protected", {
       middlewares: [authorized(["scope123"])], // Allow only users with the "scope123" scope
     }),
-    swaggerPlugin({
-      version,
-      servers: [
-        {
-          url: "http://localhost:9200",
-          description: "Local development server",
-        },
-      ],
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: "http",
-            scheme: "bearer",
-            bearerFormat: "JWT",
-          },
-        },
-      },
-      security: [{ bearerAuth: [] }],
-    }),
+    webInterfacePlugin(path.join(__dirname, "./app")),
   ],
 });
 

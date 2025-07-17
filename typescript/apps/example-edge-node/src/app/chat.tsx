@@ -101,12 +101,12 @@ const transport = new StreamableHTTPClientTransport(
   {
     fetch: (url, opts) => fetch(url.toString(), opts as any),
     authProvider: new InMemoryOAuthClientProvider(
-      "http://localhost:8081/chat",
+      "http://localhost:9200/chat",
       {
-        redirect_uris: ["http://localhost:8081/chat"],
+        redirect_uris: ["http://localhost:9200/chat"],
         client_name: "Edge Node Agent",
-        client_uri: "http://localhost:8081",
-        logo_uri: "http://localhost:8081/logo.png",
+        client_uri: "http://localhost:9200",
+        logo_uri: "http://localhost:9200/logo.png",
         scope: "mcp",
       },
       async (url) => {

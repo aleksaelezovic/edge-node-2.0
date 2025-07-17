@@ -8,15 +8,22 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "build:server": "tsup src/server/*.ts --format cjs,esm --dts",
+    "build:web": "npx expo export -p web --output-dir dist/app"
   },
   "dependencies": {
+    "@dkg/plugin-auth": "^0.0.1",
+    "@dkg/plugin-example": "^0.0.1",
+    "@dkg/plugin-oauth": "^0.0.1",
+    "@dkg/plugin-swagger": "^0.0.1",
     "@dkg/plugins": "^0.0.1",
     "@expo/vector-icons": "^14.1.0",
     "@modelcontextprotocol/sdk": "^1.15.1",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
+    "dkg.js": "^8.0.14",
     "expo": "~53.0.12",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.6",
@@ -46,7 +53,8 @@
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
     "@types/react": "~19.0.10",
-    "eslint": "^9.29.0"
+    "eslint": "^9.29.0",
+    "tsup": "^8.5.0"
   },
   "private": true
 }
