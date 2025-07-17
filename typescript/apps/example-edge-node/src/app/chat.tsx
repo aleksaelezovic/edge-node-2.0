@@ -8,7 +8,15 @@ import {
   OAuthTokens,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { useEffect, useState } from "react";
-import { Button, Text, TextInput, View } from "react-native";
+import {
+  Text,
+  TextInput,
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import * as Linking from "expo-linking";
 import OpenAI from "openai";
 import { useLocalSearchParams } from "expo-router";
@@ -86,7 +94,7 @@ class InMemoryOAuthClientProvider implements OAuthClientProvider {
 
 const mcp = new Client({ name: "edge-node-agent", version: "1.0.0" });
 const openai = new OpenAI({
-  apiKey: process.env.API_KEY || "---",
+  apiKey: process.env.EXPO_PUBLIC_OPEN_API_KEY || "?",
   dangerouslyAllowBrowser: true,
 });
 const transport = new StreamableHTTPClientTransport(
@@ -102,7 +110,10 @@ const transport = new StreamableHTTPClientTransport(
         logo_uri: "http://localhost:8081/logo.png",
         scope: "mcp",
       },
-      (url) => Linking.openURL(url.toString()),
+      async (url) => {
+        await new Promise((r) => setTimeout(r, 1000));
+        await Linking.openURL(url.toString());
+      },
     ),
   },
 );
@@ -165,33 +176,38 @@ export default function Chat() {
   console.log(messages);
 
   return (
-    <>
-      <View>
-        <Text>Hello, World!</Text>
-        {connected ? <Text>Connected</Text> : <Text>Connecting...</Text>}
-        <Text>{tools.length} tools available</Text>
-        <TextInput
-          placeholder="Message"
-          onChangeText={setMessage}
-          value={message}
-        />
-        <Button
-          title="Send"
-          onPress={() => {
-            setMessages((prevMessages) => [
-              ...prevMessages,
-              { role: "user", content: message },
-            ]);
-            setMessage("");
-          }}
-        />
-        <View>
-          {messages.map((m, i) => (
-            <View key={i} style={{ marginVertical: 8 }}>
-              <Text>{m.role}</Text>
-              {m.role === "user" && <Text>{m.content.toString()}</Text>}
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Edge Node Chat</Text>
+        <View style={styles.statusContainer}>
+          {connected ? (
+            <Text style={styles.statusConnected}>● Connected</Text>
+          ) : (
+            <Text style={styles.statusConnecting}>● Connecting...</Text>
+          )}
+          <Text style={styles.toolsCount}>{tools.length} tools available</Text>
+        </View>
+      </View>
+
+      <ScrollView style={styles.messagesContainer}>
+        {messages.map((m, i) => (
+          <View key={i} style={styles.messageWrapper}>
+            <View
+              style={[
+                styles.messageBubble,
+                m.role === "user"
+                  ? styles.userMessage
+                  : styles.assistantMessage,
+              ]}
+            >
+              <Text style={styles.roleLabel}>{m.role.toUpperCase()}</Text>
+
+              {m.role === "user" && (
+                <Text style={styles.messageText}>{m.content.toString()}</Text>
+              )}
+
               {m.role === "tool" && (
-                <Text>
+                <Text style={styles.toolMessage}>
                   {typeof m.content === "string"
                     ? m.content
                     : m.content.map((item, index) => (
@@ -199,15 +215,19 @@ export default function Chat() {
                       ))}
                 </Text>
               )}
+
               {m.role === "assistant" && (
                 <View>
-                  <Text>Tool calls:</Text>
                   {m.tool_calls?.map((tc, j) => (
-                    <View key={j}>
-                      <Text>{tc.function.name}</Text>
-                      <Text>{tc.function.arguments}</Text>
-                      <Button
-                        title="Call"
+                    <View key={j} style={styles.toolCallContainer}>
+                      <Text style={styles.toolCallName}>
+                        {tc.function.name}
+                      </Text>
+                      <Text style={styles.toolCallArgs}>
+                        {tc.function.arguments}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.callButton}
                         onPress={() => {
                           mcp
                             .callTool({
@@ -225,15 +245,203 @@ export default function Chat() {
                               ]);
                             });
                         }}
-                      />
+                      >
+                        <Text style={styles.callButtonText}>Call Function</Text>
+                      </TouchableOpacity>
                     </View>
                   ))}
                 </View>
               )}
             </View>
-          ))}
-        </View>
+          </View>
+        ))}
+      </ScrollView>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Type your message..."
+          placeholderTextColor="#666"
+          onChangeText={setMessage}
+          value={message}
+          multiline
+        />
+        <TouchableOpacity
+          style={[
+            styles.sendButton,
+            !message.trim() && styles.sendButtonDisabled,
+          ]}
+          disabled={!message.trim()}
+          onPress={() => {
+            if (message.trim()) {
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                { role: "user", content: message },
+              ]);
+              setMessage("");
+            }
+          }}
+        >
+          <Text style={styles.sendButtonText}>Send</Text>
+        </TouchableOpacity>
       </View>
-    </>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  header: {
+    backgroundColor: "#2c3e50",
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  statusContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  statusConnected: {
+    color: "#2ecc71",
+    fontWeight: "600",
+  },
+  statusConnecting: {
+    color: "#f39c12",
+    fontWeight: "600",
+  },
+  toolsCount: {
+    color: "#ecf0f1",
+    fontSize: 12,
+  },
+  messagesContainer: {
+    flex: 1,
+    padding: 15,
+  },
+  messageWrapper: {
+    marginBottom: 15,
+  },
+  messageBubble: {
+    padding: 12,
+    borderRadius: 12,
+    maxWidth: "85%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  userMessage: {
+    backgroundColor: "#3498db",
+    alignSelf: "flex-end",
+  },
+  assistantMessage: {
+    backgroundColor: "#fff",
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  roleLabel: {
+    fontSize: 10,
+    fontWeight: "bold",
+    marginBottom: 4,
+    color: "#7f8c8d",
+    textTransform: "uppercase",
+  },
+  messageText: {
+    fontSize: 16,
+    color: "#fff",
+    lineHeight: 20,
+  },
+  toolMessage: {
+    fontSize: 14,
+    color: "#2c3e50",
+    backgroundColor: "#ecf0f1",
+    padding: 8,
+    borderRadius: 6,
+    fontFamily: "monospace",
+  },
+  toolCallContainer: {
+    marginTop: 8,
+    padding: 10,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#3498db",
+  },
+  toolCallName: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#2c3e50",
+    marginBottom: 4,
+  },
+  toolCallArgs: {
+    fontSize: 12,
+    color: "#7f8c8d",
+    fontFamily: "monospace",
+    marginBottom: 8,
+  },
+  callButton: {
+    backgroundColor: "#3498db",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    alignSelf: "flex-start",
+  },
+  callButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    padding: 15,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+    alignItems: "flex-end",
+  },
+  textInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    fontSize: 16,
+    maxHeight: 100,
+    marginRight: 10,
+    backgroundColor: "#f8f9fa",
+  },
+  sendButton: {
+    backgroundColor: "#3498db",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sendButtonDisabled: {
+    backgroundColor: "#bdc3c7",
+  },
+  sendButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});
