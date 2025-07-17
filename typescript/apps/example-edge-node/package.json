@@ -13,7 +13,6 @@
     "build:web": "npx expo export -p web --output-dir dist/app"
   },
   "dependencies": {
-    "@dkg/plugin-auth": "^0.0.1",
     "@dkg/plugin-example": "^0.0.1",
     "@dkg/plugin-oauth": "^0.0.1",
     "@dkg/plugin-swagger": "^0.0.1",

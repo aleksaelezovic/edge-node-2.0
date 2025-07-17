@@ -7,6 +7,9 @@ import { sign } from "jsonwebtoken";
 
 type Scope = string[];
 
+/**
+ * @deprecated in favor of new "plugin-oauth" package
+ */
 export default <Credentials>({
   secret,
   schema,
