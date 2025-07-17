@@ -1,6 +1,6 @@
 import path from "node:path";
 import { defineDkgPlugin } from "@dkg/plugins";
-import express from "express";
+import { express } from "@dkg/plugins/helpers";
 import { createRequestHandler } from "@expo/server/adapter/express";
 
 export default (outputPath: string) =>
