@@ -8,13 +8,16 @@ import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middlew
 import DemoStorageProvider from "./storage/demo";
 import makeProvider, { StorageImplementation } from "./makeProvider";
 
+export { DemoStorageProvider };
+export type { StorageImplementation };
+
 export default <Credentials>({
     issuerUrl,
     schema,
     login,
     logout,
     loginPageUrl,
-    storage = new DemoStorageProvider(),
+    storage,
     scopesSupported,
     tokenExpirationInSeconds = 3600, // 1h
     refreshTokenExpirationInSeconds = 86400, // 1d
@@ -26,7 +29,7 @@ export default <Credentials>({
     }>;
     logout?: () => Promise<void>;
     loginPageUrl: URL;
-    storage?: StorageImplementation;
+    storage: StorageImplementation;
     tokenExpirationInSeconds?: number;
     refreshTokenExpirationInSeconds?: number;
     scopesSupported?: string[];

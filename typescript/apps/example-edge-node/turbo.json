@@ -2,7 +2,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "build:web", "build:server"],
+      "dependsOn": ["^build", "build:migrations", "build:web", "build:server"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**"]
     },
@@ -14,8 +14,12 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*", "src/server"],
       "outputs": ["dist/*"]
     },
+    "build:migrations": {
+      "inputs": ["$TURBO_DEFAULT$", "src/server/database"],
+      "outputs": ["drizzle/*"]
+    },
     "dev": {
-      "with": ["dev:app", "dev:server"],
+      "with": ["dev:app", "dev:server", "drizzle:studio"],
       "persistent": true,
       "cache": false
     },
@@ -23,6 +27,9 @@
       "persistent": true
     },
     "dev:server": {
+      "persistent": true
+    },
+    "drizzle:studio": {
       "persistent": true
     }
   }

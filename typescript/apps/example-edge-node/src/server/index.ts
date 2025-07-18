@@ -8,13 +8,20 @@ import examplePlugin from "@dkg/plugin-example";
 import DKG from "dkg.js";
 
 import webInterfacePlugin from "./webInterfacePlugin";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import SqliteOAuthStorageProvider from "./database/sqlite/SqliteOAuthStorageProvider";
 
-const envFile = process.argv.includes("--dev")
-  ? ".env.development.local"
-  : process.argv.includes("--prod")
-    ? ".env.production.local"
-    : ".env";
-dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+dotenv.config();
+if (process.argv.includes("--dev"))
+  dotenv.config({
+    path: path.resolve(process.cwd(), ".env.development.local"),
+  });
+
+const db = drizzle(process.env.DATABASE_URL);
+migrate(db, {
+  migrationsFolder: path.resolve(process.cwd(), "./drizzle/sqlite"),
+});
 
 const app = createPluginServer({
   name: "DKG API",
@@ -37,6 +44,7 @@ const app = createPluginServer({
   plugins: [
     defaultPlugin,
     authPlugin({
+      storage: new SqliteOAuthStorageProvider(db),
       issuerUrl: new URL(process.env.EXPO_PUBLIC_MCP_URL),
       scopesSupported: ["scope123", "mcp"],
       schema: z.object({

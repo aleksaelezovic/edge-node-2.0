@@ -9,10 +9,12 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "check-types": "tsc --noEmit",
-    "build:server": "tsup src/server/*.ts --format cjs,esm --dts",
+    "build:server": "tsup src/server/**/*.ts --format cjs,esm --dts",
     "build:web": "expo export -p web --output-dir dist/app",
-    "dev:app": "expo start --port 8081",
-    "dev:server": "tsup src/server/*.ts --format cjs,esm --dts --watch --onSuccess='node dist/index.js --dev'"
+    "build:migrations": "drizzle-kit generate",
+    "dev:app": "expo start --web --port 8081",
+    "dev:server": "tsup src/server/**/*.ts --format cjs,esm --dts --watch --onSuccess='node dist/index.js --dev'",
+    "drizzle:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@dkg/plugin-example": "^0.0.1",
@@ -24,7 +26,9 @@
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
+    "better-sqlite3": "^12.2.0",
     "dkg.js": "^8.0.14",
+    "drizzle-orm": "^0.44.3",
     "expo": "~53.0.12",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.6",
@@ -53,7 +57,9 @@
     "@babel/core": "^7.25.2",
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/react": "~19.0.10",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^9.29.0",
     "tsup": "^8.5.0"
   },
