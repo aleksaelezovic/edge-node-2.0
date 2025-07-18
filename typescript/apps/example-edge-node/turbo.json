@@ -13,6 +13,17 @@
     "build:server": {
       "inputs": ["$TURBO_DEFAULT$", ".env*", "src/server"],
       "outputs": ["dist/*"]
+    },
+    "dev": {
+      "with": ["dev:app", "dev:server"],
+      "persistent": true,
+      "cache": false
+    },
+    "dev:app": {
+      "persistent": true
+    },
+    "dev:server": {
+      "persistent": true
     }
   }
 }

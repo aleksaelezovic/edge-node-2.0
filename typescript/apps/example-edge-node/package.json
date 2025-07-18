@@ -10,7 +10,9 @@
     "lint": "expo lint",
     "check-types": "tsc --noEmit",
     "build:server": "tsup src/server/*.ts --format cjs,esm --dts",
-    "build:web": "npx expo export -p web --output-dir dist/app"
+    "build:web": "expo export -p web --output-dir dist/app",
+    "dev:app": "expo start --port 8081",
+    "dev:server": "tsup src/server/*.ts --format cjs,esm --dts --watch --onSuccess='node dist/index.js --dev'"
   },
   "dependencies": {
     "@dkg/plugin-example": "^0.0.1",

@@ -9,7 +9,12 @@ import DKG from "dkg.js";
 
 import webInterfacePlugin from "./webInterfacePlugin";
 
-dotenv.config();
+const envFile = process.argv.includes("--dev")
+  ? ".env.development.local"
+  : process.argv.includes("--prod")
+    ? ".env.production.local"
+    : ".env";
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
 const app = createPluginServer({
   name: "DKG API",
