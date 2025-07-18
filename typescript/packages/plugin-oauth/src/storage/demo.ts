@@ -61,4 +61,8 @@ export default class DemoStorageProvider implements StorageImplementation {
   async getTokenData(token: string): Promise<AuthInfo | undefined | null> {
     return this._tokens.get(token);
   }
+
+  async deleteToken(token: string): Promise<void> {
+    this._tokens.delete(token);
+  }
 }

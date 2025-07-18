@@ -16,7 +16,8 @@ export default <Credentials>({
     loginPageUrl,
     storage = new DemoStorageProvider(),
     scopesSupported,
-    tokenExpirationInSeconds = 3600,
+    tokenExpirationInSeconds = 3600, // 1h
+    refreshTokenExpirationInSeconds = 86400, // 1d
   }: {
     issuerUrl: URL;
     schema: z.Schema<Credentials>;
@@ -27,6 +28,7 @@ export default <Credentials>({
     loginPageUrl: URL;
     storage?: StorageImplementation;
     tokenExpirationInSeconds?: number;
+    refreshTokenExpirationInSeconds?: number;
     scopesSupported?: string[];
   }): DkgPlugin =>
   (_, __, api) => {
@@ -34,6 +36,7 @@ export default <Credentials>({
       storage,
       scopesSupported,
       tokenExpirationInSeconds,
+      refreshTokenExpirationInSeconds,
       loginPageUrl,
     });
 
