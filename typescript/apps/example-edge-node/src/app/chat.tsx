@@ -1,12 +1,5 @@
-import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import {
-  OAuthClientInformation,
-  OAuthClientInformationFull,
-  OAuthClientMetadata,
-  OAuthTokens,
-} from "@modelcontextprotocol/sdk/shared/auth.js";
 import { useEffect, useState } from "react";
 import {
   Text,
@@ -15,95 +8,37 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Platform,
+  Button,
 } from "react-native";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Linking from "expo-linking";
-import OpenAI from "openai";
 import { useLocalSearchParams } from "expo-router";
 import { fetch } from "expo/fetch";
+import OpenAI from "openai";
 
-class InMemoryOAuthClientProvider implements OAuthClientProvider {
-  private _clientInformation?: OAuthClientInformationFull;
-  private _tokens?: OAuthTokens;
-  private _codeVerifier?: string;
-
-  constructor(
-    private readonly _redirectUrl: string | URL,
-    private readonly _clientMetadata: OAuthClientMetadata,
-    onRedirect?: (url: URL) => void,
-  ) {
-    this._onRedirect =
-      onRedirect ||
-      ((url) => {
-        console.log(`Redirect to: ${url.toString()}`);
-      });
-  }
-
-  private _onRedirect: (url: URL) => void;
-
-  get redirectUrl(): string | URL {
-    return this._redirectUrl;
-  }
-
-  get clientMetadata(): OAuthClientMetadata {
-    return this._clientMetadata;
-  }
-
-  private _save(key: string, value: any) {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  }
-
-  private _load(key: string): any {
-    const str = window.localStorage.getItem(key);
-    if (str === null) return undefined;
-    return JSON.parse(str);
-  }
-
-  clientInformation(): OAuthClientInformation | undefined {
-    return this._load("clientInfo");
-  }
-
-  saveClientInformation(clientInformation: OAuthClientInformationFull): void {
-    this._save("clientInfo", clientInformation);
-  }
-
-  tokens(): OAuthTokens | undefined {
-    return this._load("tokens");
-  }
-
-  saveTokens(tokens: OAuthTokens): void {
-    this._save("tokens", tokens);
-  }
-
-  redirectToAuthorization(authorizationUrl: URL): void {
-    this._onRedirect(authorizationUrl);
-  }
-
-  saveCodeVerifier(codeVerifier: string): void {
-    this._save("codeVerifier", codeVerifier);
-  }
-
-  codeVerifier(): string {
-    const codeVerifier = this._load("codeVerifier");
-    if (!codeVerifier) {
-      throw new Error("No code verifier saved");
-    }
-    return codeVerifier;
-  }
-}
+import AsyncStorageOAuthClientProvider from "@/client/AsyncStorageOAuthClientProvider";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const mcp = new Client({ name: "edge-node-agent", version: "1.0.0" });
 const openai = new OpenAI({
   apiKey: process.env.EXPO_PUBLIC_OPEN_API_KEY,
   dangerouslyAllowBrowser: true,
 });
+const redirectUri =
+  Platform.OS === "web"
+    ? `${process.env.EXPO_PUBLIC_APP_URL}/chat`
+    : Constants.executionEnvironment === ExecutionEnvironment.StoreClient
+      ? `exp://127.0.0.1:8081/--/chat`
+      : `${Constants.expoConfig?.scheme}://chat`;
 const transport = new StreamableHTTPClientTransport(
   new URL(process.env.EXPO_PUBLIC_MCP_URL + "/mcp"),
   {
     fetch: (url, opts) => fetch(url.toString(), opts as any),
-    authProvider: new InMemoryOAuthClientProvider(
-      process.env.EXPO_PUBLIC_APP_URL + "/chat",
+    authProvider: new AsyncStorageOAuthClientProvider(
+      redirectUri,
       {
-        redirect_uris: [process.env.EXPO_PUBLIC_APP_URL + "/chat"],
+        redirect_uris: [redirectUri],
         client_name: "Edge Node Agent",
         client_uri: process.env.EXPO_PUBLIC_APP_URL,
         logo_uri: process.env.EXPO_PUBLIC_APP_URL + "/logo.png",
@@ -127,13 +62,22 @@ export default function Chat() {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    if (code) transport.finishAuth(code).then(() => Linking.openURL("/chat"));
+    if (code)
+      transport
+        .finishAuth(code)
+        .then(() => {
+          console.log("Auth finished");
+          Linking.openURL("/chat");
+        })
+        .catch((error) => {
+          console.error("Error finishing auth: ", error.stack);
+        });
     else
       mcp
         .connect(transport)
         .then(() => setConnected(true))
         .catch((error) => {
-          console.error("619", error);
+          console.error("Error connecting to MCP: ", error.stack);
         })
         .finally(() => {
           console.log(transport.sessionId);
@@ -172,12 +116,11 @@ export default function Chat() {
         });
   }, [messages, tools]);
 
-  console.log(messages);
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Edge Node Chat</Text>
+        <Button title="Clear" onPress={() => AsyncStorage.clear()} />
         <View style={styles.statusContainer}>
           {connected ? (
             <Text style={styles.statusConnected}>● Connected</Text>
