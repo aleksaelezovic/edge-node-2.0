@@ -17,6 +17,7 @@ dotenv.config();
 if (process.argv.includes("--dev"))
   dotenv.config({
     path: path.resolve(process.cwd(), ".env.development.local"),
+    override: true,
   });
 
 const db = drizzle(process.env.DATABASE_URL);
