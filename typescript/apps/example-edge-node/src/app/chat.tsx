@@ -1,5 +1,3 @@
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { useEffect, useState } from "react";
 import {
   Text,
@@ -8,49 +6,18 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Platform,
   Button,
 } from "react-native";
-import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Linking from "expo-linking";
 import { useLocalSearchParams } from "expo-router";
-import { fetch } from "expo/fetch";
 import OpenAI from "openai";
-
-import AsyncStorageOAuthClientProvider from "@/client/AsyncStorageOAuthClientProvider";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { mcp, transport } from "@/client";
 
-const mcp = new Client({ name: "edge-node-agent", version: "1.0.0" });
 const openai = new OpenAI({
   apiKey: process.env.EXPO_PUBLIC_OPEN_API_KEY,
   dangerouslyAllowBrowser: true,
 });
-const redirectUri =
-  Platform.OS === "web"
-    ? `${process.env.EXPO_PUBLIC_APP_URL}/chat`
-    : Constants.executionEnvironment === ExecutionEnvironment.StoreClient
-      ? `exp://127.0.0.1:8081/--/chat`
-      : `${Constants.expoConfig?.scheme}://chat`;
-const transport = new StreamableHTTPClientTransport(
-  new URL(process.env.EXPO_PUBLIC_MCP_URL + "/mcp"),
-  {
-    fetch: (url, opts) => fetch(url.toString(), opts as any),
-    authProvider: new AsyncStorageOAuthClientProvider(
-      redirectUri,
-      {
-        redirect_uris: [redirectUri],
-        client_name: "Edge Node Agent",
-        client_uri: process.env.EXPO_PUBLIC_APP_URL,
-        logo_uri: process.env.EXPO_PUBLIC_APP_URL + "/logo.png",
-        scope: "mcp",
-      },
-      async (url) => {
-        await new Promise((r) => setTimeout(r, 1000));
-        await Linking.openURL(url.toString());
-      },
-    ),
-  },
-);
 
 export default function Chat() {
   const { code } = useLocalSearchParams<{ code?: string }>();
