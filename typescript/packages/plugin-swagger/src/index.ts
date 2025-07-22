@@ -30,20 +30,25 @@ export default ({
     };
   }): DkgPlugin =>
   (ctx, _mcp, api) => {
-    const openAPIDocument = buildOpenAPIDocument({
-      openApiVersion: "3.0.0",
-      routers: [(api as Express).router],
-      globalResponses,
-      securitySchemes,
-      config: {
-        info: {
-          title: "DKG API",
-          version: version,
-          description: "DKG plugins API",
+    let openAPIDocument = {};
+    try {
+      openAPIDocument = buildOpenAPIDocument({
+        openApiVersion: "3.0.0",
+        routers: [(api as Express).router],
+        globalResponses,
+        securitySchemes,
+        config: {
+          info: {
+            title: "DKG API",
+            version: version,
+            description: "DKG plugins API",
+          },
+          servers,
         },
-        servers,
-      },
-    });
+      });
+    } catch {
+      // Expected to error (WIP)
+    }
     api.get("/openapi", (_req, res) => {
       res.json(openAPIDocument);
     });
