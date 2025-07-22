@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Text,
   TextInput,
@@ -8,11 +8,10 @@ import {
   TouchableOpacity,
   Button,
 } from "react-native";
-import * as Linking from "expo-linking";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import OpenAI from "openai";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { mcp, transport } from "@/client";
+import { useMcpClient } from "@/client";
 
 const openai = new OpenAI({
   apiKey: process.env.EXPO_PUBLIC_OPEN_API_KEY,
@@ -20,53 +19,36 @@ const openai = new OpenAI({
 });
 
 export default function Chat() {
-  const { code } = useLocalSearchParams<{ code?: string }>();
+  const { code: authorizationCode } = useLocalSearchParams<{ code?: string }>();
+  const onAuthorized = useCallback(() => router.navigate("/chat"), []);
+  const mcp = useMcpClient({ authorizationCode, onAuthorized });
+
   const [tools, setTools] = useState<OpenAI.ChatCompletionTool[]>([]);
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
     [],
   );
-  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    if (code)
-      transport
-        .finishAuth(code)
-        .then(() => {
-          console.log("Auth finished");
-          Linking.openURL("/chat");
-        })
-        .catch((error) => {
-          console.error("Error finishing auth: ", error.stack);
-        });
-    else
-      mcp
-        .connect(transport)
-        .then(() => setConnected(true))
-        .catch((error) => {
-          console.error("Error connecting to MCP: ", error.stack);
-        })
-        .finally(() => {
-          console.log(transport.sessionId);
-          //setInterval(() => console.log(transport.sessionId), 500);
-        });
-  }, [code]);
-
-  useEffect(() => {
-    if (!connected) return;
-    mcp.listTools().then(({ tools }) => {
-      setTools(
-        tools.map((t) => ({
-          type: "function",
-          function: {
-            name: t.name,
-            description: t.description,
-            parameters: t.inputSchema,
-          },
-        })),
-      );
-    });
-  }, [connected]);
+    if (!mcp) return;
+    mcp
+      .listTools()
+      .then(({ tools }) => {
+        setTools(
+          tools.map((t) => ({
+            type: "function",
+            function: {
+              name: t.name,
+              description: t.description,
+              parameters: t.inputSchema,
+            },
+          })),
+        );
+      })
+      .catch((error) => {
+        console.log("Error listing MCP tools: ", error.message);
+      });
+  }, [mcp]);
 
   useEffect(() => {
     if (messages.at(-1)?.role === "user")
@@ -89,7 +71,7 @@ export default function Chat() {
         <Text style={styles.title}>Edge Node Chat</Text>
         <Button title="Clear" onPress={() => AsyncStorage.clear()} />
         <View style={styles.statusContainer}>
-          {connected ? (
+          {mcp ? (
             <Text style={styles.statusConnected}>● Connected</Text>
           ) : (
             <Text style={styles.statusConnecting}>● Connecting...</Text>
@@ -139,7 +121,7 @@ export default function Chat() {
                         style={styles.callButton}
                         onPress={() => {
                           mcp
-                            .callTool({
+                            ?.callTool({
                               name: tc.function.name,
                               arguments: JSON.parse(tc.function.arguments),
                             })
