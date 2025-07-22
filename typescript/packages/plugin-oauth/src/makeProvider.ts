@@ -76,7 +76,13 @@ export default function makeProvider({
       getClient(clientId) {
         return storage.getClient(clientId);
       },
-      async registerClient(client) {
+      async registerClient(_client) {
+        const client: OAuthClientInformationFull = {
+          ..._client,
+          scope: scopesSupported?.join(" "),
+          client_id: randomUUID(),
+          client_id_issued_at: Date.now(),
+        };
         client.scope = scopesSupported?.join(" ");
         await storage.saveClient(client);
         return client;

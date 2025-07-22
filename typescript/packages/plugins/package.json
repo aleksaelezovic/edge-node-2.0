@@ -28,7 +28,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.15.0",
+    "@modelcontextprotocol/sdk": "^1.16.0",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dkg.js": "^8.0.14",
