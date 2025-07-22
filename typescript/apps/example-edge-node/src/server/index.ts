@@ -24,9 +24,11 @@ migrate(db, {
   migrationsFolder: path.resolve(process.cwd(), "./drizzle/sqlite"),
 });
 
+const version = "1.0.0";
+
 const app = createPluginServer({
   name: "DKG API",
-  version: "1.0.0",
+  version,
   context: {
     dkg: new DKG({
       endpoint: "http://localhost",
@@ -71,7 +73,7 @@ const app = createPluginServer({
     }),
     // NOTE: WIP!
     swaggerPlugin({
-      version: "1.0.0",
+      version,
       securitySchemes: {
         oauth2: {
           type: "oauth2",
