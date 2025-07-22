@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
   Text,
@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import * as Linking from "expo-linking";
 import { fetch } from "expo/fetch";
+import { clientUri } from "@/client";
 
 export default function Login() {
   const { code } = useLocalSearchParams<{ code?: string }>();
@@ -38,8 +39,13 @@ export default function Login() {
         return r.json();
       })
       .then((data) => {
-        if (data.targetUrl) Linking.openURL(data.targetUrl);
-        else setError("No redirect URL found");
+        if (data.targetUrl) {
+          if (data.targetUrl.startsWith(clientUri))
+            router.navigate({
+              pathname: data.targetUrl.substring(clientUri.length) as any,
+            });
+          else Linking.openURL(data.targetUrl);
+        } else setError("No redirect URL found");
       });
   }
 

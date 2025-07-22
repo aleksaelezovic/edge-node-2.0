@@ -50,4 +50,4 @@ const transport = new StreamableHTTPClientTransport(
   },
 );
 
-export { mcp, transport };
+export { mcp, transport, clientUri };
