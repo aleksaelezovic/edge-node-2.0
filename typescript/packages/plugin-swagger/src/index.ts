@@ -1,32 +1,51 @@
-import { defineDkgPlugin } from "@dkg/plugins";
+import { DkgPlugin } from "@dkg/plugins";
 import swaggerUI from "swagger-ui-express";
-import type { OpenAPIV3 } from "openapi-types";
+import type {
+  ServerObject,
+  SecuritySchemeObject,
+  ReferenceObject,
+} from "openapi3-ts/oas30";
+import type { Express } from "express";
+
+import { z } from "./z";
+import { openAPIRoute } from "./openAPIRoute";
+import { buildOpenAPIDocument, OpenAPIResponse } from "./openAPI";
+
+export { openAPIRoute, z };
+export type { OpenAPIResponse };
+
+// TODO: Fix nested routes generation (./openAPI.ts)
 
 export default ({
-  version,
-  servers,
-  components,
-  security,
-}: {
-  version: string;
-  servers?: OpenAPIV3.ServerObject[];
-  components?: OpenAPIV3.ComponentsObject;
-  security?: OpenAPIV3.SecurityRequirementObject[];
-}) =>
-  defineDkgPlugin((ctx, _mcp, api) => {
-    // TODO: Generate OpenAPI spec from DKG plugins
-    api.get("/openapi", (req, res) => {
-      res.json({
-        openapi: "3.0.0",
+    globalResponses,
+    version,
+    servers,
+    securitySchemes,
+  }: {
+    globalResponses?: Record<string, OpenAPIResponse>;
+    version: string;
+    servers?: ServerObject[];
+    securitySchemes?: {
+      [name: string]: SecuritySchemeObject | ReferenceObject;
+    };
+  }): DkgPlugin =>
+  (ctx, _mcp, api) => {
+    const openAPIDocument = buildOpenAPIDocument({
+      openApiVersion: "3.0.0",
+      routers: [(api as Express).router],
+      globalResponses,
+      securitySchemes,
+      config: {
         info: {
           title: "DKG API",
           version: version,
           description: "DKG plugins API",
         },
         servers,
-        components,
-        security,
-      });
+      },
+    });
+    api.get("/openapi", (_req, res) => {
+      res.json(openAPIDocument);
     });
     api.use("/swagger", swaggerUI.serve);
     api.get(
@@ -37,4 +56,4 @@ export default ({
         },
       }),
     );
-  });
+  };

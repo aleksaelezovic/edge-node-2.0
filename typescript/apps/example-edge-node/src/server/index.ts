@@ -4,6 +4,7 @@ import { createPluginServer, defaultPlugin } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
 import authPlugin, { authorized } from "@dkg/plugin-oauth";
 import examplePlugin from "@dkg/plugin-example";
+import swaggerPlugin from "@dkg/plugin-swagger";
 //@ts-expect-error No types for dkg.js ...
 import DKG from "dkg.js";
 
@@ -67,6 +68,35 @@ const app = createPluginServer({
     },
     examplePlugin.withNamespace("protected", {
       middlewares: [authorized(["scope123"])], // Allow only users with the "scope123" scope
+    }),
+    // NOTE: WIP!
+    swaggerPlugin({
+      version: "1.0.0",
+      securitySchemes: {
+        oauth2: {
+          type: "oauth2",
+          flows: {
+            authorizationCode: {
+              scopes: ["scope123", "mcp"],
+              authorizationUrl: new URL(
+                process.env.EXPO_PUBLIC_MCP_URL + "/authorize",
+              ).toString(),
+              tokenUrl: new URL(
+                process.env.EXPO_PUBLIC_MCP_URL + "/token",
+              ).toString(),
+              refreshUrl: new URL(
+                process.env.EXPO_PUBLIC_MCP_URL + "/token",
+              ).toString(),
+            },
+          },
+        },
+      },
+      servers: [
+        {
+          url: process.env.EXPO_PUBLIC_MCP_URL,
+          description: "Edge Node MCP Plugins Server",
+        },
+      ],
     }),
     webInterfacePlugin(path.join(__dirname, "./app")),
   ],
