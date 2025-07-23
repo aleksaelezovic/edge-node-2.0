@@ -1,4 +1,4 @@
-import type { StorageImplementation } from "@dkg/plugin-oauth";
+import type { OAuthStorageProvider } from "@dkg/plugin-oauth";
 
 import { OAuthClientInformationFull } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provider.js";
@@ -9,7 +9,9 @@ import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { clients, codes, tokens } from "./oauth";
 import { eq } from "drizzle-orm";
 
-export default class SequelizeStorageProvider implements StorageImplementation {
+export default class SqliteOAuthStorageProvider
+  implements OAuthStorageProvider
+{
   constructor(private db: BetterSQLite3Database) {}
 
   async getClient(id: string): Promise<OAuthClientInformationFull | undefined> {

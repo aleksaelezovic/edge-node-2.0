@@ -1,10 +1,10 @@
-import { StorageImplementation } from "../makeProvider";
+import { OAuthStorageProvider } from "../makeProvider";
 
 import { OAuthClientInformationFull } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
 
-export default class DemoStorageProvider implements StorageImplementation {
+export default class DemoOAuthStorageProvider implements OAuthStorageProvider {
   private _clients: Map<string, OAuthClientInformationFull> = new Map();
   private _codes: Map<
     string,

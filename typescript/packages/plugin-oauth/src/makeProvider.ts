@@ -17,7 +17,7 @@ export default function makeProvider({
   loginPageUrl,
   validateResource,
 }: {
-  storage: StorageImplementation;
+  storage: OAuthStorageProvider;
   scopesSupported?: string[];
   tokenExpirationInSeconds: number;
   refreshTokenExpirationInSeconds: number;
@@ -241,7 +241,7 @@ export default function makeProvider({
   };
 }
 
-export type StorageImplementation = {
+export type OAuthStorageProvider = {
   saveCode: (
     code: string,
     client: OAuthClientInformationFull,

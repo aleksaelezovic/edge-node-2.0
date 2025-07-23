@@ -5,11 +5,11 @@ import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
 import { OAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js";
 
-import DemoStorageProvider from "./storage/demo";
-import makeProvider, { StorageImplementation } from "./makeProvider";
+import DemoOAuthStorageProvider from "./storage/demo";
+import makeProvider, { OAuthStorageProvider } from "./makeProvider";
 
-export { DemoStorageProvider };
-export type { StorageImplementation };
+export { DemoOAuthStorageProvider };
+export type { OAuthStorageProvider };
 
 export default <Credentials>({
     issuerUrl,
@@ -29,7 +29,7 @@ export default <Credentials>({
     }>;
     logout?: () => Promise<void>;
     loginPageUrl: URL;
-    storage: StorageImplementation;
+    storage: OAuthStorageProvider;
     tokenExpirationInSeconds?: number;
     refreshTokenExpirationInSeconds?: number;
     scopesSupported?: string[];
