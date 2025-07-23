@@ -105,7 +105,7 @@ const app = createPluginServer({
   ],
 });
 
-const port = 9200;
+const port = process.env.PORT || 9200;
 const server = app.listen(port, (err) => {
   if (err) {
     console.error(err);
