@@ -4,13 +4,17 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SplashScreen from "expo-splash-screen";
 import "react-native-reanimated";
+import { View } from "react-native";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 import "../polyfills";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -25,12 +29,11 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="chat" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      <View style={{ width: "100%", height: "100%" }}>
+        <View></View>
+        <Slot />
+        <View></View>
+      </View>
       <StatusBar style="auto" />
     </ThemeProvider>
   );

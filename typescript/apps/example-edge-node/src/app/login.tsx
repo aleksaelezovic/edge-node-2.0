@@ -8,10 +8,12 @@ import {
   TouchableOpacity,
 } from "react-native";
 import * as Linking from "expo-linking";
+import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
 import { clientUri } from "@/client";
 
 export default function Login() {
+  SplashScreen.hide();
   const { code } = useLocalSearchParams<{ code?: string }>();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

@@ -9,6 +9,7 @@ import {
   Button,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import OpenAI from "openai";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMcpClient } from "@/client";
@@ -31,6 +32,7 @@ export default function Chat() {
 
   useEffect(() => {
     if (!mcp) return;
+    SplashScreen.hide();
     mcp
       .listTools()
       .then(({ tools }) => {
