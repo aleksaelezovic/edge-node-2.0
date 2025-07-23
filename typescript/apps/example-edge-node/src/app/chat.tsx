@@ -10,13 +10,16 @@ import {
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { fetch } from "expo/fetch";
 import OpenAI from "openai";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useMcpClient } from "@/client";
 
 const openai = new OpenAI({
   apiKey: process.env.EXPO_PUBLIC_OPEN_API_KEY,
   dangerouslyAllowBrowser: true,
+  fetch: (url, options) => fetch(url.toString(), options as any),
 });
 
 export default function Chat() {
