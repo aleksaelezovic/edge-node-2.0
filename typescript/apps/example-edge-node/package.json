@@ -9,11 +9,11 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "check-types": "tsc --noEmit",
-    "build:server": "tsup src/server/**/*.ts --format cjs,esm --dts",
+    "build:server": "tsup src/server/**/*.ts --format esm,cjs",
     "build:web": "expo export -p web --output-dir dist/app",
     "build:migrations": "drizzle-kit generate",
     "dev:app": "expo start --web --port 8081",
-    "dev:server": "tsup src/server/**/*.ts --format cjs,esm --dts --watch --onSuccess='node dist/index.js --dev'",
+    "dev:server": "tsup src/server/**/*.ts --format esm,cjs --watch --onSuccess='node dist/index.js --dev'",
     "drizzle:studio": "drizzle-kit studio"
   },
   "dependencies": {
