@@ -11,6 +11,7 @@ import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
 import { clientUri } from "@/client";
+import useColors from "@/hooks/useColors";
 
 export default function Login() {
   SplashScreen.hide();
@@ -51,27 +52,37 @@ export default function Login() {
       });
   }
 
+  const colors = useColors();
+
   return (
     <View style={styles.container}>
       <View style={styles.loginCard}>
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>Sign in to your account</Text>
+        <Text style={[styles.title, { color: colors.secondary }]}>Login</Text>
+        <Text style={[styles.subtitle, { color: colors.text }]}>
+          Enter your details to get started.
+        </Text>
 
         <View style={styles.inputContainer}>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { backgroundColor: colors.input, color: colors.text },
+            ]}
             value={username}
             onChangeText={setUsername}
             placeholder="Username"
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.placeholder}
             autoCapitalize="none"
           />
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              { backgroundColor: colors.input, color: colors.text },
+            ]}
             value={password}
             onChangeText={setPassword}
             placeholder="Password"
-            placeholderTextColor="#666"
+            placeholderTextColor={colors.placeholder}
             secureTextEntry
           />
         </View>
@@ -79,12 +90,15 @@ export default function Login() {
         <TouchableOpacity
           style={[
             styles.loginButton,
+            { backgroundColor: colors.primary },
             (!username || !password) && styles.loginButtonDisabled,
           ]}
           onPress={login}
           disabled={!username || !password}
         >
-          <Text style={styles.loginButtonText}>Sign In</Text>
+          <Text style={[styles.loginButtonText, { color: colors.primaryText }]}>
+            Login
+          </Text>
         </TouchableOpacity>
 
         {error && (
@@ -100,33 +114,25 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
   },
   loginCard: {
     width: "100%",
-    maxWidth: 400,
-    backgroundColor: "#fff",
+    maxWidth: 420,
     borderRadius: 16,
     padding: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 6,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#2c3e50",
+    fontSize: 40,
+    fontWeight: 700,
+    fontFamily: "SpaceGrotesk",
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#7f8c8d",
+    fontSize: 20,
+    fontFamily: "Manrope",
     textAlign: "center",
     marginBottom: 30,
   },
@@ -134,23 +140,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderRadius: 50,
+    paddingHorizontal: 20,
     paddingVertical: 14,
+    height: 45,
     fontSize: 16,
-    backgroundColor: "#f8f9fa",
     marginBottom: 16,
-    color: "#2c3e50",
   },
   loginButton: {
-    backgroundColor: "#3498db",
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 20,
+    height: 45,
     shadowColor: "#3498db",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
@@ -163,9 +166,9 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   loginButtonText: {
-    color: "#fff",
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "600",
+    fontFamily: "Manrope",
   },
   errorContainer: {
     backgroundColor: "#fee",
