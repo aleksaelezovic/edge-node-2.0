@@ -4,6 +4,14 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
+import {
+  Manrope_400Regular,
+  Manrope_600SemiBold,
+} from "@expo-google-fonts/manrope";
+import {
+  SpaceGrotesk_400Regular,
+  SpaceGrotesk_700Bold,
+} from "@expo-google-fonts/space-grotesk";
 import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
@@ -23,9 +31,10 @@ export default function RootLayout() {
   const colors = useColors();
   const safeAreaInsets = useSafeAreaInsets();
   const [loaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-    SpaceGrotesk: require("../assets/fonts/SpaceGrotesk-Variable.ttf"),
-    Manrope: require("../assets/fonts/Manrope-Variable.ttf"),
+    Manrope_400Regular,
+    Manrope_600SemiBold,
+    SpaceGrotesk_400Regular,
+    SpaceGrotesk_700Bold,
   });
 
   if (!loaded) {
@@ -89,7 +98,7 @@ export default function RootLayout() {
                     style={{
                       textAlign: "left",
                       color: colors.text,
-                      fontFamily: "SpaceGrotesk",
+                      fontFamily: "SpaceGrotesk_400Regular",
                       fontSize: 16,
                       fontWeight: 500,
                     }}

@@ -126,13 +126,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontWeight: 700,
-    fontFamily: "SpaceGrotesk",
+    fontFamily: "SpaceGrotesk_700Bold",
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 20,
-    fontFamily: "Manrope",
+    fontFamily: "Manrope_400Regular",
     textAlign: "center",
     marginBottom: 30,
   },
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   loginButtonText: {
     fontSize: 14,
     fontWeight: "600",
-    fontFamily: "Manrope",
+    fontFamily: "Manrope_600SemiBold",
   },
   errorContainer: {
     backgroundColor: "#fee",
