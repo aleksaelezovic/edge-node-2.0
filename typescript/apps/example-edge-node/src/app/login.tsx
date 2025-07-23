@@ -10,6 +10,7 @@ import {
 import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
+
 import { clientUri } from "@/client";
 import useColors from "@/hooks/useColors";
 

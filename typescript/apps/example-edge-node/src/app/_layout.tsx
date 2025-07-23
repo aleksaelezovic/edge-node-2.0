@@ -12,6 +12,7 @@ import {
   SpaceGrotesk_400Regular,
   SpaceGrotesk_700Bold,
 } from "@expo-google-fonts/space-grotesk";
+import { Image } from "expo-image";
 import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
@@ -87,13 +88,23 @@ export default function RootLayout() {
               >
                 <View
                   style={{
-                    paddingLeft: 32,
+                    paddingLeft: 16,
                     display: "flex",
-                    justifyContent: "center",
+                    flexDirection: "row",
+                    alignItems: "center",
                     width: 200,
                     height: 80,
                   }}
                 >
+                  <Image
+                    source={require("../assets/logo.svg")}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      marginRight: 8,
+                      display: "flex",
+                    }}
+                  />
                   <Text
                     style={{
                       textAlign: "left",
