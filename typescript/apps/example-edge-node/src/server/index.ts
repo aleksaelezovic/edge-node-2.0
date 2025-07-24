@@ -1,12 +1,13 @@
 import path from "node:path";
 import dotenv from "dotenv";
 import { createPluginServer, defaultPlugin } from "@dkg/plugins";
-import { z } from "@dkg/plugins/helpers";
 import authPlugin, { authorized } from "@dkg/plugin-oauth";
 import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
 //@ts-expect-error No types for dkg.js ...
 import DKG from "dkg.js";
+
+import { userCredentialsSchema } from "@/shared/auth";
 
 import webInterfacePlugin from "./webInterfacePlugin";
 import { drizzle } from "drizzle-orm/better-sqlite3";
@@ -51,10 +52,7 @@ const app = createPluginServer({
       storage: new SqliteOAuthStorageProvider(db),
       issuerUrl: new URL(process.env.EXPO_PUBLIC_MCP_URL),
       scopesSupported: ["scope123", "mcp"],
-      schema: z.object({
-        username: z.string(),
-        password: z.string(),
-      }),
+      schema: userCredentialsSchema,
       async login(credentials) {
         if (
           credentials.username === "admin" &&

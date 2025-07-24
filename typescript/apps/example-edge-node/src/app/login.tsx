@@ -6,6 +6,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
 
 import { clientUri } from "@/client";
+import { AuthError, login } from "@/shared/auth";
 import useColors from "@/hooks/useColors";
 import Checkbox from "@/components/Checkbox";
 import Button from "@/components/Button";
@@ -18,37 +19,42 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
 
-  function login() {
+  function submit() {
     setError("");
-    fetch(
-      process.env.EXPO_PUBLIC_MCP_URL +
-        "/login?code=" +
-        encodeURIComponent(code ?? ""),
-      {
-        method: "POST",
-        body: JSON.stringify({ username, password }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    )
-      .then((r) => {
-        if (r.status >= 400) {
-          setError("Invalid username or password");
-          return null;
-        }
-        return r.json();
-      })
-      .then((data) => {
-        if (!data) return;
 
-        if (data.targetUrl) {
-          if (data.targetUrl.startsWith(clientUri))
-            router.navigate({
-              pathname: data.targetUrl.substring(clientUri.length) as any,
-            });
-          else Linking.openURL(data.targetUrl);
-        } else setError("No redirect URL found");
+    login({
+      code: code ?? "",
+      credentials: { username, password },
+      rememberMe,
+      fetch: (url, opts) => fetch(url.toString(), opts as any),
+    })
+      .then((url) => {
+        if (url.startsWith(clientUri))
+          router.navigate({
+            pathname: url.substring(clientUri.length) as any,
+          });
+        else Linking.openURL(url);
+      })
+      .catch((err: Error) => {
+        if (!(err instanceof AuthError)) {
+          setError("Unknown error occurred!");
+          return;
+        }
+
+        switch (err.code) {
+          case AuthError.Code.INVALID_CREDENTIALS:
+            setError("Invalid username or password");
+            break;
+          case AuthError.Code.NO_REDIRECT_URL:
+            setError("No redirect URL provided");
+            break;
+          case AuthError.Code.INTERNAL_ERROR:
+            setError("Internal server error");
+            break;
+          default:
+            setError("Unknown auth error occurred!");
+            break;
+        }
       });
   }
 
@@ -105,7 +111,7 @@ export default function Login() {
         <Button
           color="primary"
           text="Login"
-          onPress={login}
+          onPress={submit}
           disabled={!username || !password}
         />
 
