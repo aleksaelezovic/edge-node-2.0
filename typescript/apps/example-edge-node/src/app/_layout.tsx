@@ -17,13 +17,14 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import useColors from "@/hooks/useColors";
 
 import LayoutPill from "@/components/layout/LayoutPill";
 import HeaderLogo from "@/components/layout/HeaderLogo";
+import HeaderNav from "@/components/layout/HeaderNav";
 import StarsIcon from "@/components/icons/StarsIcon";
 
 import "../polyfills";
@@ -81,39 +82,9 @@ export default function RootLayout() {
                 style={{ flex: 1 }}
               />
 
-              <View
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <View
-                  style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 5,
-                    cursor: "pointer",
-                    userSelect: "none",
-                  }}
-                >
-                  <StarsIcon height={18} width={18} stroke={colors.cardText} />
-                  <Text
-                    style={{
-                      color: colors.cardText,
-                      fontFamily: "Manrope_600SemiBold",
-                      fontWeight: "600",
-                      fontSize: 16,
-                      lineHeight: 24,
-                    }}
-                  >
-                    Chat
-                  </Text>
-                </View>
-              </View>
+              <HeaderNav style={{ flex: 1 }}>
+                <HeaderNav.Link href="/chat" text="Chat" icon={StarsIcon} />
+              </HeaderNav>
 
               <View style={{ flex: 1 }} />
             </LayoutPill>
