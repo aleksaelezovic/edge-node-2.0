@@ -1,12 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import {
-  Text,
-  View,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { Text, View, TextInput, StyleSheet } from "react-native";
 import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
@@ -14,6 +8,7 @@ import { fetch } from "expo/fetch";
 import { clientUri } from "@/client";
 import useColors from "@/hooks/useColors";
 import Checkbox from "@/components/Checkbox";
+import Button from "@/components/Button";
 
 export default function Login() {
   SplashScreen.hide();
@@ -107,19 +102,12 @@ export default function Login() {
           </Checkbox>
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.loginButton,
-            { backgroundColor: colors.primary },
-            (!username || !password) && styles.loginButtonDisabled,
-          ]}
+        <Button
+          color="primary"
+          text="Login"
           onPress={login}
           disabled={!username || !password}
-        >
-          <Text style={[styles.loginButtonText, { color: colors.primaryText }]}>
-            Login
-          </Text>
-        </TouchableOpacity>
+        />
 
         <View
           style={[
@@ -145,7 +133,6 @@ const styles = StyleSheet.create({
   loginCard: {
     width: "100%",
     maxWidth: 420,
-    borderRadius: 16,
     padding: 30,
   },
   title: {
@@ -169,29 +156,6 @@ const styles = StyleSheet.create({
     height: 45,
     fontSize: 16,
     marginBottom: 16,
-  },
-  loginButton: {
-    paddingVertical: 12,
-    borderRadius: 50,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-    height: 45,
-    shadowColor: "#3498db",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  loginButtonDisabled: {
-    backgroundColor: "#bdc3c7",
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  loginButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    fontFamily: "Manrope_600SemiBold",
   },
   errorContainer: {
     marginVertical: 0,
