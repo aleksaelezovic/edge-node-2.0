@@ -1,4 +1,7 @@
-import type { OAuthStorageProvider } from "@dkg/plugin-oauth";
+import type {
+  CodeConfirmationData,
+  OAuthStorageProvider,
+} from "@dkg/plugin-oauth";
 
 import { OAuthClientInformationFull } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provider.js";
@@ -43,32 +46,25 @@ export default class SqliteOAuthStorageProvider
       client_id: client.client_id,
       client_info: JSON.stringify(client),
       params: JSON.stringify(params),
-      confirmed: 0,
+      confirmed: "",
     });
     if (result.changes !== 1) throw new Error("Failed to save code");
   }
 
-  async confirmCode(code: string) {
+  async confirmCode(code: string, data: CodeConfirmationData) {
     const result = await this.db
       .update(codes)
-      .set({ confirmed: 1 })
+      .set({ confirmed: JSON.stringify(data) })
       .where(eq(codes.code, code));
     if (result.changes !== 1) throw new Error("Failed to confirm code");
   }
 
-  async isCodeConfirmed(code: string): Promise<boolean> {
-    const result = await this.db
-      .select()
-      .from(codes)
-      .where(eq(codes.code, code))
-      .then((r) => r.at(0));
-    return result?.confirmed === 1;
-  }
-
-  async getCodeData(
-    code: string,
-  ): Promise<
-    | { client: OAuthClientInformationFull; params: AuthorizationParams }
+  async getCodeData(code: string): Promise<
+    | {
+        client: OAuthClientInformationFull;
+        params: AuthorizationParams;
+        confirmation: false | CodeConfirmationData;
+      }
     | undefined
     | null
   > {
@@ -82,6 +78,7 @@ export default class SqliteOAuthStorageProvider
     return {
       client: JSON.parse(result.client_info),
       params: JSON.parse(result.params),
+      confirmation: result.confirmed ? JSON.parse(result.confirmed) : false,
     };
   }
 

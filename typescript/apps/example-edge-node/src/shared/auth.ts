@@ -26,8 +26,11 @@ export const login = (opts: {
 }) =>
   (opts.fetch ?? fetch)(
     process.env.EXPO_PUBLIC_MCP_URL +
-      "/login?code=" +
-      encodeURIComponent(opts.code),
+      "/login?" +
+      new URLSearchParams({
+        code: opts.code,
+        includeRefreshToken: opts.rememberMe ? "1" : "0",
+      }).toString(),
     {
       method: "POST",
       body: JSON.stringify(opts.credentials),

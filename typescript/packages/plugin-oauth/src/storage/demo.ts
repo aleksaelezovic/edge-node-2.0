@@ -1,4 +1,4 @@
-import { OAuthStorageProvider } from "../makeProvider";
+import { CodeConfirmationData, OAuthStorageProvider } from "../makeProvider";
 
 import { OAuthClientInformationFull } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { AuthorizationParams } from "@modelcontextprotocol/sdk/server/auth/provider.js";
@@ -11,10 +11,10 @@ export default class DemoOAuthStorageProvider implements OAuthStorageProvider {
     {
       params: AuthorizationParams;
       client: OAuthClientInformationFull;
+      confirmation: false | CodeConfirmationData;
     }
   > = new Map();
   private _tokens: Map<string, AuthInfo> = new Map();
-  private _codeConfirmed: Map<string, boolean> = new Map();
 
   async getClient(id: string): Promise<OAuthClientInformationFull | undefined> {
     return this._clients.get(id);
@@ -29,21 +29,19 @@ export default class DemoOAuthStorageProvider implements OAuthStorageProvider {
     client: OAuthClientInformationFull,
     params: AuthorizationParams,
   ) {
-    this._codes.set(code, { params, client });
+    this._codes.set(code, { params, client, confirmation: false });
   }
 
-  async confirmCode(code: string) {
-    this._codeConfirmed.set(code, true);
+  async confirmCode(code: string, data: CodeConfirmationData) {
+    this._codes.set(code, { ...this._codes.get(code)!, confirmation: data });
   }
 
-  async isCodeConfirmed(code: string): Promise<boolean> {
-    return this._codeConfirmed.get(code) || false;
-  }
-
-  async getCodeData(
-    code: string,
-  ): Promise<
-    | { client: OAuthClientInformationFull; params: AuthorizationParams }
+  async getCodeData(code: string): Promise<
+    | {
+        client: OAuthClientInformationFull;
+        params: AuthorizationParams;
+        confirmation: false | CodeConfirmationData;
+      }
     | undefined
     | null
   > {

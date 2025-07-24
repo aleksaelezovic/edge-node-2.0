@@ -8,7 +8,7 @@ CREATE TABLE `oauth_codes` (
 	`client_id` text NOT NULL,
 	`client_info` text NOT NULL,
 	`params` text NOT NULL,
-	`confirmed` integer DEFAULT 0,
+	`confirmed` text DEFAULT '',
 	FOREIGN KEY (`client_id`) REFERENCES `oauth_clients`(`client_id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint

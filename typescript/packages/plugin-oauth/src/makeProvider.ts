@@ -27,12 +27,14 @@ export default function makeProvider({
   authorizeConfirm: (
     authorizationCode: string,
     allowedScope: string[],
+    confirmationData: CodeConfirmationData,
   ) => Promise<URL>;
 } {
   async function createAndSaveOAuthTokens(
     clientId: string,
     scopes: string[],
     resource?: URL,
+    includeRefreshToken?: boolean,
   ): Promise<OAuthTokens> {
     const token = randomUUID();
     try {
@@ -48,18 +50,21 @@ export default function makeProvider({
       throw new Error("Error saving token: " + String(err));
     }
 
-    const refreshToken = randomUUID();
-    try {
-      await storage.saveToken(refreshToken, {
-        token: refreshToken,
-        clientId,
-        scopes,
-        expiresAt: Date.now() + refreshTokenExpirationInSeconds * 1000,
-        resource,
-        extra: { type: "refresh" },
-      });
-    } catch (err) {
-      throw new Error("Error saving refresh token: " + String(err));
+    let refreshToken = undefined;
+    if (includeRefreshToken) {
+      refreshToken = randomUUID();
+      try {
+        await storage.saveToken(refreshToken, {
+          token: refreshToken,
+          clientId,
+          scopes,
+          expiresAt: Date.now() + refreshTokenExpirationInSeconds * 1000,
+          resource,
+          extra: { type: "refresh" },
+        });
+      } catch (err) {
+        throw new Error("Error saving refresh token: " + String(err));
+      }
     }
 
     return {
@@ -88,7 +93,7 @@ export default function makeProvider({
         return client;
       },
     },
-    async authorizeConfirm(authorizationCode, allowedScope) {
+    async authorizeConfirm(authorizationCode, allowedScope, confirmationData) {
       const codeData = await storage.getCodeData(authorizationCode);
       if (!codeData) throw new Error("Invalid authorization code");
 
@@ -100,7 +105,7 @@ export default function makeProvider({
         throw new Error("Scope not allowed");
       }
 
-      await storage.confirmCode(authorizationCode);
+      await storage.confirmCode(authorizationCode, confirmationData);
 
       const targetUrl = new URL(redirectUri);
       const searchParams = new URLSearchParams({ code: authorizationCode });
@@ -148,12 +153,12 @@ export default function makeProvider({
         );
       }
 
-      if (validateResource && !validateResource(codeData.params.resource)) {
-        throw new Error(`Invalid resource: ${codeData.params.resource}`);
+      if (!codeData.confirmation) {
+        throw new Error("Code not confirmed");
       }
 
-      if (!(await storage.isCodeConfirmed(authorizationCode))) {
-        throw new Error("Code not confirmed");
+      if (validateResource && !validateResource(codeData.params.resource)) {
+        throw new Error(`Invalid resource: ${codeData.params.resource}`);
       }
 
       try {
@@ -166,6 +171,7 @@ export default function makeProvider({
         codeData.client.client_id,
         codeData.params.scopes ?? [],
         codeData.params.resource,
+        codeData.confirmation.includeRefreshToken,
       );
     },
     async exchangeRefreshToken(
@@ -202,6 +208,7 @@ export default function makeProvider({
         client.client_id,
         allowedScopes,
         resource,
+        true,
       );
     },
     async verifyAccessToken(token: string): Promise<AuthInfo> {
@@ -241,18 +248,22 @@ export default function makeProvider({
   };
 }
 
+export type CodeConfirmationData = {
+  includeRefreshToken: boolean;
+};
+
 export type OAuthStorageProvider = {
   saveCode: (
     code: string,
     client: OAuthClientInformationFull,
     params: AuthorizationParams,
   ) => Promise<void>;
-  confirmCode: (code: string) => Promise<void>;
-  isCodeConfirmed: (code: string) => Promise<boolean>;
+  confirmCode: (code: string, data: CodeConfirmationData) => Promise<void>;
   getCodeData: (code: string) => Promise<
     | {
         client: OAuthClientInformationFull;
         params: AuthorizationParams;
+        confirmation: false | CodeConfirmationData;
       }
     | undefined
     | null

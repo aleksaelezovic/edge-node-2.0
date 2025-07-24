@@ -12,7 +12,7 @@ export const codes = sqliteTable("oauth_codes", {
     .references(() => clients.client_id),
   client_info: text().notNull(),
   params: text().notNull(),
-  confirmed: integer().default(0),
+  confirmed: text().default(""),
 });
 
 export const tokens = sqliteTable("oauth_tokens", {

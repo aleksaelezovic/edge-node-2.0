@@ -1,15 +1,18 @@
 import { DkgPlugin } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
-import { express } from "@dkg/plugins/types";
+import type { express } from "@dkg/plugins/types";
 import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
 import { OAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js";
 
 import DemoOAuthStorageProvider from "./storage/demo";
-import makeProvider, { OAuthStorageProvider } from "./makeProvider";
+import makeProvider, {
+  OAuthStorageProvider,
+  CodeConfirmationData,
+} from "./makeProvider";
 
 export { DemoOAuthStorageProvider };
-export type { OAuthStorageProvider };
+export type { OAuthStorageProvider, CodeConfirmationData };
 
 export default <Credentials>({
     issuerUrl,
@@ -57,6 +60,9 @@ export default <Credentials>({
         const targetUrl = await provider.authorizeConfirm(
           authorizationCode,
           user.scopes,
+          {
+            includeRefreshToken: req.query.includeRefreshToken === "1",
+          },
         );
         res.status(200).json({ targetUrl });
       } catch {

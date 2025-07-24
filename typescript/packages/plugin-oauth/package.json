@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@dkg/plugins": "^0.0.1",
-    "@modelcontextprotocol/sdk": "^1.15.0"
+    "@modelcontextprotocol/sdk": "^1.16.0"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
