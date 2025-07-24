@@ -13,12 +13,14 @@ import { fetch } from "expo/fetch";
 
 import { clientUri } from "@/client";
 import useColors from "@/hooks/useColors";
+import Checkbox from "@/components/Checkbox";
 
 export default function Login() {
   SplashScreen.hide();
   const { code } = useLocalSearchParams<{ code?: string }>();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
 
   function login() {
@@ -88,17 +90,21 @@ export default function Login() {
             placeholderTextColor={colors.placeholder}
             secureTextEntry
           />
-        </View>
-
-        <View
-          style={[
-            styles.errorContainer,
-            { visibility: error ? "visible" : "hidden" },
-          ]}
-        >
-          <Text style={[styles.errorText, { color: colors.error }]}>
-            {error}
-          </Text>
+          <Checkbox
+            value={rememberMe}
+            onValueChange={setRememberMe}
+            style={{ marginBottom: 16 }}
+          >
+            <Text
+              style={{
+                color: colors.placeholder,
+                fontFamily: "Manrope_400Regular",
+                marginLeft: 8,
+              }}
+            >
+              Remember me
+            </Text>
+          </Checkbox>
         </View>
 
         <TouchableOpacity
@@ -114,6 +120,17 @@ export default function Login() {
             Login
           </Text>
         </TouchableOpacity>
+
+        <View
+          style={[
+            styles.errorContainer,
+            { visibility: error ? "visible" : "hidden" },
+          ]}
+        >
+          <Text style={[styles.errorText, { color: colors.error }]}>
+            {error}
+          </Text>
+        </View>
       </View>
     </View>
   );
