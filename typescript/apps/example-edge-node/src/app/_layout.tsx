@@ -12,7 +12,6 @@ import {
   SpaceGrotesk_400Regular,
   SpaceGrotesk_700Bold,
 } from "@expo-google-fonts/space-grotesk";
-import { Image } from "expo-image";
 import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
@@ -22,6 +21,10 @@ import { Text, View } from "react-native";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import useColors from "@/hooks/useColors";
+
+import LayoutPill from "@/components/layout/LayoutPill";
+import HeaderLogo from "@/components/layout/HeaderLogo";
+import StarsIcon from "@/components/icons/StarsIcon";
 
 import "../polyfills";
 
@@ -70,73 +73,57 @@ export default function RootLayout() {
               marginHorizontal: "auto",
             }}
           >
-            <View
-              style={{
-                height: 80,
-                width: "100%",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
+            <LayoutPill>
+              <HeaderLogo
+                image={require("../assets/logo.svg")}
+                text="DKG Agent"
+                textFont="SpaceGrotesk_400Regular"
+                style={{ flex: 1 }}
+              />
+
               <View
                 style={{
-                  height: "100%",
-                  width: "100%",
-                  borderRadius: 40,
-                  backgroundColor: colors.card,
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
                 <View
                   style={{
-                    paddingLeft: 16,
                     display: "flex",
                     flexDirection: "row",
                     alignItems: "center",
-                    width: 200,
-                    height: 80,
+                    gap: 5,
+                    cursor: "pointer",
+                    userSelect: "none",
                   }}
                 >
-                  <Image
-                    source={require("../assets/logo.svg")}
-                    style={{
-                      width: 40,
-                      height: 40,
-                      marginRight: 8,
-                      display: "flex",
-                    }}
-                  />
+                  <StarsIcon height={18} width={18} stroke={colors.cardText} />
                   <Text
                     style={{
-                      textAlign: "left",
-                      color: colors.text,
-                      fontFamily: "SpaceGrotesk_400Regular",
+                      color: colors.cardText,
+                      fontFamily: "Manrope_600SemiBold",
+                      fontWeight: "600",
                       fontSize: 16,
-                      fontWeight: 500,
+                      lineHeight: 24,
                     }}
                   >
-                    DKG Agent
+                    Chat
                   </Text>
                 </View>
               </View>
-            </View>
+
+              <View style={{ flex: 1 }} />
+            </LayoutPill>
+
             <Slot />
-            <View
-              style={{
-                height: 80,
-                width: "100%",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <View
-                style={{
-                  height: "100%",
-                  width: "100%",
-                  borderRadius: 40,
-                  backgroundColor: colors.card,
-                }}
-              ></View>
-            </View>
+
+            <LayoutPill>
+              <View style={{ flex: 1 }} />
+              <View style={{ flex: 1 }} />
+            </LayoutPill>
           </View>
         </View>
       </View>
