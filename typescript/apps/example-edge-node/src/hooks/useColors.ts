@@ -10,6 +10,7 @@ const darkTheme = {
   cardText: "#A8AAF9",
   input: "#6344DF33",
   placeholder: "#DCDCDC",
+  error: "#FF0000",
 };
 const lightTheme: typeof darkTheme = {
   background: "#F8F7FC",
@@ -21,6 +22,7 @@ const lightTheme: typeof darkTheme = {
   cardText: "#302A5C",
   input: "#E3DEFC",
   placeholder: "#766DAF",
+  error: "#E74C3C",
 };
 
 export const Colors: Record<"light" | "dark", typeof darkTheme> = {

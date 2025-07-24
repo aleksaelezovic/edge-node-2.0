@@ -43,6 +43,8 @@ export default function Login() {
         return r.json();
       })
       .then((data) => {
+        if (!data) return;
+
         if (data.targetUrl) {
           if (data.targetUrl.startsWith(clientUri))
             router.navigate({
@@ -88,6 +90,17 @@ export default function Login() {
           />
         </View>
 
+        <View
+          style={[
+            styles.errorContainer,
+            { visibility: error ? "visible" : "hidden" },
+          ]}
+        >
+          <Text style={[styles.errorText, { color: colors.error }]}>
+            {error}
+          </Text>
+        </View>
+
         <TouchableOpacity
           style={[
             styles.loginButton,
@@ -101,12 +114,6 @@ export default function Login() {
             Login
           </Text>
         </TouchableOpacity>
-
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
       </View>
     </View>
   );
@@ -137,9 +144,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 30,
   },
-  inputContainer: {
-    marginBottom: 20,
-  },
+  inputContainer: {},
   input: {
     borderRadius: 50,
     paddingHorizontal: 20,
@@ -172,15 +177,12 @@ const styles = StyleSheet.create({
     fontFamily: "Manrope_600SemiBold",
   },
   errorContainer: {
-    backgroundColor: "#fee",
-    borderRadius: 8,
-    padding: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: "#e74c3c",
+    marginVertical: 0,
+    marginHorizontal: 8,
+    height: 40,
   },
   errorText: {
-    color: "#e74c3c",
-    fontSize: 14,
+    fontSize: 16,
     textAlign: "center",
   },
 });
