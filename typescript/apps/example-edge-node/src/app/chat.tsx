@@ -11,16 +11,10 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
-import OpenAI from "openai";
+import type OpenAI from "openai";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useMcpClient } from "@/client";
-
-const openai = new OpenAI({
-  apiKey: process.env.EXPO_PUBLIC_OPEN_API_KEY,
-  dangerouslyAllowBrowser: true,
-  fetch: (url, options) => fetch(url.toString(), options as any),
-});
 
 export default function Chat() {
   const { code: authorizationCode } = useLocalSearchParams<{ code?: string }>();
@@ -57,13 +51,16 @@ export default function Chat() {
 
   useEffect(() => {
     if (messages.at(-1)?.role === "user")
-      openai.chat.completions
-        .create({
+      fetch(process.env.EXPO_PUBLIC_APP_URL + "/llm", {
+        method: "POST",
+        body: JSON.stringify({
           model: "gpt-4",
           messages,
           tools,
-        })
-        .then((r) => r.choices[0]?.message)
+        }),
+      })
+        .then((r) => r.json())
+        .then((r) => r.choices?.at(0)?.message)
         .then((m) => {
           if (!m) throw new Error("No message received");
           setMessages((prevMessages) => [...prevMessages, m]);
