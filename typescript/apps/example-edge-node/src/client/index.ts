@@ -4,10 +4,12 @@ import Constants, { ExecutionEnvironment } from "expo-constants";
 import { fetch } from "expo/fetch";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { Platform } from "react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import AsyncStorageOAuthClientProvider from "./AsyncStorageOAuthClientProvider";
+import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
 
 export const clientUri =
   Platform.OS === "web"
@@ -88,7 +90,12 @@ export const useMcpClient = ({
           console.log("Connected to transport", transport.current.sessionId);
         })
         .catch((error) => {
+          if (error instanceof UnauthorizedError) {
+            console.log("Unauthorized, trying to authorize...");
+            return;
+          }
           console.log("Error connecting to MCP: ", error.message);
+          SplashScreen.hide();
         });
     }
   }, [authorizationCode, onAuthorized, mcp, transport]);
