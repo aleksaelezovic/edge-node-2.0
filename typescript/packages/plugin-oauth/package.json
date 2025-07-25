@@ -12,6 +12,7 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
+    "@dkg/plugin-swagger": "^0.0.1",
     "@dkg/plugins": "^0.0.1",
     "@modelcontextprotocol/sdk": "^1.16.0"
   },

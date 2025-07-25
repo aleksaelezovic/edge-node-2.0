@@ -1,9 +1,10 @@
 import { DkgPlugin } from "@dkg/plugins";
-import { z } from "@dkg/plugins/helpers";
 import type { express } from "@dkg/plugins/types";
+import { openAPIRoute, z } from "@dkg/plugin-swagger";
 import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
 import { OAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/provider.js";
 import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js";
+import type { SecuritySchemeObject } from "openapi3-ts/oas30";
 
 import DemoOAuthStorageProvider from "./storage/demo";
 import makeProvider, {
@@ -14,7 +15,8 @@ import makeProvider, {
 export { DemoOAuthStorageProvider };
 export type { OAuthStorageProvider, CodeConfirmationData };
 
-export default <Credentials>({
+const oauthPlugin =
+  <Credentials>({
     issuerUrl,
     schema,
     login,
@@ -46,34 +48,78 @@ export default <Credentials>({
       loginPageUrl,
     });
 
-    api.post("/login", async (req, res) => {
-      try {
-        const authorizationCode = String(req.query.code ?? "");
-        if (!authorizationCode) {
-          res.status(400).json({ error: "Missing code parameter." });
-          return;
-        }
-
-        const credentials = await schema.parseAsync(req.body);
-        const user = await login(credentials);
-
-        const targetUrl = await provider.authorizeConfirm(
-          authorizationCode,
-          user.scopes,
-          {
-            includeRefreshToken: req.query.includeRefreshToken === "1",
+    api.post(
+      "/login",
+      openAPIRoute(
+        {
+          summary: "Login route",
+          description:
+            "Confirm user credentials and enable the OAuth code for the client",
+          query: z.object({
+            code: z.string({ message: "Missing code parameter." }).openapi({
+              description:
+                "Authorization code, retrieved from oauth server's /authorize route",
+            }),
+            includeRefreshToken: z.enum(["1", "0"]).optional().openapi({
+              description:
+                "If a refresh token should be issued. Used in 'remember me' sign in functionality.",
+            }),
+          }),
+          body: schema,
+          responses: {
+            200: {
+              description: "User logged in successfully",
+              schema: z.object({
+                targetUrl: z.string().openapi({
+                  description:
+                    "URL to redirect to in order to complete the oauth flow. " +
+                    "Includes the authorization code.",
+                }),
+              }),
+            },
           },
-        );
-        res.status(200).json({ targetUrl });
-      } catch {
-        res.status(401).json({ error: "Invalid credentials." });
-      }
-    });
+        },
+        async (req, res) => {
+          try {
+            const authorizationCode = req.query.code;
+            const credentials = await schema.parseAsync(req.body);
+            const user = await login(credentials);
 
-    api.post("/logout", async (_, res) => {
-      if (logout) await logout();
-      res.status(200);
-    });
+            const targetUrl = await provider.authorizeConfirm(
+              authorizationCode,
+              user.scopes,
+              {
+                includeRefreshToken: req.query.includeRefreshToken === "1",
+              },
+            );
+            res.status(200).json({ targetUrl: targetUrl.toString() });
+          } catch {
+            res.status(401).json({ error: "Invalid credentials." });
+          }
+        },
+      ),
+    );
+
+    api.post(
+      "/logout",
+      openAPIRoute(
+        {
+          summary: "Logout route",
+          description:
+            "If implemented, runs the logout function. If not, just returns a 200 response.",
+          responses: {
+            200: {
+              description: "Logout successful",
+              schema: z.any(),
+            },
+          },
+        },
+        async (_, res) => {
+          if (logout) await logout();
+          res.status(200);
+        },
+      ),
+    );
 
     api.use(
       mcpAuthRouter({
@@ -89,14 +135,35 @@ export default <Credentials>({
     });
   };
 
+export default oauthPlugin;
+
+export const createOAuthPlugin = <Credentials>(
+  opts: Parameters<typeof oauthPlugin<Credentials>>[0],
+) => {
+  const plugin = oauthPlugin<Credentials>(opts);
+  const openapiSecurityScheme: SecuritySchemeObject = {
+    type: "oauth2",
+    flows: {
+      authorizationCode: {
+        scopes: opts.scopesSupported ?? [],
+        authorizationUrl: `${opts.issuerUrl.toString()}authorize`,
+        tokenUrl: `${opts.issuerUrl.toString()}token`,
+        refreshUrl: `${opts.issuerUrl.toString()}token`,
+      },
+    },
+  };
+
+  return {
+    oauthPlugin: plugin,
+    openapiSecurityScheme,
+  };
+};
+
 export const authorized =
   (scope: string[]): express.Handler =>
   (req, res, next) => {
     const provider: OAuthServerProvider = res.locals.provider;
-
-    if (!provider) {
-      throw new Error("OAuth provider not initialized");
-    }
+    if (!provider) throw new Error("OAuth provider not initialized");
 
     return requireBearerAuth({
       verifier: {

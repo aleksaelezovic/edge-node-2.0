@@ -1,7 +1,7 @@
 import path from "node:path";
 import dotenv from "dotenv";
 import { createPluginServer, defaultPlugin } from "@dkg/plugins";
-import authPlugin, { authorized } from "@dkg/plugin-oauth";
+import { authorized, createOAuthPlugin } from "@dkg/plugin-oauth";
 import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
 //@ts-expect-error No types for dkg.js ...
@@ -33,6 +33,27 @@ migrate(db, {
 
 const version = "1.0.0";
 
+const { oauthPlugin, openapiSecurityScheme } = createOAuthPlugin({
+  storage: new SqliteOAuthStorageProvider(db),
+  issuerUrl: new URL(process.env.EXPO_PUBLIC_MCP_URL),
+  scopesSupported: ["scope123", "mcp"],
+  loginPageUrl: new URL(process.env.EXPO_PUBLIC_APP_URL + "/login"),
+  schema: userCredentialsSchema,
+  async login(credentials) {
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, credentials.username))
+      .then((r) => r.at(0));
+    if (!user) throw new Error("Invalid credentials");
+
+    const isValid = await verify(user.password, credentials.password);
+    if (!isValid) throw new Error("Invalid credentials");
+
+    return { scopes: user.scope.split(" ") };
+  },
+});
+
 const app = createPluginServer({
   name: "DKG API",
   version,
@@ -53,26 +74,7 @@ const app = createPluginServer({
   },
   plugins: [
     defaultPlugin,
-    authPlugin({
-      storage: new SqliteOAuthStorageProvider(db),
-      issuerUrl: new URL(process.env.EXPO_PUBLIC_MCP_URL),
-      scopesSupported: ["scope123", "mcp"],
-      schema: userCredentialsSchema,
-      async login(credentials) {
-        const user = await db
-          .select()
-          .from(users)
-          .where(eq(users.username, credentials.username))
-          .then((r) => r.at(0));
-        if (!user) throw new Error("Invalid credentials");
-
-        const isValid = await verify(user.password, credentials.password);
-        if (!isValid) throw new Error("Invalid credentials");
-
-        return { scopes: user.scope.split(" ") };
-      },
-      loginPageUrl: new URL(process.env.EXPO_PUBLIC_APP_URL + "/login"),
-    }),
+    oauthPlugin,
     (_, __, api) => {
       api.use("/mcp", authorized(["mcp"]));
     },
@@ -82,29 +84,11 @@ const app = createPluginServer({
     // NOTE: WIP!
     swaggerPlugin({
       version,
-      securitySchemes: {
-        oauth2: {
-          type: "oauth2",
-          flows: {
-            authorizationCode: {
-              scopes: ["scope123", "mcp"],
-              authorizationUrl: new URL(
-                process.env.EXPO_PUBLIC_MCP_URL + "/authorize",
-              ).toString(),
-              tokenUrl: new URL(
-                process.env.EXPO_PUBLIC_MCP_URL + "/token",
-              ).toString(),
-              refreshUrl: new URL(
-                process.env.EXPO_PUBLIC_MCP_URL + "/token",
-              ).toString(),
-            },
-          },
-        },
-      },
+      securitySchemes: { oauth2: openapiSecurityScheme },
       servers: [
         {
           url: process.env.EXPO_PUBLIC_MCP_URL,
-          description: "Edge Node MCP Plugins Server",
+          description: "DKG Node MCP Plugins Server",
         },
       ],
     }),
