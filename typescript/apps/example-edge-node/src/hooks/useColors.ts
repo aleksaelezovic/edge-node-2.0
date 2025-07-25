@@ -1,19 +1,19 @@
 import { useColorScheme } from "./useColorScheme";
 
 const darkTheme = {
-  background: "#110734",
+  background: "#1F2E7E33",
   text: "#FFFFFF",
   primary: "#6344DF",
   primaryText: "#FFFFFF",
   secondary: "#A8AAF9",
-  card: "#6344DF33",
+  card: "#0C0C0C33",
   cardText: "#A8AAF9",
-  input: "#6344DF33",
+  input: "#0C0C0C33",
   placeholder: "#DCDCDC",
   error: "#FF0000",
 };
 const lightTheme: typeof darkTheme = {
-  background: "#F8F7FC",
+  background: "#F8F8F8",
   text: "#000000",
   primary: "#6344DF",
   primaryText: "#FFFFFF",
