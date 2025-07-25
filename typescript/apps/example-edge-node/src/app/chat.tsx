@@ -67,10 +67,7 @@ export default function Chat() {
               messages,
               tools,
             }),
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+            headers: { Authorization: `Bearer ${token}` },
           })
             .then((r) => r.json())
             .then((r) => r.choices?.at(0)?.message)
