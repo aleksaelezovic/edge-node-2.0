@@ -3,6 +3,11 @@ import type { express } from "@dkg/plugins/types";
 import { openAPIRoute, z } from "@dkg/plugin-swagger";
 import { mcpAuthRouter } from "@modelcontextprotocol/sdk/server/auth/router.js";
 import { OAuthServerProvider } from "@modelcontextprotocol/sdk/server/auth/provider.js";
+import {
+  InsufficientScopeError,
+  OAuthError,
+  ServerError,
+} from "@modelcontextprotocol/sdk/server/auth/errors.js";
 import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js";
 import type { SecuritySchemeObject } from "openapi3-ts/oas30";
 
@@ -92,9 +97,18 @@ const oauthPlugin =
                 includeRefreshToken: req.query.includeRefreshToken === "1",
               },
             );
+
             res.status(200).json({ targetUrl: targetUrl.toString() });
-          } catch {
-            res.status(401).json({ error: "Invalid credentials." });
+          } catch (error) {
+            if (error instanceof InsufficientScopeError) {
+              res.status(403).json(error.toResponseObject());
+            } else if (error instanceof ServerError) {
+              res.status(500).json(error.toResponseObject());
+            } else if (error instanceof OAuthError) {
+              res.status(400).json(error.toResponseObject());
+            } else {
+              res.status(401).json({ error: "Invalid credentials." });
+            }
           }
         },
       ),

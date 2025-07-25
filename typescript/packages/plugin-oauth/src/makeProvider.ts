@@ -8,6 +8,17 @@ import {
   OAuthTokens,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { AuthInfo } from "@modelcontextprotocol/sdk/server/auth/types.js";
+import {
+  InsufficientScopeError,
+  InvalidTokenError,
+  UnauthorizedClientError,
+  InvalidScopeError,
+  AccessDeniedError,
+  InvalidGrantError,
+  ServerError,
+  InvalidRequestError,
+  InvalidClientError,
+} from "@modelcontextprotocol/sdk/server/auth/errors.js";
 
 export default function makeProvider({
   storage,
@@ -47,7 +58,7 @@ export default function makeProvider({
         extra: { type: "access" },
       });
     } catch (err) {
-      throw new Error("Error saving token: " + String(err));
+      throw new ServerError("Error saving token: " + String(err));
     }
 
     let refreshToken = undefined;
@@ -63,7 +74,7 @@ export default function makeProvider({
           extra: { type: "refresh" },
         });
       } catch (err) {
-        throw new Error("Error saving refresh token: " + String(err));
+        throw new ServerError("Error saving refresh token: " + String(err));
       }
     }
 
@@ -95,17 +106,23 @@ export default function makeProvider({
     },
     async authorizeConfirm(authorizationCode, allowedScope, confirmationData) {
       const codeData = await storage.getCodeData(authorizationCode);
-      if (!codeData) throw new Error("Invalid authorization code");
+      if (!codeData)
+        throw new InvalidRequestError("Invalid authorization code");
 
       const { client, params } = codeData;
       const redirectUri = params.redirectUri || client.redirect_uris.at(0);
-      if (!redirectUri) throw new Error("No redirect URIs provided");
+      if (!redirectUri)
+        throw new InvalidClientError("No redirect URIs provided");
 
       if (!params.scopes?.every((s) => allowedScope.includes(s))) {
-        throw new Error("Scope not allowed");
+        throw new InsufficientScopeError("Scope not allowed");
       }
 
-      await storage.confirmCode(authorizationCode, confirmationData);
+      try {
+        await storage.confirmCode(authorizationCode, confirmationData);
+      } catch (err) {
+        throw new ServerError("Failed to confirm code: " + String(err));
+      }
 
       const targetUrl = new URL(redirectUri);
       const searchParams = new URLSearchParams({ code: authorizationCode });
@@ -123,7 +140,7 @@ export default function makeProvider({
       try {
         await storage.saveCode(code, client, params);
       } catch (err) {
-        throw new Error("Failed to save code: " + String(err));
+        throw new ServerError("Failed to save code: " + String(err));
       }
 
       const targetUrl = new URL(loginPageUrl);
@@ -136,7 +153,7 @@ export default function makeProvider({
     ): Promise<string> {
       const codeData = await storage.getCodeData(authorizationCode);
       if (!codeData) {
-        throw new Error("Invalid authorization code");
+        throw new InvalidGrantError("Invalid authorization code");
       }
 
       return codeData.params.codeChallenge;
@@ -144,27 +161,33 @@ export default function makeProvider({
     async exchangeAuthorizationCode(client, authorizationCode) {
       const codeData = await storage.getCodeData(authorizationCode);
       if (!codeData) {
-        throw new Error("Invalid authorization code");
+        throw new InvalidGrantError("Invalid authorization code");
       }
 
       if (codeData.client.client_id !== client.client_id) {
-        throw new Error(
+        throw new UnauthorizedClientError(
           `Authorization code was not issued to this client, ${codeData.client.client_id} != ${client.client_id}`,
         );
       }
 
       if (!codeData.confirmation) {
-        throw new Error("Code not confirmed");
+        throw new InvalidGrantError(
+          "Authorization code is not confirmed - user did not login",
+        );
       }
 
       if (validateResource && !validateResource(codeData.params.resource)) {
-        throw new Error(`Invalid resource: ${codeData.params.resource}`);
+        throw new AccessDeniedError(
+          `Invalid resource: ${codeData.params.resource}`,
+        );
       }
 
       try {
         await storage.deleteCode(authorizationCode);
       } catch (err) {
-        throw new Error("Error deleting authorization code: " + String(err));
+        throw new ServerError(
+          "Error deleting authorization code: " + String(err),
+        );
       }
 
       return createAndSaveOAuthTokens(
@@ -186,22 +209,22 @@ export default function makeProvider({
         !tokenData.expiresAt ||
         tokenData.expiresAt < Date.now()
       ) {
-        throw new Error("Invalid or expired refresh token");
+        throw new InvalidGrantError("Invalid or expired refresh token");
       }
 
       if (tokenData.clientId !== client.client_id) {
-        throw new Error(
+        throw new UnauthorizedClientError(
           `Refresh token was not issued to this client, ${tokenData.clientId} != ${client.client_id}`,
         );
       }
 
       if (validateResource && !validateResource(resource)) {
-        throw new Error(`Invalid resource: ${resource}`);
+        throw new AccessDeniedError(`Invalid resource: ${resource}`);
       }
 
       const allowedScopes = scopes ?? tokenData.scopes;
       if (!allowedScopes.every((s) => tokenData.scopes.includes(s))) {
-        throw new Error(`Invalid scopes: ${allowedScopes}`);
+        throw new InvalidScopeError(`Invalid scopes: ${allowedScopes}`);
       }
 
       return createAndSaveOAuthTokens(
@@ -218,7 +241,7 @@ export default function makeProvider({
         !tokenData.expiresAt ||
         tokenData.expiresAt < Date.now()
       ) {
-        throw new Error("Invalid or expired token");
+        throw new InvalidTokenError("Invalid or expired token");
       }
 
       return {
@@ -242,7 +265,7 @@ export default function makeProvider({
       try {
         await storage.deleteToken(request.token);
       } catch (err) {
-        throw new Error("Failed to revoke/delete token: " + String(err));
+        throw new ServerError("Failed to revoke/delete token: " + String(err));
       }
     },
   };
