@@ -12,7 +12,6 @@ export default function LayoutPill(props: PropsWithChildren) {
         height: 80,
         width: "100%",
         display: "flex",
-        justifyContent: "center",
       }}
     >
       <View
@@ -23,6 +22,7 @@ export default function LayoutPill(props: PropsWithChildren) {
           backgroundColor: cardColor,
           display: "flex",
           flexDirection: "row",
+          justifyContent: "center",
         }}
       >
         {props.children}

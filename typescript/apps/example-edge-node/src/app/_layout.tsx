@@ -43,6 +43,7 @@ export default function RootLayout() {
     SpaceGrotesk_700Bold,
   });
   const pathname = usePathname();
+  const isLoginPage = pathname === "/login";
 
   if (!loaded) {
     // Async font loading only occurs in development.
@@ -70,20 +71,28 @@ export default function RootLayout() {
               marginHorizontal: "auto",
             }}
           >
-            {(Platform.OS === "web" || pathname !== "/login") && (
+            {(Platform.OS === "web" || !isLoginPage) && (
               <LayoutPill>
                 <HeaderLogo
                   image={require("../assets/logo.svg")}
                   text="DKG Agent"
                   textFont="SpaceGrotesk_400Regular"
-                  style={{ flex: 1 }}
+                  style={[
+                    { flex: 1 },
+                    isLoginPage && {
+                      justifyContent: "center",
+                      marginLeft: -16,
+                    },
+                  ]}
                 />
 
-                <HeaderNav style={{ flex: 1 }}>
-                  <HeaderNav.Link href="/chat" text="Chat" icon={StarsIcon} />
-                </HeaderNav>
+                {!isLoginPage && (
+                  <HeaderNav style={{ flex: 1 }}>
+                    <HeaderNav.Link href="/chat" text="Chat" icon={StarsIcon} />
+                  </HeaderNav>
+                )}
 
-                <View style={{ flex: 1 }} />
+                {!isLoginPage && <View style={{ flex: 1 }} />}
               </LayoutPill>
             )}
 
