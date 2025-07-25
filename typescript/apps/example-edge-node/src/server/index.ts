@@ -8,11 +8,16 @@ import swaggerPlugin from "@dkg/plugin-swagger";
 import DKG from "dkg.js";
 
 import { userCredentialsSchema } from "@/shared/auth";
+import { verify } from "@node-rs/argon2";
 
 import webInterfacePlugin from "./webInterfacePlugin";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import SqliteOAuthStorageProvider from "./database/sqlite/SqliteOAuthStorageProvider";
+import {
+  drizzle,
+  migrate,
+  users,
+  SqliteOAuthStorageProvider,
+} from "./database/sqlite";
+import { eq } from "drizzle-orm";
 
 dotenv.config();
 if (process.argv.includes("--dev"))
@@ -54,13 +59,17 @@ const app = createPluginServer({
       scopesSupported: ["scope123", "mcp"],
       schema: userCredentialsSchema,
       async login(credentials) {
-        if (
-          credentials.username === "admin" &&
-          credentials.password === "admin123"
-        ) {
-          return { scopes: ["mcp", "scope123"] };
-        }
-        throw new Error("Invalid credentials");
+        const user = await db
+          .select()
+          .from(users)
+          .where(eq(users.username, credentials.username))
+          .then((r) => r.at(0));
+        if (!user) throw new Error("Invalid credentials");
+
+        const isValid = await verify(user.password, credentials.password);
+        if (!isValid) throw new Error("Invalid credentials");
+
+        return { scopes: user.scope.split(" ") };
       },
       loginPageUrl: new URL(process.env.EXPO_PUBLIC_APP_URL + "/login"),
     }),

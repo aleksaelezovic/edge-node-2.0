@@ -8,6 +8,13 @@
       "when": 1753361266567,
       "tag": "0000_majestic_bastion",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1753466943593,
+      "tag": "0001_light_blacklash",
+      "breakpoints": true
     }
   ]
 }
