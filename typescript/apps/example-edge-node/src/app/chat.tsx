@@ -19,7 +19,10 @@ import { useMcpClient } from "@/client";
 export default function Chat() {
   const { code: authorizationCode } = useLocalSearchParams<{ code?: string }>();
   const onAuthorized = useCallback(() => router.navigate("/chat"), []);
-  const mcp = useMcpClient({ authorizationCode, onAuthorized });
+  const { connected, mcp, getToken } = useMcpClient({
+    authorizationCode,
+    onAuthorized,
+  });
 
   const [tools, setTools] = useState<OpenAI.ChatCompletionTool[]>([]);
   const [message, setMessage] = useState<string>("");
@@ -28,7 +31,7 @@ export default function Chat() {
   );
 
   useEffect(() => {
-    if (!mcp) return;
+    if (!connected) return;
     SplashScreen.hide();
     mcp
       .listTools()
@@ -47,25 +50,36 @@ export default function Chat() {
       .catch((error) => {
         console.log("Error listing MCP tools: ", error.message);
       });
-  }, [mcp]);
+  }, [connected, mcp]);
 
   useEffect(() => {
     if (messages.at(-1)?.role === "user")
-      fetch(process.env.EXPO_PUBLIC_APP_URL + "/llm", {
-        method: "POST",
-        body: JSON.stringify({
-          model: "gpt-4",
-          messages,
-          tools,
-        }),
-      })
-        .then((r) => r.json())
-        .then((r) => r.choices?.at(0)?.message)
-        .then((m) => {
-          if (!m) throw new Error("No message received");
-          setMessages((prevMessages) => [...prevMessages, m]);
-        });
-  }, [messages, tools]);
+      getToken()
+        .then((token) => {
+          if (!token) throw new Error("Not authenticated.");
+          return token;
+        })
+        .then((token) =>
+          fetch(process.env.EXPO_PUBLIC_APP_URL + "/llm", {
+            method: "POST",
+            body: JSON.stringify({
+              model: "gpt-4",
+              messages,
+              tools,
+            }),
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          })
+            .then((r) => r.json())
+            .then((r) => r.choices?.at(0)?.message)
+            .then((m) => {
+              if (!m) throw new Error("No message received");
+              setMessages((prevMessages) => [...prevMessages, m]);
+            }),
+        );
+  }, [messages, tools, getToken]);
 
   return (
     <View style={styles.container}>
@@ -73,7 +87,7 @@ export default function Chat() {
         <Text style={styles.title}>Edge Node Chat</Text>
         <Button title="Clear" onPress={() => AsyncStorage.clear()} />
         <View style={styles.statusContainer}>
-          {mcp ? (
+          {connected ? (
             <Text style={styles.statusConnected}>● Connected</Text>
           ) : (
             <Text style={styles.statusConnecting}>● Connecting...</Text>

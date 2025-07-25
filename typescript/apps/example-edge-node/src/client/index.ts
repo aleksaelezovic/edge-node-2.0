@@ -6,7 +6,7 @@ import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { Platform } from "react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import AsyncStorageOAuthClientProvider from "./AsyncStorageOAuthClientProvider";
 import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
@@ -19,38 +19,40 @@ export const clientUri =
       : `${Constants.expoConfig?.scheme}://`;
 
 const createTransport = () => {
-  return new StreamableHTTPClientTransport(
+  const authProvider = new AsyncStorageOAuthClientProvider(
+    clientUri + "/chat",
+    {
+      redirect_uris: [clientUri + "/chat"],
+      client_name: "Edge Node Agent",
+      client_uri: clientUri,
+      logo_uri: process.env.EXPO_PUBLIC_APP_URL + "/logo.png",
+      scope: "mcp llm",
+    },
+    async (url) => {
+      if (Platform.OS !== "web") {
+        url = await fetch(url.toString()).then((r) => new URL(r.url));
+
+        if (url.origin === process.env.EXPO_PUBLIC_APP_URL) {
+          console.log("Local redirect...", url.pathname + url.search);
+          router.navigate({
+            pathname: (url.pathname + url.search) as any,
+          });
+          return;
+        }
+      }
+
+      console.log("Redirecting to a web URL...", url.toString());
+      await Linking.openURL(url.toString());
+    },
+  );
+  const transport = new StreamableHTTPClientTransport(
     new URL(process.env.EXPO_PUBLIC_MCP_URL + "/mcp"),
     {
       fetch: (url, opts) => fetch(url.toString(), opts as any),
-      authProvider: new AsyncStorageOAuthClientProvider(
-        clientUri + "/chat",
-        {
-          redirect_uris: [clientUri + "/chat"],
-          client_name: "Edge Node Agent",
-          client_uri: clientUri,
-          logo_uri: process.env.EXPO_PUBLIC_APP_URL + "/logo.png",
-          scope: "mcp",
-        },
-        async (url) => {
-          if (Platform.OS !== "web") {
-            url = await fetch(url.toString()).then((r) => new URL(r.url));
-
-            if (url.origin === process.env.EXPO_PUBLIC_APP_URL) {
-              console.log("Local redirect...", url.pathname + url.search);
-              router.navigate({
-                pathname: (url.pathname + url.search) as any,
-              });
-              return;
-            }
-          }
-
-          console.log("Redirecting to a web URL...", url.toString());
-          await Linking.openURL(url.toString());
-        },
-      ),
+      authProvider,
     },
   );
+  return { transport, authProvider };
 };
 
 export const useMcpClient = ({
@@ -61,18 +63,23 @@ export const useMcpClient = ({
   onAuthorized?: () => void;
 }) => {
   const [connected, setConnected] = useState(false);
-  const transport = useRef(createTransport());
+  const transportObj = useRef(createTransport());
 
   const mcp = useMemo(
     () => new Client({ name: "edge-node-agent", version: "1.0.0" }),
     [],
   );
 
+  const getToken = useCallback(async () => {
+    const token = await transportObj.current.authProvider.tokens();
+    return token?.access_token;
+  }, []);
+
   useEffect(() => {
     if (authorizationCode) {
       console.log("Exchanging authorization code for token...");
-      transport.current = createTransport();
-      transport.current
+      transportObj.current = createTransport();
+      transportObj.current.transport
         .finishAuth(authorizationCode)
         .then(() => {
           console.log("Auth finished");
@@ -84,10 +91,13 @@ export const useMcpClient = ({
     } else {
       console.log("Connecting to MCP...");
       mcp
-        .connect(transport.current)
+        .connect(transportObj.current.transport)
         .then(() => {
           setConnected(true);
-          console.log("Connected to transport", transport.current.sessionId);
+          console.log(
+            "Connected to transport",
+            transportObj.current.transport.sessionId,
+          );
         })
         .catch((error) => {
           if (error instanceof UnauthorizedError) {
@@ -98,7 +108,7 @@ export const useMcpClient = ({
           SplashScreen.hide();
         });
     }
-  }, [authorizationCode, onAuthorized, mcp, transport]);
+  }, [authorizationCode, onAuthorized, mcp, transportObj]);
 
-  return connected ? mcp : null;
+  return { connected, mcp, getToken };
 };
