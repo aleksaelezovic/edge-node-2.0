@@ -26,6 +26,8 @@ import LayoutPill from "@/components/layout/LayoutPill";
 import HeaderLogo from "@/components/layout/HeaderLogo";
 import HeaderNav from "@/components/layout/HeaderNav";
 import StarsIcon from "@/components/icons/StarsIcon";
+import PoweredBy from "@/components/layout/PoweredBy";
+import FooterLinks from "@/components/layout/FooterLinks";
 
 import "../polyfills";
 
@@ -89,8 +91,8 @@ export default function RootLayout() {
 
             {Platform.OS === "web" && (
               <LayoutPill>
-                <View style={{ flex: 1 }} />
-                <View style={{ flex: 1 }} />
+                <PoweredBy style={{ flex: 1, marginLeft: 32 }} />
+                <FooterLinks style={{ flex: 1, marginRight: 32 }} />
               </LayoutPill>
             )}
           </View>
