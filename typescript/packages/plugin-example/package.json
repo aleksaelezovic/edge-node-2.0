@@ -18,6 +18,7 @@
     "tsup": "^8.5.0"
   },
   "dependencies": {
+    "@dkg/plugin-swagger": "^0.0.1",
     "@dkg/plugins": "^0.0.1"
   }
 }

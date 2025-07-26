@@ -34,6 +34,9 @@ export const defineDkgPlugin = (plugin: DkgPlugin): DkgPluginBuilder =>
         const router = express.Router();
         options?.middlewares.forEach((m) => router.use(m));
 
+        // Required patch in order for @dkg/plugin-swagger to work!
+        Object.assign(router, { prefix: "/" + namespace });
+
         plugin(ctx, mcp, router);
         api.use("/" + namespace, router);
       });

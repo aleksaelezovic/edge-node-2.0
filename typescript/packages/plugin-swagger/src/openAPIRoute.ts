@@ -62,12 +62,10 @@ type SchemaDefinition<
   /**The zod schema of the successful API response. In development mode, passing data that
    * does not match this type will yield a console warning.
    */
-  responses?: {
-    [code: number]: {
-      description?: string;
-      contentType?: string;
-      schema: TResponse | TError;
-    };
+  response?: {
+    description?: string;
+    contentType?: string;
+    schema: TResponse | TError;
   };
   /** Mark the route as deprecated in generated OpenAPI docs. Does not have any impact on routing. */
   deprecated?: boolean;
@@ -141,13 +139,8 @@ export const openAPIRoute = <
       res.json = (body: unknown) => {
         // In dev + test, validate that the JSON response from the endpoint matches
         // the Zod schemas. In production, we skip this because it's just time consuming
-        if (process.env.NODE_ENV !== "production" && schema.responses) {
-          const schemas = Object.values(schema.responses).map((r) => r.schema);
-          const schemaUnion =
-            schemas.length >= 2
-              ? z.union([schemas[0]!, schemas[1]!, ...schemas.slice(2)])
-              : (schemas[0] ?? z.any());
-          const result = schemaUnion.safeParse(body);
+        if (process.env.NODE_ENV !== "production" && schema.response) {
+          const result = schema.response.schema.safeParse(body);
 
           if (result.success === false && "error" in result) {
             console.warn(

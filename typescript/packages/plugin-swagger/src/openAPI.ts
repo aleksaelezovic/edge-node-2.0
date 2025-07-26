@@ -73,7 +73,7 @@ export function buildOpenAPIDocument(args: {
       body,
       params,
       query,
-      responses,
+      response,
       description,
       summary,
       security,
@@ -98,8 +98,8 @@ export function buildOpenAPIDocument(args: {
       [statusCode: string]: ResponseConfig;
     } = {};
 
-    Object.entries({ ...globalResponses, ...responses }).map(
-      ([statusCode, response]) => {
+    if (globalResponses)
+      Object.entries(globalResponses).map(([statusCode, response]) => {
         possibleResponses[statusCode] = {
           description: response.description ?? "",
           content: {
@@ -108,8 +108,17 @@ export function buildOpenAPIDocument(args: {
             },
           },
         };
-      },
-    );
+      });
+
+    if (response)
+      possibleResponses[200] = {
+        description: response.description ?? "",
+        content: {
+          [response.contentType ?? "application/json"]: {
+            schema: response.schema,
+          },
+        },
+      };
 
     // If the request includes path parameters, a 404 error is most likely possible
     if (params) {
@@ -233,15 +242,25 @@ export const getRoutes = (routers: Router[]) => {
       for (const subMiddleware of middleware.handle.stack) {
         processMiddleware(
           subMiddleware,
-          `${prefix}${regexPrefixToString(middleware.regexp)}`,
+          // Use 'prefix' property of a patched express.Router
+          //
+          // Every router used in the express application needs to register
+          // it's own prefix as an additional property. This is required
+          // because express layers no longer provide the 'regexp' property.
+          `${prefix}${regexPrefixToString(middleware.handle.prefix)}`,
         );
       }
     }
     if (!middleware.route) {
       return;
     }
+
+    const path = `${prefix}${middleware.route.path}`;
+    // Ignore middleware with '/' path, not useful
+    if (path === "/") return;
+
     routes.push({
-      path: `${prefix}${middleware.route.path}`,
+      path,
       method: middleware.route.stack[0].method,
       handler: middleware.route.stack[middleware.route.stack.length - 1].handle,
     });

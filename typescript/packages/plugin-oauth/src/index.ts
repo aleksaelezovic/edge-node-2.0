@@ -57,6 +57,7 @@ const oauthPlugin =
       "/login",
       openAPIRoute(
         {
+          tag: "Auth",
           summary: "Login route",
           description:
             "Confirm user credentials and enable the OAuth code for the client",
@@ -71,17 +72,15 @@ const oauthPlugin =
             }),
           }),
           body: schema,
-          responses: {
-            200: {
-              description: "User logged in successfully",
-              schema: z.object({
-                targetUrl: z.string().openapi({
-                  description:
-                    "URL to redirect to in order to complete the oauth flow. " +
-                    "Includes the authorization code.",
-                }),
+          response: {
+            description: "User logged in successfully",
+            schema: z.object({
+              targetUrl: z.string().openapi({
+                description:
+                  "URL to redirect to in order to complete the oauth flow. " +
+                  "Includes the authorization code.",
               }),
-            },
+            }),
           },
         },
         async (req, res) => {
@@ -118,14 +117,13 @@ const oauthPlugin =
       "/logout",
       openAPIRoute(
         {
+          tag: "Auth",
           summary: "Logout route",
           description:
             "If implemented, runs the logout function. If not, just returns a 200 response.",
-          responses: {
-            200: {
-              description: "Logout successful",
-              schema: z.any(),
-            },
+          response: {
+            description: "Logout successful",
+            schema: z.any(),
           },
         },
         async (_, res) => {
