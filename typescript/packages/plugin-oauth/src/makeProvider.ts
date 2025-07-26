@@ -97,7 +97,7 @@ export default function makeProvider({
           ..._client,
           scope: scopesSupported?.join(" "),
           client_id: randomUUID(),
-          client_id_issued_at: Date.now(),
+          client_id_issued_at: Math.floor(Date.now() / 1000),
         };
         client.scope = scopesSupported?.join(" ");
         await storage.saveClient(client);
