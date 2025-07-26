@@ -29,7 +29,7 @@ import {
 } from "@asteasolutions/zod-to-openapi";
 import { OpenApiVersion } from "@asteasolutions/zod-to-openapi/dist/openapi-generator";
 import type { RequestHandler, Router } from "express";
-import type { ComponentsObject } from "openapi3-ts/oas30";
+import type { ComponentsObject } from "openapi3-ts/oas31";
 
 import { z } from "./z";
 import { getSchemaOfOpenAPIRoute } from "./openAPIRoute";

@@ -4,7 +4,7 @@ import type {
   ServerObject,
   SecuritySchemeObject,
   ReferenceObject,
-} from "openapi3-ts/oas30";
+} from "openapi3-ts/oas31";
 import type { Express } from "express";
 
 import { z } from "./z";
@@ -33,7 +33,7 @@ export default ({
     let openAPIDocument = {};
     try {
       openAPIDocument = buildOpenAPIDocument({
-        openApiVersion: "3.0.0",
+        openApiVersion: "3.1.0",
         routers: [(api as Express).router],
         globalResponses,
         securitySchemes,

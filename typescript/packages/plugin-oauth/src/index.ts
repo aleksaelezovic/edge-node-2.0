@@ -9,7 +9,7 @@ import {
   ServerError,
 } from "@modelcontextprotocol/sdk/server/auth/errors.js";
 import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js";
-import type { SecuritySchemeObject } from "openapi3-ts/oas30";
+import type { SecuritySchemeObject } from "openapi3-ts/oas31";
 
 import DemoOAuthStorageProvider from "./storage/demo";
 import makeProvider, {
