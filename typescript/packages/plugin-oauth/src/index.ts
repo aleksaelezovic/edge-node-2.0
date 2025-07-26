@@ -157,7 +157,9 @@ export const createOAuthPlugin = <Credentials>(
     type: "oauth2",
     flows: {
       authorizationCode: {
-        scopes: opts.scopesSupported ?? [],
+        scopes: Object.fromEntries(
+          (opts.scopesSupported ?? []).map((scope) => [scope, scope]),
+        ),
         authorizationUrl: `${opts.issuerUrl.toString()}authorize`,
         tokenUrl: `${opts.issuerUrl.toString()}token`,
         refreshUrl: `${opts.issuerUrl.toString()}token`,
