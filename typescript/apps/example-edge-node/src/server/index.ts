@@ -82,7 +82,6 @@ const app = createPluginServer({
     examplePlugin.withNamespace("protected", {
       middlewares: [authorized(["scope123"])], // Allow only users with the "scope123" scope
     }),
-    // NOTE: WIP!
     swaggerPlugin({
       version,
       securitySchemes: { oauth2: openapiSecurityScheme },

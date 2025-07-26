@@ -7,14 +7,11 @@ import type {
 } from "openapi3-ts/oas31";
 import type { Express } from "express";
 
-import { z } from "./z";
-import { openAPIRoute } from "./openAPIRoute";
 import { buildOpenAPIDocument, OpenAPIResponse } from "./openAPI";
 
-export { openAPIRoute, z };
+export { z } from "./z";
+export { openAPIRoute } from "./openAPIRoute";
 export type { OpenAPIResponse };
-
-// TODO: Fix nested routes generation (./openAPI.ts)
 
 export default ({
     globalResponses,
@@ -46,8 +43,9 @@ export default ({
           servers,
         },
       });
-    } catch {
-      // Expected to error (WIP)
+    } catch (error: unknown) {
+      // Don't break the server
+      console.error("Failed to build OpenAPI document:", error);
     }
     api.get("/openapi", (_req, res) => {
       res.json(openAPIDocument);
@@ -55,9 +53,13 @@ export default ({
     api.use("/swagger", swaggerUI.serve);
     api.get(
       "/swagger",
-      swaggerUI.setup(null, {
+      swaggerUI.setup(openAPIDocument, {
         swaggerOptions: {
-          url: "/openapi",
+          oauth: {
+            usePkceWithAuthorizationCodeGrant: true,
+            clientId: "swagger-client",
+            clientSecret: "swagger-secret",
+          },
         },
       }),
     );
