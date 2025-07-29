@@ -6,6 +6,7 @@ import {
 import { useFonts } from "expo-font";
 import {
   Manrope_400Regular,
+  Manrope_500Medium,
   Manrope_600SemiBold,
 } from "@expo-google-fonts/manrope";
 import {
@@ -38,6 +39,7 @@ export default function RootLayout() {
   const safeAreaInsets = useSafeAreaInsets();
   const [loaded] = useFonts({
     Manrope_400Regular,
+    Manrope_500Medium,
     Manrope_600SemiBold,
     SpaceGrotesk_400Regular,
     SpaceGrotesk_700Bold,

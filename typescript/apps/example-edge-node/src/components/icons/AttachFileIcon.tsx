@@ -2,7 +2,7 @@ import Svg, { SvgProps, Path } from "react-native-svg";
 
 export default function AttachFileIcon(props: SvgProps) {
   return (
-    <Svg fill="none" {...props}>
+    <Svg fill="none" viewBox="0 0 18 20" {...props}>
       <Path
         strokeLinecap="round"
         strokeLinejoin="round"

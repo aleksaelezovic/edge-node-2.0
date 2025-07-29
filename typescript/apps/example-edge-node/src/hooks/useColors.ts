@@ -25,6 +25,8 @@ const lightTheme: typeof darkTheme = {
   error: "#E74C3C",
 };
 
+export type Color = keyof typeof darkTheme;
+
 export const Colors: Record<"light" | "dark", typeof darkTheme> = {
   light: lightTheme,
   dark: darkTheme,

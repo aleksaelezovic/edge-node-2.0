@@ -2,7 +2,7 @@ import Svg, { SvgProps, Path } from "react-native-svg";
 
 export default function ArrowUpIcon(props: SvgProps) {
   return (
-    <Svg fill="none" {...props}>
+    <Svg fill="none" viewBox="0 0 12 18" {...props}>
       <Path
         strokeLinecap="square"
         strokeWidth={1.5}
