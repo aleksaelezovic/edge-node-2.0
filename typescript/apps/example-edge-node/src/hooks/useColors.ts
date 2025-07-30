@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+
 import { useColorScheme } from "./useColorScheme";
 
 const darkTheme = {
@@ -34,5 +36,19 @@ export const Colors: Record<"light" | "dark", typeof darkTheme> = {
 
 export default function useColors() {
   const colorScheme = useColorScheme();
-  return Colors[colorScheme ?? "light"];
+
+  return useMemo(() => {
+    const colors = Colors[colorScheme ?? "light"];
+    const getTextColor = (backgroundColor: Color) => {
+      return backgroundColor === "card"
+        ? colors.cardText
+        : backgroundColor === "primary"
+          ? colors.primaryText
+          : colors.text;
+    };
+    return {
+      ...colors,
+      getTextColor,
+    };
+  }, [colorScheme]);
 }
