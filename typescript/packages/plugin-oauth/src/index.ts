@@ -128,7 +128,7 @@ const oauthPlugin =
         },
         async (_, res) => {
           if (logout) await logout();
-          res.status(200);
+          res.status(200).send();
         },
       ),
     );
