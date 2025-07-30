@@ -72,14 +72,20 @@ export default function Chat() {
           return token;
         })
         .then((token) =>
-          fetch(process.env.EXPO_PUBLIC_APP_URL + "/llm", {
+          fetch(new URL(process.env.EXPO_PUBLIC_APP_URL + "/llm").toString(), {
             method: "POST",
             body: JSON.stringify({
               model: "gpt-4",
               messages,
               tools,
             }),
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {
+              Authorization: `Bearer ${token}`,
+              // Itentionally omit the 'Content-Type' header
+              // Because it breaks the production build
+              //
+              // "Content-Type": "application/json",
+            },
           })
             .then((r) => r.json())
             .then((r) => r.choices?.at(0)?.message)
@@ -87,7 +93,10 @@ export default function Chat() {
               if (!m) throw new Error("No message received");
               setMessages((prevMessages) => [...prevMessages, m]);
             }),
-        );
+        )
+        .catch((error) => {
+          console.log("Error calling LLM: ", error.message);
+        });
   }, [messages, tools, getToken]);
 
   const isLandingScreen = !messages.length && !isNativeMobile;
