@@ -18,9 +18,10 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Platform, View } from "react-native";
+import { View } from "react-native";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
+import usePlatform from "@/hooks/usePlatform";
 
 import Background from "@/components/layout/Background";
 import LayoutPill from "@/components/layout/LayoutPill";
@@ -46,6 +47,7 @@ export default function RootLayout() {
   });
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
+  const { isWeb, isNativeMobile, size } = usePlatform();
 
   if (!loaded) {
     // Async font loading only occurs in development.
@@ -73,7 +75,7 @@ export default function RootLayout() {
               marginHorizontal: "auto",
             }}
           >
-            {(Platform.OS === "web" || !isLoginPage) && (
+            {(isWeb || !isLoginPage) && (
               <LayoutPill>
                 <HeaderLogo
                   image={require("../assets/logo.svg")}
@@ -100,7 +102,7 @@ export default function RootLayout() {
 
             <Slot />
 
-            {Platform.OS === "web" && (
+            {!isNativeMobile && size.md && (
               <LayoutPill>
                 <PoweredBy style={{ flex: 1, marginLeft: 32 }} />
                 <FooterLinks style={{ flex: 1, marginRight: 32 }} />
