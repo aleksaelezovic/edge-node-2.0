@@ -87,7 +87,6 @@ Here you can also configure these plugins with extension methods (i.e `.withName
 
 Run `turbo ls` to see the full list.
 
-- `@dkg/mcp-server`: DKG MCP Server app, running on port 9200
 - `@dkg/example-edge-node`: Example of an edge node (Expo)
 
 - `@dkg/plugins`: Utility package for creating DKG plugins
@@ -99,6 +98,13 @@ Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
 Use `turbo gen` to generate new apps and packages.
 
+### Versioning and changelog generation
+
+1. Use `changeset` to create a new release. Select which packages to include in the release and select which of them require a minor or a major version bump (if neither major or minor is selected, the release will be a patch version)
+2. Use `changeset version` to bump up the versions and generate a changelog for each package.
+
+> After both of these steps, a commit will be created automatically.
+
 ### Utilities
 
 This Turborepo has some additional tools already setup for you:
@@ -106,6 +112,7 @@ This Turborepo has some additional tools already setup for you:
 - [TypeScript](https://www.typescriptlang.org/) for static type checking
 - [ESLint](https://eslint.org/) for code linting
 - [Prettier](https://prettier.io) for code formatting
+- [Changesets](https://github.com/changesets/changesets) for versioning and changelog generation
 
 ### Remote Caching
 
