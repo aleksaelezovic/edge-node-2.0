@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
   TouchableOpacity,
   Text,
@@ -21,47 +21,43 @@ export default function Button(props: {
   onPress?: (e: GestureResponderEvent) => void;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { color, flat, text, disabled, onPress, style } = props;
   const colors = useColors();
-  const disabledColor = "#bdc3c7";
-  const color = props.flat
-    ? props.disabled
-      ? disabledColor
-      : colors[props.color]
-    : props.color === "card"
-      ? colors.cardText
-      : props.color === "primary"
-        ? colors.primaryText
-        : colors.text;
-  const backgroundColor = props.flat
-    ? "transparent"
-    : props.disabled
-      ? disabledColor
-      : colors[props.color];
+  const buttonColor = disabled ? "#b8b8b8" : colors[color];
+
+  let textColor: string;
+  let backgroundColor: string;
+
+  if (flat) {
+    textColor = buttonColor;
+    backgroundColor = "transparent";
+  } else {
+    textColor = colors.getTextColor(color);
+    backgroundColor = buttonColor;
+  }
 
   return (
     <TouchableOpacity
       style={[
         styles.button,
         { backgroundColor },
-        (!props.flat || !props.text) && { borderRadius: 50 },
-        !props.flat && { padding: 12 },
-        props.disabled || props.flat
-          ? styles.buttonShadowDisabled
-          : styles.buttonShadow,
-        props.style,
+        (!flat || !text) && { borderRadius: 50 },
+        !flat && { padding: 12 },
+        disabled || flat ? styles.buttonShadowDisabled : styles.buttonShadow,
+        style,
       ]}
-      onPress={props.onPress}
-      disabled={props.disabled}
+      onPress={disabled ? undefined : onPress}
+      disabled={disabled}
     >
       {props.icon && (
         <props.icon
-          {...{ [props.iconMode ?? "stroke"]: color }}
+          {...{ [props.iconMode ?? "stroke"]: textColor }}
           height={18}
           width={18}
         />
       )}
-      {props.text && (
-        <Text style={[styles.buttonText, { color }]}>{props.text}</Text>
+      {text && (
+        <Text style={[styles.buttonText, { color: textColor }]}>{text}</Text>
       )}
     </TouchableOpacity>
   );
