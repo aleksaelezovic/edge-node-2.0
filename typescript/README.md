@@ -100,6 +100,10 @@ Use `turbo gen` to generate new apps and packages.
 
 ### Versioning and changelog generation
 
+> [!NOTE]
+> If you do not have `changeset` installed globally, you can install it by running `npm install -g @changesets/cli`.
+> Or alternatively, use `npx @changesets/cli` instead (like `npx @changesets/cli version`)
+
 1. Use `changeset` to create a new release. Select which packages to include in the release and select which of them require a minor or a major version bump (if neither major or minor is selected, the release will be a patch version)
 2. Use `changeset version` to bump up the versions and generate a changelog for each package.
 
