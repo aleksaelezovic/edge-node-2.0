@@ -218,7 +218,7 @@ export default function makeProvider({
         );
       }
 
-      if (validateResource && !validateResource(resource)) {
+      if (validateResource && !(await validateResource(resource))) {
         throw new AccessDeniedError(`Invalid resource: ${resource}`);
       }
 
