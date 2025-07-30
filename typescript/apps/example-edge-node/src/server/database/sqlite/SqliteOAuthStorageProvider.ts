@@ -83,8 +83,7 @@ export default class SqliteOAuthStorageProvider
   }
 
   async deleteCode(code: string): Promise<void> {
-    const result = await this.db.delete(codes).where(eq(codes.code, code));
-    if (result.changes !== 1) throw new Error("Failed to delete code");
+    await this.db.delete(codes).where(eq(codes.code, code));
   }
 
   async saveToken(token: string, tokenData: AuthInfo) {
@@ -118,7 +117,6 @@ export default class SqliteOAuthStorageProvider
   }
 
   async deleteToken(token: string): Promise<void> {
-    const result = await this.db.delete(tokens).where(eq(tokens.token, token));
-    if (result.changes !== 1) throw new Error("Failed to delete token");
+    await this.db.delete(tokens).where(eq(tokens.token, token));
   }
 }
