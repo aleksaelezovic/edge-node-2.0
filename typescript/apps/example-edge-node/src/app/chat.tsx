@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
@@ -17,6 +18,7 @@ import type OpenAI from "openai";
 
 import { useMcpClient } from "@/client";
 import useColors from "@/hooks/useColors";
+import usePlatform from "@/hooks/usePlatform";
 import Button from "@/components/Button";
 import ArrowUpIcon from "@/components/icons/ArrowUpIcon";
 import MicrophoneIcon from "@/components/icons/MicrophoneIcon";
@@ -25,6 +27,8 @@ import ToolsIcon from "@/components/icons/ToolsIcon";
 
 export default function Chat() {
   const colors = useColors();
+  const { isNativeMobile, isWeb } = usePlatform();
+
   const { code: authorizationCode } = useLocalSearchParams<{ code?: string }>();
   const onAuthorized = useCallback(() => router.navigate("/chat"), []);
   const { connected, mcp, getToken } = useMcpClient({
@@ -86,91 +90,17 @@ export default function Chat() {
         );
   }, [messages, tools, getToken]);
 
-  if (!messages.length)
-    return (
-      <View style={styles.container}>
-        <View
-          style={{
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            flex:
-              Platform.OS === "ios" || Platform.OS === "android"
-                ? 1
-                : undefined,
-            width: "100%",
-            padding: 0,
-            marginTop: 80,
-          }}
-        >
-          {!(Platform.OS === "ios" || Platform.OS === "android") && (
-            <Image
-              source={require("../assets/logo.svg")}
-              style={{ width: 100, height: 100, marginBottom: 24 }}
-            />
-          )}
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                { backgroundColor: colors.input, color: colors.text },
-              ]}
-              placeholder="Ask anything..."
-              placeholderTextColor={colors.placeholder}
-              onChangeText={setMessage}
-              value={message}
-              multiline
-            />
-            <View style={styles.inputButtons}>
-              <Button
-                color="secondary"
-                flat
-                icon={MicrophoneIcon}
-                iconMode="fill"
-                style={styles.inputButton}
-              />
-              <Button
-                color="primary"
-                icon={ArrowUpIcon}
-                style={styles.inputButton}
-              />
-            </View>
-          </View>
-          <View
-            style={[
-              styles.inputContainer,
-              {
-                height: 40,
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginVertical: 8,
-                paddingHorizontal: 8,
-              },
-            ]}
-          >
-            <Button
-              color="secondary"
-              flat
-              icon={AttachFileIcon}
-              text="Attach file(s)"
-              style={{ height: "100%" }}
-            />
-            <Button
-              color="secondary"
-              flat
-              icon={ToolsIcon}
-              style={{ height: "100%", aspectRatio: 1 }}
-            />
-          </View>
-        </View>
-      </View>
-    );
+  const isLandingScreen = !messages.length && !isNativeMobile;
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.messagesContainer}>
+    <View style={{ flex: 1, position: "relative" }}>
+      <ScrollView
+        style={{
+          flex: 1,
+          marginBottom: 56 * 2,
+          paddingVertical: 8,
+        }}
+      >
         {messages.map((m, i) => (
           <View key={i} style={styles.messageWrapper}>
             <View
@@ -238,46 +168,116 @@ export default function Chat() {
         ))}
       </ScrollView>
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Type your message..."
-          placeholderTextColor="#666"
-          onChangeText={setMessage}
-          value={message}
-          multiline
-        />
-        <TouchableOpacity
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={100 + 56}
+        style={[
+          {
+            flex: 1,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          },
+          isWeb && { pointerEvents: "none" },
+        ]}
+      >
+        <View
           style={[
-            styles.sendButton,
-            !message.trim() && styles.sendButtonDisabled,
+            {
+              flex: 1,
+              flexDirection: "column",
+              alignItems: "center",
+              width: "100%",
+              padding: 0,
+            },
+            isLandingScreen
+              ? { justifyContent: "flex-start", marginTop: 80 }
+              : { justifyContent: "flex-end" },
           ]}
-          disabled={!message.trim()}
-          onPress={() => {
-            if (message.trim()) {
-              setMessages((prevMessages) => [
-                ...prevMessages,
-                { role: "user", content: message },
-              ]);
-              setMessage("");
-            }
-          }}
         >
-          <Text style={styles.sendButtonText}>Send</Text>
-        </TouchableOpacity>
-      </View>
+          {isLandingScreen && !messages.length && (
+            <Image
+              source={require("../assets/logo.svg")}
+              style={{ width: 100, height: 100, marginBottom: 24 }}
+            />
+          )}
+          <View
+            style={[
+              styles.inputContainer,
+              isLandingScreen && { maxWidth: 800 },
+              isWeb && { pointerEvents: "auto" },
+            ]}
+          >
+            <TextInput
+              style={[
+                styles.input,
+                { backgroundColor: colors.input, color: colors.text },
+              ]}
+              placeholder="Ask anything..."
+              placeholderTextColor={colors.placeholder}
+              onChangeText={setMessage}
+              value={message}
+              multiline
+            />
+            <View style={styles.inputButtons}>
+              <Button
+                color="secondary"
+                flat
+                icon={MicrophoneIcon}
+                iconMode="fill"
+                style={styles.inputButton}
+              />
+              <Button
+                color="primary"
+                icon={ArrowUpIcon}
+                style={styles.inputButton}
+                disabled={!message.trim()}
+                onPress={() => {
+                  if (message.trim()) {
+                    setMessages((prevMessages) => [
+                      ...prevMessages,
+                      { role: "user", content: message },
+                    ]);
+                    setMessage("");
+                  }
+                }}
+              />
+            </View>
+          </View>
+          <View
+            style={[
+              styles.inputContainer,
+              isLandingScreen && { maxWidth: 800 },
+              styles.inputTools,
+              isWeb && { pointerEvents: "auto" },
+            ]}
+          >
+            <Button
+              color="secondary"
+              flat
+              icon={AttachFileIcon}
+              text="Attach file(s)"
+              style={{ height: "100%" }}
+            />
+            <Button
+              color="secondary"
+              flat
+              icon={ToolsIcon}
+              style={{ height: "100%", aspectRatio: 1 }}
+            />
+          </View>
+        </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   inputContainer: {
     position: "relative",
     height: 56,
-    maxWidth: 800,
     width: "100%",
   },
   input: {
@@ -299,6 +299,15 @@ const styles = StyleSheet.create({
   inputButton: {
     height: "100%",
     aspectRatio: 1,
+  },
+  inputTools: {
+    height: 40,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginVertical: 8,
+    paddingHorizontal: 8,
   },
 
   // old..
@@ -379,34 +388,6 @@ const styles = StyleSheet.create({
   callButtonText: {
     color: "#fff",
     fontSize: 12,
-    fontWeight: "600",
-  },
-  textInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    fontSize: 16,
-    maxHeight: 100,
-    marginRight: 10,
-    backgroundColor: "#f8f9fa",
-  },
-  sendButton: {
-    backgroundColor: "#3498db",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  sendButtonDisabled: {
-    backgroundColor: "#bdc3c7",
-  },
-  sendButtonText: {
-    color: "#fff",
-    fontSize: 16,
     fontWeight: "600",
   },
 });
