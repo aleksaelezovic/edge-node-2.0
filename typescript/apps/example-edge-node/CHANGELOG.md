@@ -1,5 +1,13 @@
 # example-edge-node
 
+## 0.0.3
+
+### Patch Changes
+
+- 3ae7721: New setup scripts and dkg essentials plugin
+- Updated dependencies [3ae7721]
+  - @dkg/plugin-dkg-essentials@0.0.2
+
 ## 0.0.2
 
 ### Patch Changes
