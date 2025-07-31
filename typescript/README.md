@@ -105,6 +105,11 @@ Use `turbo gen` to generate new apps and packages.
 > Or alternatively, use `npx @changesets/cli` instead (like `npx @changesets/cli version`)
 
 1. Use `changeset` to create a new release. Select which packages to include in the release and select which of them require a minor or a major version bump (if neither major or minor is selected, the release will be a patch version)
+
+> [!NOTE]
+> In order to see which packages require a version bump, you can run `changeset status` before creating a new
+> release. This compares to the `main` branch by default - in order to change this use the `--since=<branch_name>` flag.
+
 2. Use `changeset version` to bump up the versions and generate a changelog for each package.
 
 > After both of these steps, a commit will be created automatically.
