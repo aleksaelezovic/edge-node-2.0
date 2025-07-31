@@ -8,9 +8,9 @@ const darkTheme = {
   primary: "#6344DF",
   primaryText: "#FFFFFF",
   secondary: "#A8AAF9",
-  card: "#0C0C0C33",
+  card: "#171A26",
   cardText: "#A8AAF9",
-  input: "#0C0C0C33",
+  input: "#171A26",
   placeholder: "#DCDCDC",
   error: "#FF0000",
 };
