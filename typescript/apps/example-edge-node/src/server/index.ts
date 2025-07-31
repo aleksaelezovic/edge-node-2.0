@@ -49,7 +49,7 @@ const app = createPluginServer({
   context: {
     dkg: new DKG({
       endpoint: `${otnodeUrl.protocol}//${otnodeUrl.hostname}`,
-      port: otnodeUrl.port ?? "443",
+      port: otnodeUrl.port || "443",
       blockchain: {
         name: process.env.DKG_BLOCKCHAIN,
         privateKey: process.env.DKG_PUBLISH_WALLET,
