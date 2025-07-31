@@ -22,15 +22,15 @@
 
 Now you can run the app in development mode using:
 
-  ```bash
-  turbo dev
-  ```
+```bash
+turbo dev
+```
 
 Or start just the web app that you have built in step #2:
 
-  ```bash
-  node dist/index.js
-  ```
+```bash
+node dist/index.js
+```
 
 In the development mode output, you'll find options to open the app in a
 

@@ -1,6 +1,7 @@
 import path from "node:path";
 import { createPluginServer, defaultPlugin } from "@dkg/plugins";
 import { authorized, createOAuthPlugin } from "@dkg/plugin-oauth";
+import dkgEssentialsPlugin from "@dkg/plugin-dkg-essentials";
 import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
 //@ts-expect-error No types for dkg.js ...
@@ -62,6 +63,7 @@ const app = createPluginServer({
   plugins: [
     defaultPlugin,
     oauthPlugin,
+    dkgEssentialsPlugin,
     (_, __, api) => {
       api.use("/mcp", authorized(["mcp"]));
       api.use("/llm", authorized(["llm"]));
