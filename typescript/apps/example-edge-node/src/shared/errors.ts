@@ -1,4 +1,4 @@
-export class ErrorWithCode<Code extends string> extends Error {
+export class ErrorWithCode<Code extends string = string> extends Error {
   constructor(
     message: string,
     public code: Code,

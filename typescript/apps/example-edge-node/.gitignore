@@ -39,4 +39,4 @@ yarn-error.*
 app-example
 
 # SQLite
-test.db
+*.db
