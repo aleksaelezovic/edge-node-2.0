@@ -1,31 +1,32 @@
-import { PropsWithChildren } from "react";
-import { View } from "react-native";
+import { View, ViewProps } from "react-native";
 
 import useThemeColor from "@/hooks/useThemeColor";
 
-export default function LayoutPill(props: PropsWithChildren) {
+export default function LayoutPill({ children, style, ...props }: ViewProps) {
   const cardColor = useThemeColor("card");
 
   return (
     <View
       style={{
-        height: 80,
         width: "100%",
         display: "flex",
       }}
     >
       <View
-        style={{
-          height: "100%",
-          width: "100%",
-          borderRadius: 40,
-          backgroundColor: cardColor,
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "center",
-        }}
+        style={[
+          {
+            height: 80,
+            width: "100%",
+            borderRadius: 40,
+            backgroundColor: cardColor,
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "center",
+          },
+          style,
+        ]}
       >
-        {props.children}
+        {children}
       </View>
     </View>
   );

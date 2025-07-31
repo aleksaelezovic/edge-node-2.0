@@ -4,6 +4,7 @@ import { useColorScheme } from "./useColorScheme";
 
 const darkTheme = {
   background: "#1F2E7E33",
+  backgroundFlat: "#343747",
   text: "#FFFFFF",
   primary: "#6344DF",
   primaryText: "#FFFFFF",
@@ -16,6 +17,7 @@ const darkTheme = {
 };
 const lightTheme: typeof darkTheme = {
   background: "#F8F8F8",
+  backgroundFlat: "#F8F8F8",
   text: "#000000",
   primary: "#6344DF",
   primaryText: "#FFFFFF",

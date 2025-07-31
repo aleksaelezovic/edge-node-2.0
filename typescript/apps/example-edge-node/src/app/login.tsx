@@ -10,6 +10,10 @@ import { AuthError, login } from "@/shared/auth";
 import useColors from "@/hooks/useColors";
 import Checkbox from "@/components/Checkbox";
 import Button from "@/components/Button";
+import Page from "@/components/layout/Page";
+import Container from "@/components/layout/Container";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 export default function Login() {
   SplashScreen.hide();
@@ -61,72 +65,80 @@ export default function Login() {
   const colors = useColors();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.loginCard}>
-        <Text style={[styles.title, { color: colors.secondary }]}>Login</Text>
-        <Text style={[styles.subtitle, { color: colors.text }]}>
-          Enter your details to get started.
-        </Text>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={[
-              styles.input,
-              { backgroundColor: colors.input, color: colors.text },
-            ]}
-            value={username}
-            onChangeText={setUsername}
-            placeholder="Username"
-            placeholderTextColor={colors.placeholder}
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[
-              styles.input,
-              { backgroundColor: colors.input, color: colors.text },
-            ]}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Password"
-            placeholderTextColor={colors.placeholder}
-            secureTextEntry
-          />
-          <Checkbox
-            value={rememberMe}
-            onValueChange={setRememberMe}
-            style={{ marginBottom: 16 }}
-          >
-            <Text
-              style={{
-                color: colors.placeholder,
-                fontFamily: "Manrope_400Regular",
-                marginLeft: 8,
-              }}
-            >
-              Remember me
+    <Page>
+      <Container>
+        <Header mode="login" />
+        <View style={styles.container}>
+          <View style={styles.loginCard}>
+            <Text style={[styles.title, { color: colors.secondary }]}>
+              Login
             </Text>
-          </Checkbox>
-        </View>
+            <Text style={[styles.subtitle, { color: colors.text }]}>
+              Enter your details to get started.
+            </Text>
 
-        <Button
-          color="primary"
-          text="Login"
-          onPress={submit}
-          disabled={!username || !password}
-        />
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: colors.input, color: colors.text },
+                ]}
+                value={username}
+                onChangeText={setUsername}
+                placeholder="Username"
+                placeholderTextColor={colors.placeholder}
+                autoCapitalize="none"
+              />
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: colors.input, color: colors.text },
+                ]}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Password"
+                placeholderTextColor={colors.placeholder}
+                secureTextEntry
+              />
+              <Checkbox
+                value={rememberMe}
+                onValueChange={setRememberMe}
+                style={{ marginBottom: 16 }}
+              >
+                <Text
+                  style={{
+                    color: colors.placeholder,
+                    fontFamily: "Manrope_400Regular",
+                    marginLeft: 8,
+                  }}
+                >
+                  Remember me
+                </Text>
+              </Checkbox>
+            </View>
 
-        <View
-          style={[
-            styles.errorContainer,
-            { visibility: error ? "visible" : "hidden" },
-          ]}
-        >
-          <Text style={[styles.errorText, { color: colors.error }]}>
-            {error}
-          </Text>
+            <Button
+              color="primary"
+              text="Login"
+              onPress={submit}
+              disabled={!username || !password}
+            />
+
+            <View
+              style={[
+                styles.errorContainer,
+                { visibility: error ? "visible" : "hidden" },
+              ]}
+            >
+              <Text style={[styles.errorText, { color: colors.error }]}>
+                {error}
+              </Text>
+            </View>
+          </View>
         </View>
-      </View>
-    </View>
+        <Footer mode="login" />
+      </Container>
+    </Page>
   );
 }
 

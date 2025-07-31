@@ -14,7 +14,7 @@ import { Image } from "expo-image";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
 import type OpenAI from "openai";
-//import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useMcpClient } from "@/client";
 import useColors from "@/hooks/useColors";
@@ -24,6 +24,10 @@ import ArrowUpIcon from "@/components/icons/ArrowUpIcon";
 import MicrophoneIcon from "@/components/icons/MicrophoneIcon";
 import AttachFileIcon from "@/components/icons/AttachFileIcon";
 import ToolsIcon from "@/components/icons/ToolsIcon";
+import Page from "@/components/layout/Page";
+import Container from "@/components/layout/Container";
+import Header from "@/components/layout/Header";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Chat() {
   const colors = useColors();
@@ -35,12 +39,12 @@ export default function Chat() {
     authorizationCode,
     onAuthorized,
   });
-
   const [tools, setTools] = useState<OpenAI.ChatCompletionTool[]>([]);
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
     [],
   );
+  const safeAreaInsets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!connected) return;
@@ -102,184 +106,197 @@ export default function Chat() {
   const isLandingScreen = !messages.length && !isNativeMobile;
 
   return (
-    <View style={{ flex: 1, position: "relative" }}>
-      <ScrollView
-        style={{
-          flex: 1,
-          marginBottom: 56 * 2,
-          paddingVertical: 8,
-        }}
-      >
-        {messages.map((m, i) => (
-          <View key={i} style={styles.messageWrapper}>
-            <View
-              style={[
-                styles.messageBubble,
-                m.role === "user"
-                  ? styles.userMessage
-                  : styles.assistantMessage,
-              ]}
-            >
-              <Text style={styles.roleLabel}>{m.role.toUpperCase()}</Text>
-
-              {m.role === "user" && (
-                <Text style={styles.messageText}>{m.content.toString()}</Text>
-              )}
-
-              {m.role === "tool" && (
-                <Text style={styles.toolMessage}>
-                  {typeof m.content === "string"
-                    ? m.content
-                    : m.content.map((item, index) => (
-                        <Text key={index}>{item.text}</Text>
-                      ))}
-                </Text>
-              )}
-
-              {m.role === "assistant" && (
-                <View>
-                  {m.tool_calls?.map((tc, j) => (
-                    <View key={j} style={styles.toolCallContainer}>
-                      <Text style={styles.toolCallName}>
-                        {tc.function.name}
-                      </Text>
-                      <Text style={styles.toolCallArgs}>
-                        {tc.function.arguments}
-                      </Text>
-                      <TouchableOpacity
-                        style={styles.callButton}
-                        onPress={() => {
-                          mcp
-                            ?.callTool({
-                              name: tc.function.name,
-                              arguments: JSON.parse(tc.function.arguments),
-                            })
-                            .then((result) => {
-                              setMessages((prevMessages) => [
-                                ...prevMessages,
-                                {
-                                  role: "tool",
-                                  tool_call_id: tc.id,
-                                  content: result.content as string,
-                                },
-                              ]);
-                            });
-                        }}
-                      >
-                        <Text style={styles.callButtonText}>Call Function</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-
+    <Page style={{ flex: 1, position: "relative", marginBottom: 0 }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={100 + 56}
+        keyboardVerticalOffset={20}
         style={[
-          {
-            flex: 1,
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-          },
-          isWeb && { pointerEvents: "none" },
+          { flex: 1, position: "relative" },
+          isLandingScreen
+            ? { justifyContent: "flex-start" }
+            : { justifyContent: "flex-end" },
         ]}
       >
-        <View
+        <Container
           style={[
-            {
-              flex: 1,
-              flexDirection: "column",
-              alignItems: "center",
-              width: "100%",
-              padding: 0,
-            },
-            isLandingScreen
-              ? { justifyContent: "flex-start", marginTop: 80 }
-              : { justifyContent: "flex-end" },
+            { paddingBottom: 0 },
+            isLandingScreen && !isNativeMobile && { flex: null as any },
           ]}
         >
-          {isLandingScreen && !messages.length && (
-            <Image
-              source={require("../assets/logo.svg")}
-              style={{ width: 100, height: 100, marginBottom: 24 }}
-            />
-          )}
-          <View
-            style={[
-              styles.inputContainer,
-              isLandingScreen && { maxWidth: 800 },
-              isWeb && { pointerEvents: "auto" },
-            ]}
+          <Header />
+          <ScrollView
+            style={{
+              flex: 1,
+              paddingVertical: 8,
+            }}
           >
-            <TextInput
+            {messages.map((m, i) => (
+              <View key={i} style={styles.messageWrapper}>
+                <View
+                  style={[
+                    styles.messageBubble,
+                    m.role === "user"
+                      ? styles.userMessage
+                      : styles.assistantMessage,
+                  ]}
+                >
+                  <Text style={styles.roleLabel}>{m.role.toUpperCase()}</Text>
+
+                  {m.role === "user" && (
+                    <Text style={styles.messageText}>
+                      {m.content.toString()}
+                    </Text>
+                  )}
+
+                  {m.role === "tool" && (
+                    <Text style={styles.toolMessage}>
+                      {typeof m.content === "string"
+                        ? m.content
+                        : m.content.map((item, index) => (
+                            <Text key={index}>{item.text}</Text>
+                          ))}
+                    </Text>
+                  )}
+
+                  {m.role === "assistant" && (
+                    <View>
+                      {m.tool_calls?.map((tc, j) => (
+                        <View key={j} style={styles.toolCallContainer}>
+                          <Text style={styles.toolCallName}>
+                            {tc.function.name}
+                          </Text>
+                          <Text style={styles.toolCallArgs}>
+                            {tc.function.arguments}
+                          </Text>
+                          <TouchableOpacity
+                            style={styles.callButton}
+                            onPress={() => {
+                              mcp
+                                ?.callTool({
+                                  name: tc.function.name,
+                                  arguments: JSON.parse(tc.function.arguments),
+                                })
+                                .then((result) => {
+                                  setMessages((prevMessages) => [
+                                    ...prevMessages,
+                                    {
+                                      role: "tool",
+                                      tool_call_id: tc.id,
+                                      content: result.content as string,
+                                    },
+                                  ]);
+                                });
+                            }}
+                          >
+                            <Text style={styles.callButtonText}>
+                              Call Function
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </Container>
+
+        <View
+          style={[
+            { width: "100%" },
+            isLandingScreen && !isNativeMobile && { marginTop: 60 },
+            !isLandingScreen &&
+              isNativeMobile && {
+                backgroundColor: colors.backgroundFlat,
+                paddingBottom: safeAreaInsets.bottom,
+                height: 2 * 56 + safeAreaInsets.bottom + 20,
+              },
+          ]}
+        >
+          <Container
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {isLandingScreen && !messages.length && (
+              <Image
+                source={require("../assets/logo.svg")}
+                style={{ width: 100, height: 100, marginBottom: 24 }}
+              />
+            )}
+            <View
               style={[
-                styles.input,
-                { backgroundColor: colors.input, color: colors.text },
+                styles.inputContainer,
+                isLandingScreen && { maxWidth: 800 },
+                isWeb && { pointerEvents: "auto" },
               ]}
-              placeholder="Ask anything..."
-              placeholderTextColor={colors.placeholder}
-              onChangeText={setMessage}
-              value={message}
-              multiline
-            />
-            <View style={styles.inputButtons}>
+            >
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: colors.input, color: colors.text },
+                ]}
+                placeholder="Ask anything..."
+                placeholderTextColor={colors.placeholder}
+                onChangeText={setMessage}
+                value={message}
+                multiline
+              />
+              <View style={styles.inputButtons}>
+                <Button
+                  color="secondary"
+                  flat
+                  icon={MicrophoneIcon}
+                  iconMode="fill"
+                  style={styles.inputButton}
+                />
+                <Button
+                  color="primary"
+                  icon={ArrowUpIcon}
+                  style={styles.inputButton}
+                  disabled={!message.trim()}
+                  onPress={() => {
+                    if (message.trim()) {
+                      setMessages((prevMessages) => [
+                        ...prevMessages,
+                        { role: "user", content: message },
+                      ]);
+                      setMessage("");
+                    }
+                  }}
+                />
+              </View>
+            </View>
+            <View
+              style={[
+                styles.inputContainer,
+                isLandingScreen && { maxWidth: 800 },
+                styles.inputTools,
+                isWeb && { pointerEvents: "auto" },
+              ]}
+            >
               <Button
                 color="secondary"
                 flat
-                icon={MicrophoneIcon}
-                iconMode="fill"
-                style={styles.inputButton}
+                icon={AttachFileIcon}
+                text="Attach file(s)"
+                style={{ height: "100%" }}
               />
               <Button
-                color="primary"
-                icon={ArrowUpIcon}
-                style={styles.inputButton}
-                disabled={!message.trim()}
-                onPress={() => {
-                  if (message.trim()) {
-                    setMessages((prevMessages) => [
-                      ...prevMessages,
-                      { role: "user", content: message },
-                    ]);
-                    setMessage("");
-                  }
-                }}
+                color="secondary"
+                flat
+                icon={ToolsIcon}
+                style={{ height: "100%", aspectRatio: 1 }}
               />
             </View>
-          </View>
-          <View
-            style={[
-              styles.inputContainer,
-              isLandingScreen && { maxWidth: 800 },
-              styles.inputTools,
-              isWeb && { pointerEvents: "auto" },
-            ]}
-          >
-            <Button
-              color="secondary"
-              flat
-              icon={AttachFileIcon}
-              text="Attach file(s)"
-              style={{ height: "100%" }}
-            />
-            <Button
-              color="secondary"
-              flat
-              icon={ToolsIcon}
-              style={{ height: "100%", aspectRatio: 1 }}
-            />
-          </View>
+          </Container>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </Page>
   );
 }
 

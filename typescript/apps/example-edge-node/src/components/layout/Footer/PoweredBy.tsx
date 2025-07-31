@@ -1,7 +1,7 @@
 import { StyleProp, Text, View, ViewStyle } from "react-native";
 
 import useThemeColor from "@/hooks/useThemeColor";
-import OriginTrailLogo from "../OriginTrailLogo";
+import OriginTrailLogo from "../../OriginTrailLogo";
 
 export default function PoweredBy(props: { style?: StyleProp<ViewStyle> }) {
   const secondaryColor = useThemeColor("secondary");
