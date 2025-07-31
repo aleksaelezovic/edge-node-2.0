@@ -1,5 +1,4 @@
 import path from "node:path";
-import dotenv from "dotenv";
 import { createPluginServer, defaultPlugin } from "@dkg/plugins";
 import { authorized, createOAuthPlugin } from "@dkg/plugin-oauth";
 import examplePlugin from "@dkg/plugin-example";
@@ -10,26 +9,13 @@ import DKG from "dkg.js";
 import { userCredentialsSchema } from "@/shared/auth";
 import { verify } from "@node-rs/argon2";
 
+import { configDatabase, configEnv } from "./helpers";
 import webInterfacePlugin from "./webInterfacePlugin";
-import {
-  drizzle,
-  migrate,
-  users,
-  SqliteOAuthStorageProvider,
-} from "./database/sqlite";
+import { users, SqliteOAuthStorageProvider } from "./database/sqlite";
 import { eq } from "drizzle-orm";
 
-dotenv.config();
-if (process.argv.includes("--dev"))
-  dotenv.config({
-    path: path.resolve(process.cwd(), ".env.development.local"),
-    override: true,
-  });
-
-const db = drizzle(process.env.DATABASE_URL);
-migrate(db, {
-  migrationsFolder: path.resolve(process.cwd(), "./drizzle/sqlite"),
-});
+configEnv();
+const db = configDatabase();
 
 const version = "1.0.0";
 
@@ -54,17 +40,18 @@ const { oauthPlugin, openapiSecurityScheme } = createOAuthPlugin({
   },
 });
 
+const otnodeUrl = new URL(process.env.DKG_OTNODE_URL);
+
 const app = createPluginServer({
   name: "DKG API",
   version,
   context: {
     dkg: new DKG({
-      endpoint: "http://localhost",
-      port: "8900",
+      endpoint: `${otnodeUrl.protocol}//${otnodeUrl.hostname}`,
+      port: otnodeUrl.port ?? "443",
       blockchain: {
-        name: "hardhat1:31337",
-        privateKey:
-          "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+        name: process.env.DKG_BLOCKCHAIN,
+        privateKey: process.env.DKG_PUBLISH_WALLET,
       },
       maxNumberOfRetries: 300,
       frequency: 2,
