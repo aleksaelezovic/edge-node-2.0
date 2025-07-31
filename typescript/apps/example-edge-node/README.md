@@ -14,6 +14,9 @@
    turbo build
    ```
 
+> You do not have to use `turbo` for this.
+> You can just run all package.json `build:*` scripts manually in different terminals.
+
 3. Run setup script
 
    ```bash
@@ -26,13 +29,20 @@ Now you can run the app in development mode using:
 turbo dev
 ```
 
-Or start just the web app that you have built in step #2:
+> You do not have to use `turbo` for this.
+> You can just run all package.json `dev:*` scripts manually in different terminals.
+
+> [!NOTE]
+> This app comes with a pre-configured Drizzle Studio instance to help you manage your database via web interface.
+> You can run it manually by running `npm run drizzle:studio` and it will be available at [https://local.drizzle.studio](https://local.drizzle.studio)
+
+Or the production web app (that you have built in step #2):
 
 ```bash
 node dist/index.js
 ```
 
-In the development mode output, you'll find options to open the app in a
+In the development mode output (`npm run dev:app`), you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)
 - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
