@@ -1,5 +1,16 @@
 # example-edge-node
 
+## 0.0.2
+
+### Patch Changes
+
+- Updated dependencies [b02e686]
+  - @dkg/plugin-example@0.0.2
+  - @dkg/plugin-swagger@0.0.2
+  - @dkg/plugin-oauth@0.0.2
+  - @dkg/plugins@0.0.2
+  - @dkg/plugin-dkg-essentials@0.0.1
+
 ## 0.0.1
 
 ### Patch Changes

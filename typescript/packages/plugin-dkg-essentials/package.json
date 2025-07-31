@@ -1,6 +1,6 @@
 {
   "name": "@dkg/plugin-dkg-essentials",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -12,7 +12,7 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
-    "@dkg/plugins": "^0.0.1"
+    "@dkg/plugins": "^0.0.2"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",

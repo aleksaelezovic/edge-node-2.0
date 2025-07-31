@@ -1,5 +1,14 @@
 # @dkg/plugin-example
 
+## 0.0.2
+
+### Patch Changes
+
+- b02e686: Fixes and improvements
+- Updated dependencies [b02e686]
+  - @dkg/plugin-swagger@0.0.2
+  - @dkg/plugins@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes

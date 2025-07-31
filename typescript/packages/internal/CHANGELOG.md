@@ -1,5 +1,11 @@
 # internal
 
+## 0.0.2
+
+### Patch Changes
+
+- b02e686: Fixes and improvements
+
 ## 0.0.1
 
 ### Patch Changes
