@@ -5,11 +5,11 @@ configEnv();
 (async () => {
   try {
     const db = configDatabase();
-    const username = await ask("Username: ");
-    const password = await ask("Password: ");
-    const scope = await ask("Scope (space-separated): ").then((s) =>
-      s.split(" "),
-    );
+    const username = await ask("Username: ", { required: true });
+    const password = await ask("Password: ", { required: true });
+    const scope = await ask("Scope (space-separated): ", {
+      required: true,
+    }).then((s) => s.split(" "));
     const userId = await createUser(db, { username, password }, scope);
 
     console.log(`User '${username}' created successfully with id ${userId}`);

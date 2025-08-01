@@ -18,8 +18,10 @@ async function setup() {
   const DKG_PUBLISH_WALLET =
     DKG_BLOCKCHAIN === "hardhat:31337"
       ? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-      : await ask("Publish wallet (private key): ");
-  const DB_FILENAME = await ask("Database (i.e: example.db): ");
+      : await ask("Publish wallet (private key): ", { required: true });
+  const DB_FILENAME = await ask("Database (i.e: example.db): ", {
+    required: true,
+  });
 
   console.log("Creating .env file...");
   await createFileWithContent(

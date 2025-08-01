@@ -5,10 +5,16 @@ import { drizzle, migrate, users } from "@/server/database/sqlite";
 import { hash } from "@node-rs/argon2";
 import type { UserCredentials } from "@/shared/auth";
 
-export function ask(question: string): Promise<string> {
-  return new Promise((resolve) => {
+export async function ask(
+  question: string,
+  opts?: { required?: boolean },
+): Promise<string> {
+  return new Promise<string>((resolve) => {
     process.stdout.write(question);
     process.stdin.once("data", (data) => resolve(data.toString().trim()));
+  }).then((r) => {
+    if (opts?.required && !r) return ask(question, opts);
+    return r;
   });
 }
 

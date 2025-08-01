@@ -12,9 +12,9 @@ configEnv();
     const scope = await ask("Scope (space-separated): mcp llm ").then(
       (scope) => ["mcp", "llm", ...scope.split(" ")],
     );
-    const expiresAt = await ask("Expiration (in seconds): ").then(
-      (exp) => Math.floor(Date.now() / 1000) + parseInt(exp),
-    );
+    const expiresAt = await ask("Expiration (in seconds): ", {
+      required: true,
+    }).then((exp) => Math.floor(Date.now() / 1000) + parseInt(exp));
 
     const db = configDatabase();
 
