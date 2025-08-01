@@ -13,10 +13,10 @@ async function setup() {
     "OT-node URL (default: http://localhost:8900): ",
   ).then((s) => s || "http://localhost:8900");
   const DKG_BLOCKCHAIN = await ask(
-    "Chain name (default: hardhat:31337): ",
-  ).then((s) => s || "hardhat:31337");
+    "Chain name (default: hardhat1:31337): ",
+  ).then((s) => s || "hardhat1:31337");
   const DKG_PUBLISH_WALLET =
-    DKG_BLOCKCHAIN === "hardhat:31337"
+    DKG_BLOCKCHAIN === "hardhat1:31337"
       ? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
       : await ask("Publish wallet (private key): ", { required: true });
   const DB_FILENAME = await ask("Database (i.e: example.db): ", {
