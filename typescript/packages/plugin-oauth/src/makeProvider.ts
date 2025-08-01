@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { v4 as uuidv4, v7 as uuidv7 } from "uuid";
 import {
   OAuthServerProvider,
   AuthorizationParams,
@@ -47,7 +47,7 @@ export default function makeProvider({
     resource?: URL,
     includeRefreshToken?: boolean,
   ): Promise<OAuthTokens> {
-    const token = randomUUID();
+    const token = uuidv4();
     try {
       await storage.saveToken(token, {
         token,
@@ -63,7 +63,7 @@ export default function makeProvider({
 
     let refreshToken = undefined;
     if (includeRefreshToken) {
-      refreshToken = randomUUID();
+      refreshToken = uuidv4();
       try {
         await storage.saveToken(refreshToken, {
           token: refreshToken,
@@ -97,7 +97,7 @@ export default function makeProvider({
         const client: OAuthClientInformationFull = {
           ..._client,
           scope: scopesSupported?.join(" "),
-          client_id: randomUUID(),
+          client_id: uuidv7(),
           client_id_issued_at: Math.floor(Date.now() / 1000),
         };
         client.scope = scopesSupported?.join(" ");
@@ -132,7 +132,7 @@ export default function makeProvider({
       return targetUrl;
     },
     async authorize(client, params, res) {
-      const code = randomUUID();
+      const code = uuidv4();
 
       const clientScope = client.scope?.split(" ") || [];
       if (!params.scopes || params.scopes.length === 0)

@@ -14,7 +14,8 @@
   "dependencies": {
     "@dkg/plugin-swagger": "^0.0.2",
     "@dkg/plugins": "^0.0.2",
-    "@modelcontextprotocol/sdk": "^1.16.0"
+    "@modelcontextprotocol/sdk": "^1.17.1",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
