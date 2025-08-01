@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { v4 as uuidv4 } from "uuid";
 import { eq } from "drizzle-orm";
 import { clients, tokens } from "../database/sqlite";
 import { ask, configDatabase, configEnv } from "../helpers";
@@ -33,7 +33,7 @@ configEnv();
         }),
       });
 
-    const token = randomUUID();
+    const token = uuidv4();
     await db.insert(tokens).values({
       client_id: INTERNAL_CLIENT_ID,
       expires_at: expiresAt,

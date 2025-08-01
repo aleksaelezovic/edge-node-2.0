@@ -1,4 +1,4 @@
-import path from "node:path";
+import path from "path";
 import { defineDkgPlugin } from "@dkg/plugins";
 import { express } from "@dkg/plugins/helpers";
 import { createRequestHandler } from "@expo/server/adapter/express";

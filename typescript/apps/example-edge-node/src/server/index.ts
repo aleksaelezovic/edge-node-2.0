@@ -1,4 +1,4 @@
-import path from "node:path";
+import path from "path";
 import { createPluginServer, defaultPlugin } from "@dkg/plugins";
 import { authorized, createOAuthPlugin } from "@dkg/plugin-oauth";
 import dkgEssentialsPlugin from "@dkg/plugin-dkg-essentials";

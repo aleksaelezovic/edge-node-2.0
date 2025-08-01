@@ -1,5 +1,5 @@
-import path from "node:path";
-import fs from "node:fs/promises";
+import path from "path";
+import { promises as fs } from "fs";
 import dotenv from "dotenv";
 import { drizzle, migrate, users } from "@/server/database/sqlite";
 import { hash } from "@node-rs/argon2";

@@ -28,6 +28,8 @@
     "@expo-google-fonts/manrope": "^0.4.1",
     "@expo-google-fonts/space-grotesk": "^0.4.0",
     "@expo/vector-icons": "^14.1.0",
+    "@langchain/core": "^0.3.66",
+    "@langchain/openai": "^0.6.3",
     "@modelcontextprotocol/sdk": "^1.16.0",
     "@node-rs/argon2": "^2.0.2",
     "@react-native-async-storage/async-storage": "2.1.2",
@@ -51,7 +53,6 @@
     "expo-symbols": "~0.4.5",
     "expo-system-ui": "~5.0.10",
     "expo-web-browser": "~14.2.0",
-    "openai": "^5.9.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.5",
@@ -61,7 +62,8 @@
     "react-native-screens": "~4.11.1",
     "react-native-svg": "15.11.2",
     "react-native-web": "~0.20.0",
-    "react-native-webview": "13.13.5"
+    "react-native-webview": "13.13.5",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

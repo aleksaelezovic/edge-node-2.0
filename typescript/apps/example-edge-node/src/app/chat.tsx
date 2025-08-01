@@ -13,8 +13,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
-import type OpenAI from "openai";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+//import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useMcpClient } from "@/client";
 import useColors from "@/hooks/useColors";
@@ -27,7 +27,12 @@ import ToolsIcon from "@/components/icons/ToolsIcon";
 import Page from "@/components/layout/Page";
 import Container from "@/components/layout/Container";
 import Header from "@/components/layout/Header";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import type {
+  ToolDefinition,
+  ChatMessage,
+  CompletionRequest,
+} from "@/shared/chat";
 
 export default function Chat() {
   const colors = useColors();
@@ -39,11 +44,9 @@ export default function Chat() {
     authorizationCode,
     onAuthorized,
   });
-  const [tools, setTools] = useState<OpenAI.ChatCompletionTool[]>([]);
+  const [tools, setTools] = useState<ToolDefinition[]>([]);
   const [message, setMessage] = useState<string>("");
-  const [messages, setMessages] = useState<OpenAI.ChatCompletionMessageParam[]>(
-    [],
-  );
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const safeAreaInsets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -79,10 +82,9 @@ export default function Chat() {
           fetch(new URL(process.env.EXPO_PUBLIC_APP_URL + "/llm").toString(), {
             method: "POST",
             body: JSON.stringify({
-              model: "gpt-4",
               messages,
               tools,
-            }),
+            } satisfies CompletionRequest),
             headers: {
               Authorization: `Bearer ${token}`,
               // Itentionally omit the 'Content-Type' header
@@ -92,9 +94,9 @@ export default function Chat() {
             },
           })
             .then((r) => r.json())
-            .then((r) => r.choices?.at(0)?.message)
-            .then((m) => {
+            .then((m: ChatMessage) => {
               if (!m) throw new Error("No message received");
+
               setMessages((prevMessages) => [...prevMessages, m]);
             }),
         )
@@ -120,7 +122,7 @@ export default function Chat() {
         <Container
           style={[
             { paddingBottom: 0 },
-            isLandingScreen && !isNativeMobile && { flex: null as any },
+            isLandingScreen && { flex: null as any },
           ]}
         >
           <Header />
@@ -153,7 +155,7 @@ export default function Chat() {
                       {typeof m.content === "string"
                         ? m.content
                         : m.content.map((item, index) => (
-                            <Text key={index}>{item.text}</Text>
+                            <Text key={index}>{item.type}</Text>
                           ))}
                     </Text>
                   )}
@@ -163,18 +165,18 @@ export default function Chat() {
                       {m.tool_calls?.map((tc, j) => (
                         <View key={j} style={styles.toolCallContainer}>
                           <Text style={styles.toolCallName}>
-                            {tc.function.name}
+                            {tc.args.name}
                           </Text>
                           <Text style={styles.toolCallArgs}>
-                            {tc.function.arguments}
+                            {JSON.stringify(tc.args)}
                           </Text>
                           <TouchableOpacity
                             style={styles.callButton}
                             onPress={() => {
                               mcp
                                 ?.callTool({
-                                  name: tc.function.name,
-                                  arguments: JSON.parse(tc.function.arguments),
+                                  name: tc.name,
+                                  arguments: tc.args,
                                 })
                                 .then((result) => {
                                   setMessages((prevMessages) => [
@@ -222,7 +224,7 @@ export default function Chat() {
               justifyContent: "center",
             }}
           >
-            {isLandingScreen && !messages.length && (
+            {isLandingScreen && (
               <Image
                 source={require("../assets/logo.svg")}
                 style={{ width: 100, height: 100, marginBottom: 24 }}
