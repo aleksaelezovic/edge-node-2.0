@@ -249,7 +249,7 @@ export default function makeProvider({
         token,
         clientId: tokenData.clientId,
         scopes: tokenData.scopes,
-        expiresAt: Math.floor(tokenData.expiresAt / 1000),
+        expiresAt: tokenData.expiresAt,
         resource: tokenData.resource,
       };
     },
