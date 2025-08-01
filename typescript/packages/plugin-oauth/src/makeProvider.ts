@@ -53,7 +53,7 @@ export default function makeProvider({
         token,
         clientId,
         scopes,
-        expiresAt: Date.now() + tokenExpirationInSeconds * 1000,
+        expiresAt: Math.floor(Date.now() / 1000) + tokenExpirationInSeconds,
         resource,
         extra: { type: "access" },
       });
@@ -69,7 +69,8 @@ export default function makeProvider({
           token: refreshToken,
           clientId,
           scopes,
-          expiresAt: Date.now() + refreshTokenExpirationInSeconds * 1000,
+          expiresAt:
+            Math.floor(Date.now() / 1000) + refreshTokenExpirationInSeconds,
           resource,
           extra: { type: "refresh" },
         });
@@ -207,7 +208,7 @@ export default function makeProvider({
       if (
         !tokenData ||
         !tokenData.expiresAt ||
-        tokenData.expiresAt < Date.now()
+        tokenData.expiresAt < Math.floor(Date.now() / 1000)
       ) {
         throw new InvalidGrantError("Invalid or expired refresh token");
       }
@@ -239,7 +240,7 @@ export default function makeProvider({
       if (
         !tokenData ||
         !tokenData.expiresAt ||
-        tokenData.expiresAt < Date.now()
+        tokenData.expiresAt < Math.floor(Date.now() / 1000)
       ) {
         throw new InvalidTokenError("Invalid or expired token");
       }
@@ -257,7 +258,7 @@ export default function makeProvider({
       if (
         !tokenData ||
         !tokenData.expiresAt ||
-        tokenData.expiresAt < Date.now()
+        tokenData.expiresAt < Math.floor(Date.now() / 1000)
       ) {
         return;
       }
