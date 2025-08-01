@@ -28,13 +28,16 @@ export default ({
   }): DkgPlugin =>
   (ctx, _mcp, api) => {
     let openAPIDocument = {};
+    // This is safe because this plugin can only be used at the root level
+    // We are not using 'defineDkgPlugin' and therefor users cannot register
+    // it as a nested plugin on a Router instance.
+    const router = (api as Express).router;
+    if (!router) return;
+
     try {
       openAPIDocument = buildOpenAPIDocument({
         openApiVersion: "3.1.0",
-        // This is safe because this plugin can only be used at the root level
-        // We are not using 'defineDkgPlugin' and therefor users cannot register
-        // it as a nested plugin on a Router instance.
-        routers: [(api as Express).router],
+        routers: [router],
         globalResponses,
         securitySchemes,
         config: {
