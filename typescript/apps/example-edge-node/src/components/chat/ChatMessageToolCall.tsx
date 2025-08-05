@@ -20,11 +20,12 @@ export default function ToolCall({
   status: "init" | "loading" | "success" | "error" | "cancelled";
   input?: unknown;
   output?: unknown;
-  onConfirm: () => void;
+  onConfirm: (allowForSession: boolean) => void;
   onCancel: () => void;
 }) {
   const colors = useColors();
   const [collapsed, setCollapsed] = useState(true);
+  const [allowForSession, setAllowForSession] = useState(false);
 
   if (status === "init" || status === "loading")
     return (
@@ -41,21 +42,30 @@ export default function ToolCall({
           missuse ‘Code’ through tools.
         </Text>
         <View />
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 8,
-          }}
-        >
-          <Button color="primary" text="Continue" onPress={onConfirm} />
-          <Button color="card" text="Cancel" onPress={onCancel} />
-          <Checkbox>
-            <Text style={{ color: colors.secondary }}>
-              Allow tool for this session
-            </Text>
-          </Checkbox>
-        </View>
+        {status === "init" && (
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 8,
+            }}
+          >
+            <Button
+              color="primary"
+              text="Continue"
+              onPress={() => onConfirm(allowForSession)}
+            />
+            <Button color="card" text="Cancel" onPress={onCancel} />
+            <Checkbox
+              value={allowForSession}
+              onValueChange={setAllowForSession}
+            >
+              <Text style={{ color: colors.secondary }}>
+                Allow tool for this session
+              </Text>
+            </Checkbox>
+          </View>
+        )}
       </View>
     );
 

@@ -39,6 +39,7 @@ export default function ChatPage() {
   const [tools, setTools] = useState<ToolDefinition[]>([]);
   const [toolsInfo, setToolsInfo] = useState<ToolsInfoMap>({});
   const [toolCalls, setToolCalls] = useState<ToolCallsMap>({});
+  const [toolsAllowed, setToolsAllowed] = useState<string[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const safeAreaInsets = useSafeAreaInsets();
@@ -204,8 +205,12 @@ export default function ChatPage() {
                       const toolTitle = toolInfo
                         ? `${toolInfo.title} - ${toolInfo.mcpServer} (MCP Server)`
                         : tc.name;
+                      const toolAllowed = toolsAllowed.includes(tc.name);
+
+                      if (toolAllowed && !toolCalls[tc.id!]) callTool(tc);
+
                       const status = toolCalls[tc.id!] || {
-                        status: "init",
+                        status: toolAllowed ? "loading" : "init",
                         input: tc.args,
                       };
 
@@ -217,7 +222,11 @@ export default function ChatPage() {
                           status={status.status}
                           input={status.input}
                           output={status.output ?? status.error}
-                          onConfirm={() => callTool(tc)}
+                          onConfirm={(allowForSession) => {
+                            if (allowForSession)
+                              setToolsAllowed((t) => [...t, tc.name]);
+                            callTool(tc);
+                          }}
                           onCancel={() => cancelToolCall(tc)}
                         />
                       );
