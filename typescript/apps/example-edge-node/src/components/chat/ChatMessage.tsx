@@ -4,6 +4,7 @@ import UserIcon from "./UserIcon";
 import AssistantIcon from "./AssistantIcon";
 import ChatMessageContent from "./ChatMessageContent";
 import ChatMessageToolCall from "./ChatMessageToolCall";
+import ChatMessageActions from "./ChatMessageActions";
 
 export default function ChatMessage({
   icon,
@@ -26,3 +27,4 @@ export default function ChatMessage({
 
 ChatMessage.Content = ChatMessageContent;
 ChatMessage.ToolCall = ChatMessageToolCall;
+ChatMessage.Actions = ChatMessageActions;

@@ -3,6 +3,7 @@ import { View, Platform, KeyboardAvoidingView } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import * as SplashScreen from "expo-splash-screen";
+import * as Clipboard from "expo-clipboard";
 import { fetch } from "expo/fetch";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -172,17 +173,17 @@ export default function ChatPage() {
               {messages.map((m, i) => {
                 if (m.role !== "user" && m.role !== "assistant") return null;
 
+                const content =
+                  typeof m.content === "string"
+                    ? [{ type: "text", text: m.content }]
+                    : m.content;
+
                 return (
                   <Chat.Message key={i} icon={m.role as "user" | "assistant"}>
-                    {typeof m.content === "string" && m.content && (
-                      <Chat.Message.Content
-                        content={{ type: "text", text: m.content }}
-                      />
-                    )}
-                    {Array.isArray(m.content) &&
-                      m.content.map((c, i) => (
-                        <Chat.Message.Content key={i} content={c} />
-                      ))}
+                    {content.map((c, i) => (
+                      <Chat.Message.Content key={i} content={c} />
+                    ))}
+
                     {m.tool_calls?.map((tc, i) => {
                       if (!tc.id) tc.id = i.toString();
                       const toolInfo = toolsInfo[tc.name];
@@ -207,6 +208,28 @@ export default function ChatPage() {
                         />
                       );
                     })}
+
+                    {!isGenerating &&
+                      m.role === "assistant" &&
+                      !m.tool_calls?.length &&
+                      i === messages.length - 1 && (
+                        <Chat.Message.Actions
+                          style={{ marginVertical: 16 }}
+                          onCopyAnswer={() => {
+                            const answerText = content.reduce((acc, curr) => {
+                              if (curr.type === "text") {
+                                return acc + "\n" + curr.text;
+                              }
+                              return acc;
+                            }, "");
+                            Clipboard.setStringAsync(answerText.trim());
+                          }}
+                          onStartAgain={() => {
+                            setMessages([]);
+                            setToolCalls({});
+                          }}
+                        />
+                      )}
                   </Chat.Message>
                 );
               })}

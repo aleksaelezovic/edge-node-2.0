@@ -26,7 +26,7 @@ export default function ChatMessageContent({
     );
   }
   if (c.type === "image_url") {
-    return <Image source={{ uri: c.image_url }} />;
+    return <Image source={{ uri: c.image_url?.url ?? c.image_url }} />;
   }
   return null;
 }
