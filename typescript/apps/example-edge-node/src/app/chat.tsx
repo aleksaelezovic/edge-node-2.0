@@ -190,7 +190,11 @@ export default function ChatPage() {
                     : m.content;
 
                 return (
-                  <Chat.Message key={i} icon={m.role as "user" | "assistant"}>
+                  <Chat.Message
+                    key={i}
+                    icon={m.role as "user" | "assistant"}
+                    style={{ gap: 8 }}
+                  >
                     {/* Source Knowledge Assets */}
 
                     {/* Message contnet (text/image) */}

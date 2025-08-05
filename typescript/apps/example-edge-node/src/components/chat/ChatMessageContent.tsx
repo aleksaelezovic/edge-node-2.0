@@ -1,32 +1,52 @@
 import { Text } from "react-native";
-import { Image } from "expo-image";
+import { Image, useImage } from "expo-image";
 import type { MessageContentComplex } from "@langchain/core/messages";
 
 import useThemeColor from "@/hooks/useThemeColor";
+
+function TextContent(props: { text: string }) {
+  const textColor = useThemeColor("text");
+
+  return (
+    <Text
+      style={{
+        color: textColor,
+        fontFamily: "Manrope_400Regular",
+        fontSize: 16,
+        paddingTop: 4,
+      }}
+    >
+      {props.text}
+    </Text>
+  );
+}
+
+function ImageContent(props: { url: string }) {
+  const image = useImage(props.url);
+
+  return (
+    <Image
+      source={image}
+      style={{
+        height: 300,
+        width: !image ? 300 : image.width / (image.height / 300),
+        borderRadius: 12,
+      }}
+      contentFit="cover"
+    />
+  );
+}
 
 export default function ChatMessageContent({
   content: c,
 }: {
   content: MessageContentComplex;
 }) {
-  const textColor = useThemeColor("text");
-
   if (c.type === "text" && c.text) {
-    return (
-      <Text
-        style={{
-          color: textColor,
-          fontFamily: "Manrope_400Regular",
-          fontSize: 16,
-          paddingTop: 4,
-        }}
-      >
-        {c.text}
-      </Text>
-    );
+    return <TextContent text={c.text} />;
   }
   if (c.type === "image_url") {
-    return <Image source={{ uri: c.image_url?.url ?? c.image_url }} />;
+    return <ImageContent url={c.image_url?.url ?? c.image_url} />;
   }
   return null;
 }
