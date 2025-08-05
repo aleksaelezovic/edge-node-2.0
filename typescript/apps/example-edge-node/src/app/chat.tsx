@@ -1,37 +1,26 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  Text,
-  TextInput,
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  KeyboardAvoidingView,
-} from "react-native";
+import { View, Platform, KeyboardAvoidingView } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-//import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useMcpClient } from "@/client";
 import useColors from "@/hooks/useColors";
 import usePlatform from "@/hooks/usePlatform";
-import Button from "@/components/Button";
-import ArrowUpIcon from "@/components/icons/ArrowUpIcon";
-import MicrophoneIcon from "@/components/icons/MicrophoneIcon";
-import AttachFileIcon from "@/components/icons/AttachFileIcon";
-import ToolsIcon from "@/components/icons/ToolsIcon";
 import Page from "@/components/layout/Page";
 import Container from "@/components/layout/Container";
 import Header from "@/components/layout/Header";
+import ChatInput from "@/components/chat/ChatInput";
+import Messages from "@/components/chat/Messages";
 
-import type {
-  ToolDefinition,
-  ChatMessage,
-  CompletionRequest,
+import {
+  type ToolDefinition,
+  type ChatMessage,
+  type ToolCallResultContent,
+  makeCompletionRequest,
 } from "@/shared/chat";
 
 export default function Chat() {
@@ -71,39 +60,28 @@ export default function Chat() {
       });
   }, [connected, mcp]);
 
-  useEffect(() => {
-    if (messages.at(-1)?.role === "user")
-      getToken()
-        .then((token) => {
-          if (!token) throw new Error("Not authenticated.");
-          return token;
-        })
-        .then((token) =>
-          fetch(new URL(process.env.EXPO_PUBLIC_APP_URL + "/llm").toString(), {
-            method: "POST",
-            body: JSON.stringify({
-              messages,
-              tools,
-            } satisfies CompletionRequest),
-            headers: {
-              Authorization: `Bearer ${token}`,
-              // Itentionally omit the 'Content-Type' header
-              // Because it breaks the production build
-              //
-              // "Content-Type": "application/json",
-            },
-          })
-            .then((r) => r.json())
-            .then((m: ChatMessage) => {
-              if (!m) throw new Error("No message received");
+  async function sendMessage() {
+    if (!message.trim()) return;
 
-              setMessages((prevMessages) => [...prevMessages, m]);
-            }),
-        )
-        .catch((error) => {
-          console.log("Error calling LLM: ", error.message);
-        });
-  }, [messages, tools, getToken]);
+    const newMessage: ChatMessage = {
+      role: "user",
+      content: message.trim(),
+    };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    setMessage("");
+
+    const token = await getToken();
+    if (!token) throw new Error("Unauthorized");
+
+    const completion = await makeCompletionRequest(
+      { messages: [...messages, newMessage], tools },
+      {
+        fetch: (url, opts) => fetch(url.toString(), opts as any),
+        bearerToken: token,
+      },
+    );
+    setMessages((prevMessages) => [...prevMessages, completion]);
+  }
 
   const isLandingScreen = !messages.length && !isNativeMobile;
 
@@ -126,94 +104,37 @@ export default function Chat() {
           ]}
         >
           <Header />
-          <ScrollView
-            style={{
-              flex: 1,
-              paddingVertical: 8,
+          <Messages
+            messages={messages}
+            callTool={(tc) => {
+              mcp
+                ?.callTool({
+                  name: tc.name,
+                  arguments: tc.args,
+                })
+                .then((result) => {
+                  setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {
+                      role: "tool",
+                      tool_call_id: tc.id,
+                      content: result.content as ToolCallResultContent,
+                    },
+                  ]);
+                });
             }}
-          >
-            {messages.map((m, i) => (
-              <View key={i} style={styles.messageWrapper}>
-                <View
-                  style={[
-                    styles.messageBubble,
-                    m.role === "user"
-                      ? styles.userMessage
-                      : styles.assistantMessage,
-                  ]}
-                >
-                  <Text style={styles.roleLabel}>{m.role.toUpperCase()}</Text>
-
-                  {m.role === "user" && (
-                    <Text style={styles.messageText}>
-                      {m.content.toString()}
-                    </Text>
-                  )}
-
-                  {m.role === "tool" && (
-                    <Text style={styles.toolMessage}>
-                      {typeof m.content === "string"
-                        ? m.content
-                        : m.content.map((item, index) => (
-                            <Text key={index}>{item.type}</Text>
-                          ))}
-                    </Text>
-                  )}
-
-                  {m.role === "assistant" && (
-                    <View>
-                      {m.tool_calls?.map((tc, j) => (
-                        <View key={j} style={styles.toolCallContainer}>
-                          <Text style={styles.toolCallName}>
-                            {tc.args.name}
-                          </Text>
-                          <Text style={styles.toolCallArgs}>
-                            {JSON.stringify(tc.args)}
-                          </Text>
-                          <TouchableOpacity
-                            style={styles.callButton}
-                            onPress={() => {
-                              mcp
-                                ?.callTool({
-                                  name: tc.name,
-                                  arguments: tc.args,
-                                })
-                                .then((result) => {
-                                  setMessages((prevMessages) => [
-                                    ...prevMessages,
-                                    {
-                                      role: "tool",
-                                      tool_call_id: tc.id,
-                                      content: result.content as string,
-                                    },
-                                  ]);
-                                });
-                            }}
-                          >
-                            <Text style={styles.callButtonText}>
-                              Call Function
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
-            ))}
-          </ScrollView>
+          />
         </Container>
 
         <View
           style={[
             { width: "100%" },
-            isLandingScreen && !isNativeMobile && { marginTop: 60 },
-            !isLandingScreen &&
-              isNativeMobile && {
-                backgroundColor: colors.backgroundFlat,
-                paddingBottom: safeAreaInsets.bottom,
-                height: 2 * 56 + safeAreaInsets.bottom + 20,
-              },
+            isLandingScreen && { marginTop: 60 },
+            isNativeMobile && {
+              backgroundColor: colors.backgroundFlat,
+              paddingBottom: safeAreaInsets.bottom,
+              height: 2 * 56 + safeAreaInsets.bottom + 20,
+            },
           ]}
         >
           <Container
@@ -230,192 +151,18 @@ export default function Chat() {
                 style={{ width: 100, height: 100, marginBottom: 24 }}
               />
             )}
-            <View
+            <ChatInput
+              value={message}
+              onChangeText={setMessage}
+              onSubmit={sendMessage}
               style={[
-                styles.inputContainer,
                 isLandingScreen && { maxWidth: 800 },
                 isWeb && { pointerEvents: "auto" },
               ]}
-            >
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: colors.input, color: colors.text },
-                ]}
-                placeholder="Ask anything..."
-                placeholderTextColor={colors.placeholder}
-                onChangeText={setMessage}
-                value={message}
-                multiline
-              />
-              <View style={styles.inputButtons}>
-                <Button
-                  color="secondary"
-                  flat
-                  icon={MicrophoneIcon}
-                  iconMode="fill"
-                  style={styles.inputButton}
-                />
-                <Button
-                  color="primary"
-                  icon={ArrowUpIcon}
-                  style={styles.inputButton}
-                  disabled={!message.trim()}
-                  onPress={() => {
-                    if (message.trim()) {
-                      setMessages((prevMessages) => [
-                        ...prevMessages,
-                        { role: "user", content: message },
-                      ]);
-                      setMessage("");
-                    }
-                  }}
-                />
-              </View>
-            </View>
-            <View
-              style={[
-                styles.inputContainer,
-                isLandingScreen && { maxWidth: 800 },
-                styles.inputTools,
-                isWeb && { pointerEvents: "auto" },
-              ]}
-            >
-              <Button
-                color="secondary"
-                flat
-                icon={AttachFileIcon}
-                text="Attach file(s)"
-                style={{ height: "100%" }}
-              />
-              <Button
-                color="secondary"
-                flat
-                icon={ToolsIcon}
-                style={{ height: "100%", aspectRatio: 1 }}
-              />
-            </View>
+            />
           </Container>
         </View>
       </KeyboardAvoidingView>
     </Page>
   );
 }
-
-const styles = StyleSheet.create({
-  inputContainer: {
-    position: "relative",
-    height: 56,
-    width: "100%",
-  },
-  input: {
-    borderRadius: 50,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    height: 56,
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  inputButtons: {
-    position: "absolute",
-    right: 0,
-    padding: 4,
-    gap: 4,
-    flexDirection: "row",
-    height: "100%",
-  },
-  inputButton: {
-    height: "100%",
-    aspectRatio: 1,
-  },
-  inputTools: {
-    height: 40,
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginVertical: 8,
-    paddingHorizontal: 8,
-  },
-
-  // old..
-  messagesContainer: {
-    flex: 1,
-    padding: 15,
-  },
-  messageWrapper: {
-    marginBottom: 15,
-  },
-  messageBubble: {
-    padding: 12,
-    borderRadius: 12,
-    maxWidth: "85%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  userMessage: {
-    backgroundColor: "#3498db",
-    alignSelf: "flex-end",
-  },
-  assistantMessage: {
-    backgroundColor: "#fff",
-    alignSelf: "flex-start",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  roleLabel: {
-    fontSize: 10,
-    fontWeight: "bold",
-    marginBottom: 4,
-    color: "#7f8c8d",
-    textTransform: "uppercase",
-  },
-  messageText: {
-    fontSize: 16,
-    color: "#fff",
-    lineHeight: 20,
-  },
-  toolMessage: {
-    fontSize: 14,
-    color: "#2c3e50",
-    backgroundColor: "#ecf0f1",
-    padding: 8,
-    borderRadius: 6,
-    fontFamily: "monospace",
-  },
-  toolCallContainer: {
-    marginTop: 8,
-    padding: 10,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#3498db",
-  },
-  toolCallName: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#2c3e50",
-    marginBottom: 4,
-  },
-  toolCallArgs: {
-    fontSize: 12,
-    color: "#7f8c8d",
-    fontFamily: "monospace",
-    marginBottom: 8,
-  },
-  callButton: {
-    backgroundColor: "#3498db",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    alignSelf: "flex-start",
-  },
-  callButtonText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-});
