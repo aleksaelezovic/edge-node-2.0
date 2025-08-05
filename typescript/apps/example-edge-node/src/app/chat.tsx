@@ -81,10 +81,7 @@ export default function ChatPage() {
     }));
 
     return mcp
-      ?.callTool({
-        name: tc.name,
-        arguments: tc.args,
-      })
+      .callTool({ name: tc.name, arguments: tc.args })
       .then((result) => {
         setToolCalls((p) => ({
           ...p,
@@ -106,14 +103,27 @@ export default function ChatPage() {
           ...p,
           [tc.id!]: { input: tc.args, status: "error", error: err.message },
         }));
+
+        return sendMessage({
+          role: "tool",
+          tool_call_id: tc.id,
+          content: "Error occurred while calling tool: " + err.message,
+          isError: true,
+        });
       });
   }
 
-  function cancelToolCall(tc: ToolCall) {
+  async function cancelToolCall(tc: ToolCall) {
     setToolCalls((p) => ({
       ...p,
       [tc.id!]: { input: tc.args, status: "cancelled" },
     }));
+
+    return sendMessage({
+      role: "tool",
+      tool_call_id: tc.id,
+      content: "Tool call was cancelled by user",
+    });
   }
 
   async function sendMessage(newMessage: ChatMessage) {
@@ -180,10 +190,14 @@ export default function ChatPage() {
 
                 return (
                   <Chat.Message key={i} icon={m.role as "user" | "assistant"}>
+                    {/* Source Knowledge Assets */}
+
+                    {/* Message contnet (text/image) */}
                     {content.map((c, i) => (
                       <Chat.Message.Content key={i} content={c} />
                     ))}
 
+                    {/* Tool calls */}
                     {m.tool_calls?.map((tc, i) => {
                       if (!tc.id) tc.id = i.toString();
                       const toolInfo = toolsInfo[tc.name];
@@ -202,13 +216,14 @@ export default function ChatPage() {
                           description={toolInfo?.description}
                           status={status.status}
                           input={status.input}
-                          output={status.output}
+                          output={status.output ?? status.error}
                           onConfirm={() => callTool(tc)}
                           onCancel={() => cancelToolCall(tc)}
                         />
                       );
                     })}
 
+                    {/* Actions at the bottom */}
                     {!isGenerating &&
                       m.role === "assistant" &&
                       !m.tool_calls?.length &&
@@ -217,10 +232,8 @@ export default function ChatPage() {
                           style={{ marginVertical: 16 }}
                           onCopyAnswer={() => {
                             const answerText = content.reduce((acc, curr) => {
-                              if (curr.type === "text") {
-                                return acc + "\n" + curr.text;
-                              }
-                              return acc;
+                              if (curr.type !== "text") return acc;
+                              return acc + "\n" + curr.text;
                             }, "");
                             Clipboard.setStringAsync(answerText.trim());
                           }}

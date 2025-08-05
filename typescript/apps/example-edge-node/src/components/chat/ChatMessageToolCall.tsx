@@ -96,9 +96,21 @@ export default function ToolCall({
           </View>
           <Text style={[styles.title, { color: colors.text }]}>Output</Text>
           <View style={styles.codeBlock}>
-            <Text style={styles.codeText}>
-              {JSON.stringify(output, null, 2)}
-            </Text>
+            {status === "success" && (
+              <Text style={styles.codeText}>
+                {JSON.stringify(output, null, 2)}
+              </Text>
+            )}
+            {status === "error" && (
+              <Text style={[styles.codeText, { color: colors.error }]}>
+                {`${output}`}
+              </Text>
+            )}
+            {status === "cancelled" && (
+              <Text style={[styles.codeText, { color: colors.secondary }]}>
+                Tool call was cancelled by user.
+              </Text>
+            )}
           </View>
         </View>
       )}
