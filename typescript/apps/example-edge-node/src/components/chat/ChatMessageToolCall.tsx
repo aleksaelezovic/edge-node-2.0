@@ -1,16 +1,27 @@
 import { View, Text } from "react-native";
 
+import useColors from "@/hooks/useColors";
 import Button from "../Button";
 import Checkbox from "../Checkbox";
-import useColors from "@/hooks/useColors";
-import type { ToolCall as ToolCallType } from "@/shared/chat";
-import { useChatContext } from "./ChatContext";
 
-export default function ToolCall({ toolCall: tc }: { toolCall: ToolCallType }) {
-  const { callTool, toolsInfo } = useChatContext();
+export default function ToolCall({
+  title,
+  description,
+  status,
+  input,
+  output,
+  onConfirm,
+  onCancel,
+}: {
+  title: string;
+  description?: string;
+  status: "init" | "loading" | "success" | "error" | "cancelled";
+  input?: unknown;
+  output?: unknown;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
   const colors = useColors();
-
-  const toolInfo = toolsInfo[tc.name];
 
   return (
     <View
@@ -28,9 +39,7 @@ export default function ToolCall({ toolCall: tc }: { toolCall: ToolCallType }) {
           fontSize: 14,
         }}
       >
-        {toolInfo
-          ? `${toolInfo.title} - ${toolInfo.mcpServer} (MCP Server)`
-          : tc.name}
+        {title}
       </Text>
       <Text
         style={{
@@ -39,7 +48,7 @@ export default function ToolCall({ toolCall: tc }: { toolCall: ToolCallType }) {
           fontSize: 12,
         }}
       >
-        {toolInfo?.description || tc.name}
+        {description}
       </Text>
 
       {/*<Text>{JSON.stringify(tc.args, null, 2)}</Text>*/}
@@ -56,8 +65,8 @@ export default function ToolCall({ toolCall: tc }: { toolCall: ToolCallType }) {
           gap: 8,
         }}
       >
-        <Button color="primary" text="Continue" onPress={() => callTool(tc)} />
-        <Button color="card" text="Cancel" />
+        <Button color="primary" text="Continue" onPress={onConfirm} />
+        <Button color="card" text="Cancel" onPress={onCancel} />
         <Checkbox>
           <Text style={{ color: colors.secondary }}>
             Allow tool for this session

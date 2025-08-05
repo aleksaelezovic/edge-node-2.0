@@ -1,63 +1,28 @@
-import { Text, View } from "react-native";
-import { Image } from "expo-image";
-
-import { ChatMessage as ChatMessageType } from "@/shared/chat";
-import useColors from "@/hooks/useColors";
+import { View, ViewProps } from "react-native";
 
 import UserIcon from "./UserIcon";
 import AssistantIcon from "./AssistantIcon";
-import ToolCall from "./ToolCall";
+import ChatMessageContent from "./ChatMessageContent";
+import ChatMessageToolCall from "./ChatMessageToolCall";
 
 export default function ChatMessage({
-  message: m,
-}: {
-  message: ChatMessageType;
+  icon,
+  ...props
+}: ViewProps & {
+  icon: "user" | "assistant";
 }) {
-  const colors = useColors();
-
-  const isUser = m.role === "user";
-  const isAssistant = m.role === "assistant";
-
-  const show = isUser || isAssistant;
-  if (!show) return null;
-
   return (
     <View
       style={{ gap: 16, flexDirection: "row", width: "100%", marginBottom: 16 }}
     >
       <View style={{ width: 32 }}>
-        {isUser && <UserIcon />}
-        {isAssistant && <AssistantIcon />}
+        {icon === "user" && <UserIcon />}
+        {icon === "assistant" && <AssistantIcon />}
       </View>
-      <View style={{ flex: 1 }}>
-        {(typeof m.content === "string"
-          ? [{ type: "text", text: m.content }]
-          : m.content
-        ).map((c, i) => {
-          if (c.type === "text" && c.text) {
-            return (
-              <Text
-                key={i}
-                style={{
-                  color: colors.text,
-                  fontFamily: "Manrope_400Regular",
-                  fontSize: 16,
-                  paddingTop: 4,
-                }}
-              >
-                {c.text}
-              </Text>
-            );
-          }
-          if (c.type === "image_url") {
-            return <Image key={i} source={{ uri: c.image_url }} />;
-          }
-          return null;
-        })}
-        {m.tool_calls?.map((tc, i) => (
-          <ToolCall key={i} toolCall={tc} />
-        ))}
-      </View>
+      <View {...props} style={[{ flex: 1 }, props.style]} />
     </View>
   );
 }
+
+ChatMessage.Content = ChatMessageContent;
+ChatMessage.ToolCall = ChatMessageToolCall;

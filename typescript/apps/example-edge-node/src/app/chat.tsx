@@ -20,8 +20,9 @@ import {
   type ToolDefinition,
   type ToolCall,
   type ToolCallResultContent,
+  type ToolsInfoMap,
+  type ToolCallsMap,
   makeCompletionRequest,
-  ToolsInfoMap,
 } from "@/shared/chat";
 
 export default function ChatPage() {
@@ -36,6 +37,7 @@ export default function ChatPage() {
   });
   const [tools, setTools] = useState<ToolDefinition[]>([]);
   const [toolsInfo, setToolsInfo] = useState<ToolsInfoMap>({});
+  const [toolCalls, setToolCalls] = useState<ToolCallsMap>({});
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const safeAreaInsets = useSafeAreaInsets();
@@ -72,20 +74,45 @@ export default function ChatPage() {
   }, [connected, mcp]);
 
   async function callTool(tc: ToolCall) {
+    setToolCalls((p) => ({
+      ...p,
+      [tc.id!]: { input: tc.args, status: "loading" },
+    }));
+
     return mcp
       ?.callTool({
         name: tc.name,
         arguments: tc.args,
       })
-      .then(
-        (result) =>
-          ({
-            role: "tool",
-            tool_call_id: tc.id,
-            content: result.content as ToolCallResultContent,
-          }) as ChatMessage,
-      )
-      .then(sendMessage);
+      .then((result) => {
+        setToolCalls((p) => ({
+          ...p,
+          [tc.id!]: {
+            input: tc.args,
+            status: "success",
+            output: result.content,
+          },
+        }));
+
+        return sendMessage({
+          role: "tool",
+          tool_call_id: tc.id,
+          content: result.content as ToolCallResultContent,
+        });
+      })
+      .catch((err) => {
+        setToolCalls((p) => ({
+          ...p,
+          [tc.id!]: { input: tc.args, status: "error", error: err.message },
+        }));
+      });
+  }
+
+  function cancelToolCall(tc: ToolCall) {
+    setToolCalls((p) => ({
+      ...p,
+      [tc.id!]: { input: tc.args, status: "cancelled" },
+    }));
   }
 
   async function sendMessage(newMessage: ChatMessage) {
@@ -111,15 +138,7 @@ export default function ChatPage() {
 
   return (
     <Page style={{ flex: 1, position: "relative", marginBottom: 0 }}>
-      <Chat
-        context={{
-          messages,
-          isGenerating,
-          callTool,
-          toolsInfo,
-          sendMessage,
-        }}
-      >
+      <Chat>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           keyboardVerticalOffset={20}
@@ -150,9 +169,47 @@ export default function ChatPage() {
                 },
               ]}
             >
-              {messages.map((m, i) => (
-                <Chat.Message key={i} message={m} />
-              ))}
+              {messages.map((m, i) => {
+                if (m.role !== "user" && m.role !== "assistant") return null;
+
+                return (
+                  <Chat.Message key={i} icon={m.role as "user" | "assistant"}>
+                    {typeof m.content === "string" && m.content && (
+                      <Chat.Message.Content
+                        content={{ type: "text", text: m.content }}
+                      />
+                    )}
+                    {Array.isArray(m.content) &&
+                      m.content.map((c, i) => (
+                        <Chat.Message.Content key={i} content={c} />
+                      ))}
+                    {m.tool_calls?.map((tc, i) => {
+                      if (!tc.id) tc.id = i.toString();
+                      const toolInfo = toolsInfo[tc.name];
+                      const toolTitle = toolInfo
+                        ? `${toolInfo.title} - ${toolInfo.mcpServer} (MCP Server)`
+                        : tc.name;
+                      const status = toolCalls[tc.id!] || {
+                        status: "init",
+                        input: tc.args,
+                      };
+
+                      return (
+                        <Chat.Message.ToolCall
+                          key={tc.id}
+                          title={toolTitle}
+                          description={toolInfo?.description}
+                          status={status.status}
+                          input={status.input}
+                          output={status.output}
+                          onConfirm={() => callTool(tc)}
+                          onCancel={() => cancelToolCall(tc)}
+                        />
+                      );
+                    })}
+                  </Chat.Message>
+                );
+              })}
               {isGenerating && <Chat.Thinking />}
             </Chat.Messages>
           </Container>
@@ -183,6 +240,8 @@ export default function ChatPage() {
                 />
               )}
               <Chat.Input
+                onSendMessage={sendMessage}
+                disabled={isGenerating}
                 style={[{ maxWidth: 800 }, isWeb && { pointerEvents: "auto" }]}
               />
             </Container>

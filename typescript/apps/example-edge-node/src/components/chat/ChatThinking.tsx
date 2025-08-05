@@ -15,13 +15,15 @@ export default function ChatThinking({ speed = 250 }: { speed?: number }) {
   }, [state, speed]);
 
   return (
-    <ChatMessage
-      message={{
-        role: "assistant",
-        content:
-          "Thinking" +
-          (state === 0 ? "." : state === 1 ? ".." : state === 2 ? "..." : ""),
-      }}
-    />
+    <ChatMessage icon="assistant">
+      <ChatMessage.Content
+        content={{
+          type: "text",
+          text:
+            "Thinking" +
+            (state === 0 ? "." : state === 1 ? ".." : state === 2 ? "..." : ""),
+        }}
+      />
+    </ChatMessage>
   );
 }

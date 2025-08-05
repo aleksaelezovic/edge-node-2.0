@@ -11,7 +11,16 @@ export default defineDkgPlugin((_, mcp, api) => {
     },
     async ({ a, b }) => {
       return {
-        content: [{ type: "text", text: String(a + b) }],
+        content: [
+          { type: "text", text: String(a + b) },
+          // {
+          //   type: "resource_link",
+          //   name: "Knowledge Asset",
+          //   title: "OriginTrail",
+          //   description: "DKG Knowledge Asset (UAL)",
+          //   uri: "did:dkg:otp:20430/0x123/1/1",
+          // },
+        ],
       };
     },
   );

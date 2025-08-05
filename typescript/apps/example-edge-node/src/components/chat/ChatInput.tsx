@@ -13,21 +13,27 @@ import MicrophoneIcon from "@/components/icons/MicrophoneIcon";
 import AttachFileIcon from "@/components/icons/AttachFileIcon";
 import ToolsIcon from "@/components/icons/ToolsIcon";
 import useColors from "@/hooks/useColors";
+import { ChatMessage } from "@/shared/chat";
 
-import { useChatContext } from "./ChatContext";
-
-export default function ChatInput({ style }: { style?: StyleProp<ViewStyle> }) {
-  const { sendMessage, isGenerating } = useChatContext();
+export default function ChatInput({
+  onSendMessage,
+  disabled,
+  style,
+}: {
+  onSendMessage: (message: ChatMessage) => void;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) {
   const colors = useColors();
   const [message, setMessage] = useState("");
 
   const onSubmit = useCallback(() => {
-    sendMessage({
+    onSendMessage({
       role: "user",
       content: message.trim(),
     });
     setMessage("");
-  }, [message, sendMessage]);
+  }, [message, onSendMessage]);
 
   return (
     <View style={[{ width: "100%" }, style]}>
@@ -55,7 +61,7 @@ export default function ChatInput({ style }: { style?: StyleProp<ViewStyle> }) {
             color="primary"
             icon={ArrowUpIcon}
             style={styles.inputButton}
-            disabled={!message.trim() || isGenerating}
+            disabled={!message.trim() || disabled}
             onPress={onSubmit}
           />
         </View>

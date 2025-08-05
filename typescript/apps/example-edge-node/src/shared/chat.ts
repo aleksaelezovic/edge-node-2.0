@@ -14,6 +14,15 @@ export type ToolsInfoMap = Record<
   string,
   { title: string; description?: string; mcpServer?: string }
 >;
+export type ToolCallsMap = Record<
+  string,
+  {
+    input?: unknown;
+    output?: unknown;
+    status: "init" | "loading" | "success" | "error" | "cancelled";
+    error?: string;
+  }
+>;
 
 export type CompletionRequest = {
   messages: ChatMessage[];
