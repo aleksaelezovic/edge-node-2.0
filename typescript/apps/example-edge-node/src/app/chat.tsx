@@ -153,6 +153,7 @@ export default function ChatPage() {
               {messages.map((m, i) => (
                 <Chat.Message key={i} message={m} />
               ))}
+              {isGenerating && <Chat.Thinking />}
             </Chat.Messages>
           </Container>
 
