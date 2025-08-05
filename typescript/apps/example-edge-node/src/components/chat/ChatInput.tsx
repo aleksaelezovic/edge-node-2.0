@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import {
   View,
   TextInput,
@@ -13,18 +14,20 @@ import AttachFileIcon from "@/components/icons/AttachFileIcon";
 import ToolsIcon from "@/components/icons/ToolsIcon";
 import useColors from "@/hooks/useColors";
 
-export default function ChatInput({
-  value,
-  onChangeText,
-  onSubmit,
-  style,
-}: {
-  value: string;
-  onChangeText: (text: string) => void;
-  onSubmit: () => void;
-  style?: StyleProp<ViewStyle>;
-}) {
+import { useChatContext } from "./ChatContext";
+
+export default function ChatInput({ style }: { style?: StyleProp<ViewStyle> }) {
+  const { sendMessage, isGenerating } = useChatContext();
   const colors = useColors();
+  const [message, setMessage] = useState("");
+
+  const onSubmit = useCallback(() => {
+    sendMessage({
+      role: "user",
+      content: message.trim(),
+    });
+    setMessage("");
+  }, [message, sendMessage]);
 
   return (
     <View style={[{ width: "100%" }, style]}>
@@ -36,8 +39,8 @@ export default function ChatInput({
           ]}
           placeholder="Ask anything..."
           placeholderTextColor={colors.placeholder}
-          onChangeText={onChangeText}
-          value={value}
+          onChangeText={setMessage}
+          value={message}
           multiline
         />
         <View style={styles.inputButtons}>
@@ -52,7 +55,7 @@ export default function ChatInput({
             color="primary"
             icon={ArrowUpIcon}
             style={styles.inputButton}
-            disabled={!value.trim()}
+            disabled={!message.trim() || isGenerating}
             onPress={onSubmit}
           />
         </View>

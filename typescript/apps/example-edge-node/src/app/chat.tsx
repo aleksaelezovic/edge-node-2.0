@@ -13,19 +13,19 @@ import usePlatform from "@/hooks/usePlatform";
 import Page from "@/components/layout/Page";
 import Container from "@/components/layout/Container";
 import Header from "@/components/layout/Header";
-import ChatInput from "@/components/chat/ChatInput";
-import Messages from "@/components/chat/Messages";
+import Chat from "@/components/chat/Chat";
 
 import {
-  type ToolDefinition,
   type ChatMessage,
+  type ToolDefinition,
+  type ToolCall,
   type ToolCallResultContent,
   makeCompletionRequest,
 } from "@/shared/chat";
 
-export default function Chat() {
+export default function ChatPage() {
   const colors = useColors();
-  const { isNativeMobile, isWeb } = usePlatform();
+  const { isNativeMobile, isWeb, width } = usePlatform();
 
   const { code: authorizationCode } = useLocalSearchParams<{ code?: string }>();
   const onAuthorized = useCallback(() => router.navigate("/chat"), []);
@@ -34,8 +34,8 @@ export default function Chat() {
     onAuthorized,
   });
   const [tools, setTools] = useState<ToolDefinition[]>([]);
-  const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
   const safeAreaInsets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -60,19 +60,30 @@ export default function Chat() {
       });
   }, [connected, mcp]);
 
-  async function sendMessage() {
-    if (!message.trim()) return;
+  async function callTool(tc: ToolCall) {
+    return mcp
+      ?.callTool({
+        name: tc.name,
+        arguments: tc.args,
+      })
+      .then(
+        (result) =>
+          ({
+            role: "tool",
+            tool_call_id: tc.id,
+            content: result.content as ToolCallResultContent,
+          }) as ChatMessage,
+      )
+      .then(sendMessage);
+  }
 
-    const newMessage: ChatMessage = {
-      role: "user",
-      content: message.trim(),
-    };
+  async function sendMessage(newMessage: ChatMessage) {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
-    setMessage("");
 
     const token = await getToken();
     if (!token) throw new Error("Unauthorized");
 
+    setIsGenerating(true);
     const completion = await makeCompletionRequest(
       { messages: [...messages, newMessage], tools },
       {
@@ -81,88 +92,90 @@ export default function Chat() {
       },
     );
     setMessages((prevMessages) => [...prevMessages, completion]);
+    setIsGenerating(false);
   }
 
   const isLandingScreen = !messages.length && !isNativeMobile;
+  console.log(messages);
 
   return (
     <Page style={{ flex: 1, position: "relative", marginBottom: 0 }}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={20}
-        style={[
-          { flex: 1, position: "relative" },
-          isLandingScreen
-            ? { justifyContent: "flex-start" }
-            : { justifyContent: "flex-end" },
-        ]}
+      <Chat
+        context={{
+          messages,
+          isGenerating,
+          callTool,
+          sendMessage,
+        }}
       >
-        <Container
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={20}
           style={[
-            { paddingBottom: 0 },
-            isLandingScreen && { flex: null as any },
-          ]}
-        >
-          <Header />
-          <Messages
-            messages={messages}
-            callTool={(tc) => {
-              mcp
-                ?.callTool({
-                  name: tc.name,
-                  arguments: tc.args,
-                })
-                .then((result) => {
-                  setMessages((prevMessages) => [
-                    ...prevMessages,
-                    {
-                      role: "tool",
-                      tool_call_id: tc.id,
-                      content: result.content as ToolCallResultContent,
-                    },
-                  ]);
-                });
-            }}
-          />
-        </Container>
-
-        <View
-          style={[
-            { width: "100%" },
-            isLandingScreen && { marginTop: 60 },
-            isNativeMobile && {
-              backgroundColor: colors.backgroundFlat,
-              paddingBottom: safeAreaInsets.bottom,
-              height: 2 * 56 + safeAreaInsets.bottom + 20,
-            },
+            { flex: 1, position: "relative" },
+            isLandingScreen
+              ? { justifyContent: "flex-start" }
+              : { justifyContent: "flex-end" },
           ]}
         >
           <Container
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            style={[
+              { paddingBottom: 0 },
+              isLandingScreen && { flex: null as any },
+            ]}
           >
-            {isLandingScreen && (
-              <Image
-                source={require("../assets/logo.svg")}
-                style={{ width: 100, height: 100, marginBottom: 24 }}
-              />
-            )}
-            <ChatInput
-              value={message}
-              onChangeText={setMessage}
-              onSubmit={sendMessage}
+            <Header />
+            <Chat.Messages
               style={[
-                isLandingScreen && { maxWidth: 800 },
-                isWeb && { pointerEvents: "auto" },
+                {
+                  width: "100%",
+                  marginHorizontal: "auto",
+                  maxWidth: 800,
+                },
+                width >= 800 + 48 * 2 + 20 * 2 && {
+                  maxWidth: 800 + 48 * 2,
+                  paddingRight: 48,
+                },
               ]}
-            />
+            >
+              {messages.map((m, i) => (
+                <Chat.Message key={i} message={m} />
+              ))}
+            </Chat.Messages>
           </Container>
-        </View>
-      </KeyboardAvoidingView>
+
+          <View
+            style={[
+              { width: "100%" },
+              isLandingScreen && { marginTop: 60 },
+              isNativeMobile && {
+                backgroundColor: colors.backgroundFlat,
+                paddingBottom: safeAreaInsets.bottom,
+                height: 2 * 56 + safeAreaInsets.bottom + 20,
+              },
+            ]}
+          >
+            <Container
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {isLandingScreen && (
+                <Image
+                  source={require("../assets/logo.svg")}
+                  style={{ width: 100, height: 100, marginBottom: 24 }}
+                />
+              )}
+              <Chat.Input
+                style={[{ maxWidth: 800 }, isWeb && { pointerEvents: "auto" }]}
+              />
+            </Container>
+          </View>
+        </KeyboardAvoidingView>
+      </Chat>
     </Page>
   );
 }
