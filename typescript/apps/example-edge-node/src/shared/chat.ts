@@ -10,6 +10,10 @@ import { ChatOpenAI } from "@langchain/openai";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 export type { ToolDefinition };
+export type ToolsInfoMap = Record<
+  string,
+  { title: string; description?: string; mcpServer?: string }
+>;
 
 export type CompletionRequest = {
   messages: ChatMessage[];

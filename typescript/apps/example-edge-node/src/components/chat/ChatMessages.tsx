@@ -7,7 +7,7 @@ export default function ChatMessages(props: ViewProps) {
       style={[
         {
           flex: 1,
-          paddingVertical: 8,
+          paddingVertical: 16,
         },
         props.style,
       ]}

@@ -21,6 +21,7 @@ import {
   type ToolCall,
   type ToolCallResultContent,
   makeCompletionRequest,
+  ToolsInfoMap,
 } from "@/shared/chat";
 
 export default function ChatPage() {
@@ -34,6 +35,7 @@ export default function ChatPage() {
     onAuthorized,
   });
   const [tools, setTools] = useState<ToolDefinition[]>([]);
+  const [toolsInfo, setToolsInfo] = useState<ToolsInfoMap>({});
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const safeAreaInsets = useSafeAreaInsets();
@@ -44,16 +46,25 @@ export default function ChatPage() {
     mcp
       .listTools()
       .then(({ tools }) => {
-        setTools(
-          tools.map((t) => ({
+        const toolFns: ToolDefinition[] = [];
+        const toolsInfo: ToolsInfoMap = {};
+        for (const tool of tools) {
+          toolFns.push({
             type: "function",
             function: {
-              name: t.name,
-              description: t.description,
-              parameters: t.inputSchema,
+              name: tool.name,
+              description: tool.description,
+              parameters: tool.inputSchema,
             },
-          })),
-        );
+          });
+          toolsInfo[tool.name] = {
+            title: tool.name,
+            description: tool.description,
+            mcpServer: "edge-node-2.0",
+          };
+        }
+        setTools(toolFns);
+        setToolsInfo(toolsInfo);
       })
       .catch((error) => {
         console.log("Error listing MCP tools: ", error.message);
@@ -105,6 +116,7 @@ export default function ChatPage() {
           messages,
           isGenerating,
           callTool,
+          toolsInfo,
           sendMessage,
         }}
       >
