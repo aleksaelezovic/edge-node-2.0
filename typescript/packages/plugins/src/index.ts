@@ -77,7 +77,10 @@ export const createPluginServer = ({
     plugin(context, new McpServer({ name, version }), server),
   );
   registerMcp(server, () => {
-    const mcp = new McpServer({ name, version });
+    const mcp = new McpServer(
+      { name, version },
+      { capabilities: { resources: {}, tools: { listChanged: true } } },
+    );
     plugins.forEach((plugin) => plugin(context, mcp, express.Router()));
     return mcp;
   });
