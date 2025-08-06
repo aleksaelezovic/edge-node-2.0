@@ -18,7 +18,8 @@
     "drizzle:studio": "drizzle-kit studio",
     "script:setup": "node dist/setup.js",
     "script:createUser": "node dist/createUser.js",
-    "script:createToken": "node dist/createToken.js"
+    "script:createToken": "node dist/createToken.js",
+    "postinstall": "node fix-uuid.js"
   },
   "dependencies": {
     "@dkg/plugin-dkg-essentials": "^0.0.2",
