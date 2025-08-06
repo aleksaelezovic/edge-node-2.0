@@ -6,6 +6,7 @@ import {
   ViewStyle,
   StyleSheet,
 } from "react-native";
+import * as DocumentPicker from "expo-document-picker";
 
 import Button from "@/components/Button";
 import ArrowUpIcon from "@/components/icons/ArrowUpIcon";
@@ -14,6 +15,16 @@ import AttachFileIcon from "@/components/icons/AttachFileIcon";
 import ToolsIcon from "@/components/icons/ToolsIcon";
 import useColors from "@/hooks/useColors";
 import { ChatMessage } from "@/shared/chat";
+import usePlatform from "@/hooks/usePlatform";
+
+import FilesSelected from "./FilesSelected";
+
+export type FileDefinition = {
+  uri?: string;
+  name?: string;
+  mimeType?: string;
+  base64: string;
+};
 
 export default function ChatInput({
   onSendMessage,
@@ -25,7 +36,9 @@ export default function ChatInput({
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = useColors();
+  const { isWeb } = usePlatform();
   const [message, setMessage] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<FileDefinition[]>([]);
 
   const onSubmit = useCallback(() => {
     onSendMessage({
@@ -36,7 +49,14 @@ export default function ChatInput({
   }, [message, onSendMessage]);
 
   return (
-    <View style={[{ width: "100%" }, style]}>
+    <View style={[{ width: "100%", position: "relative" }, style]}>
+      {!!selectedFiles.length && (
+        <FilesSelected
+          selectedFiles={selectedFiles}
+          onClear={() => setSelectedFiles([])}
+        />
+      )}
+
       <View style={styles.inputContainer}>
         <TextInput
           style={[
@@ -73,6 +93,21 @@ export default function ChatInput({
           icon={AttachFileIcon}
           text="Attach file(s)"
           style={{ height: "100%" }}
+          onPress={() => {
+            if (isWeb)
+              DocumentPicker.getDocumentAsync().then((r) => {
+                if (!r.assets) return;
+                setSelectedFiles((oldFiles) => {
+                  const newFiles: FileDefinition[] = r.assets.map((a) => ({
+                    name: a.name,
+                    size: a.size,
+                    mimeType: a.mimeType,
+                    base64: a.uri,
+                  }));
+                  return [...new Set([...oldFiles, ...newFiles])];
+                });
+              });
+          }}
         />
         <Button
           color="secondary"
