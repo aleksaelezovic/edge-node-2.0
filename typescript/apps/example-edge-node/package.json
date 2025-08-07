@@ -1,7 +1,7 @@
 {
   "name": "example-edge-node",
   "main": "expo-router/entry",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -22,11 +22,11 @@
     "postinstall": "node fix-uuid.js"
   },
   "dependencies": {
-    "@dkg/plugin-dkg-essentials": "^0.0.0",
-    "@dkg/plugin-example": "^0.0.0",
-    "@dkg/plugin-oauth": "^0.0.0",
-    "@dkg/plugin-swagger": "^0.0.0",
-    "@dkg/plugins": "^0.0.0",
+    "@dkg/plugin-dkg-essentials": "^0.0.1",
+    "@dkg/plugin-example": "^0.0.1",
+    "@dkg/plugin-oauth": "^0.0.1",
+    "@dkg/plugin-swagger": "^0.0.1",
+    "@dkg/plugins": "^0.0.1",
     "@expo-google-fonts/manrope": "^0.4.1",
     "@expo-google-fonts/space-grotesk": "^0.4.0",
     "@expo/vector-icons": "^14.1.0",

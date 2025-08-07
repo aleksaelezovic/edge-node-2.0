@@ -1,6 +1,6 @@
 {
   "name": "@dkg/plugin-oauth",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -12,8 +12,8 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
-    "@dkg/plugin-swagger": "^0.0.0",
-    "@dkg/plugins": "^0.0.0",
+    "@dkg/plugin-swagger": "^0.0.1",
+    "@dkg/plugins": "^0.0.1",
     "@modelcontextprotocol/sdk": "^1.17.1",
     "uuid": "^10.0.0"
   },
