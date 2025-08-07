@@ -1,6 +1,4 @@
-# Welcome to your Expo app 👋
-
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# Edge Node app
 
 ## Get started
 
@@ -10,13 +8,41 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Build the app
 
    ```bash
-   npx expo start
+   turbo build
    ```
 
-In the output, you'll find options to open the app in a
+> You do not have to use `turbo` for this.
+> You can just run all package.json `build:*` scripts manually in different terminals.
+
+3. Run setup script
+
+   ```bash
+   npm run script:setup
+   ```
+
+Now you can run the app in development mode using:
+
+```bash
+turbo dev
+```
+
+> You do not have to use `turbo` for this.
+> You can just run all package.json `dev:*` scripts manually in different terminals.
+
+> [!NOTE]
+> This app comes with a pre-configured Drizzle Studio instance to help you manage your database via web interface.
+> You can run it manually by running `npm run drizzle:studio` and it will be available at [https://local.drizzle.studio](https://local.drizzle.studio)
+
+Or the production web app (that you have built in step #2):
+
+```bash
+node dist/index.js
+```
+
+In the development mode output (`npm run dev:app`), you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)
 - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
@@ -25,26 +51,9 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
 ## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:
 
 - [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
 - [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

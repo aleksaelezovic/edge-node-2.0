@@ -34,6 +34,9 @@ export const defineDkgPlugin = (plugin: DkgPlugin): DkgPluginBuilder =>
         const router = express.Router();
         options?.middlewares.forEach((m) => router.use(m));
 
+        // Required patch in order for @dkg/plugin-swagger to work!
+        Object.assign(router, { prefix: "/" + namespace });
+
         plugin(ctx, mcp, router);
         api.use("/" + namespace, router);
       });
@@ -43,7 +46,12 @@ export const defineDkgPlugin = (plugin: DkgPlugin): DkgPluginBuilder =>
 export const defaultPlugin = defineDkgPlugin((ctx, mcp, api) => {
   api.use(express.json());
   api.use(express.urlencoded());
-  api.use(cors());
+  api.use(
+    cors({
+      allowedHeaders: "*",
+      exposedHeaders: "*",
+    }),
+  );
   api.use(morgan("tiny"));
   api.use(compression());
 
@@ -69,7 +77,10 @@ export const createPluginServer = ({
     plugin(context, new McpServer({ name, version }), server),
   );
   registerMcp(server, () => {
-    const mcp = new McpServer({ name, version });
+    const mcp = new McpServer(
+      { name, version },
+      { capabilities: { resources: {}, tools: { listChanged: true } } },
+    );
     plugins.forEach((plugin) => plugin(context, mcp, express.Router()));
     return mcp;
   });

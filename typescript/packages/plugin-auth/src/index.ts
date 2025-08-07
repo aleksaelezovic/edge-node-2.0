@@ -7,20 +7,21 @@ import { sign } from "jsonwebtoken";
 
 type Scope = string[];
 
+/**
+ * @deprecated in favor of new "plugin-oauth" package
+ */
 export default <Credentials>({
   secret,
   schema,
   login,
   logout,
   expiresInSeconds: exp = 3600,
-  requireAuthByDefault,
 }: {
   secret: string;
   schema: z.Schema<Credentials>;
   login: (credentials: Credentials) => Promise<Scope>;
   logout?: () => Promise<void>;
   expiresInSeconds?: number;
-  requireAuthByDefault?: boolean;
 }) =>
   defineDkgPlugin((ctx, mcp, api) => {
     passport.use(
@@ -51,11 +52,6 @@ export default <Credentials>({
         res.status(401).json({ error: "Invalid credentials." });
       }
     });
-
-    if (requireAuthByDefault) {
-      api.use("/", authorized([]));
-      api.use("/mcp", authorized(["mcp"]));
-    }
 
     api.post("/logout", async (_, res) => {
       if (logout) await logout();

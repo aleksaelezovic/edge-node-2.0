@@ -16,7 +16,6 @@
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
     "eslint": "^9.29.0",
-    "typescript": "undefined",
     "tsup": "^8.5.0"
   }
 }

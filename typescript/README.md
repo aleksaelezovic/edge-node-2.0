@@ -72,13 +72,13 @@ Registered routes and MCP tools/resources will be available as part of the Edge 
 > as such can be defined as inline functions - but using the `defineDkgPlugin` function
 > is recommended both for type-safety and for the extension methods it provides.
 
-You can register your plugins inside of the `createPluginApi` function, as shown in the example in
+You can register your plugins inside of the `createPluginServer` function, as shown in the example in
 `apps/mcp-server/src/index.ts`.
 Here you can also configure these plugins with extension methods (i.e `.withNamespace`) as shown in the example.
 
 1. Inside of mcp-server directory, run `npm install --save @dkg/plugin-<your-name>`
 2. Inside of src/index.ts file, import your plugin (`import myPlugin from '@dkg/plugin-<your-name>'`)
-3. Inside of src/index.ts file, in the `createPluginApi` function, add your plugin to the array of plugins.
+3. Inside of src/index.ts file, in the `createPluginServer` function, add your plugin to the array of plugins.
 
 > [!TIP]
 > See how the already existing plugins are created by looking into `packages/plugin-auth` and `packages/plugin-example`.
@@ -87,7 +87,6 @@ Here you can also configure these plugins with extension methods (i.e `.withName
 
 Run `turbo ls` to see the full list.
 
-- `@dkg/mcp-server`: DKG MCP Server app, running on port 9200
 - `@dkg/example-edge-node`: Example of an edge node (Expo)
 
 - `@dkg/plugins`: Utility package for creating DKG plugins
@@ -99,6 +98,22 @@ Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
 Use `turbo gen` to generate new apps and packages.
 
+### Versioning and changelog generation
+
+> [!NOTE]
+> If you do not have `changeset` installed globally, you can install it by running `npm install -g @changesets/cli`.
+> Or alternatively, use `npx @changesets/cli` instead (like `npx @changesets/cli version`)
+
+1. Use `changeset` to create a new release. Select which packages to include in the release and select which of them require a minor or a major version bump (if neither major or minor is selected, the release will be a patch version)
+
+> [!NOTE]
+> In order to see which packages require a version bump, you can run `changeset status` before creating a new
+> release. This compares to the `main` branch by default - in order to change this use the `--since=<branch_name>` flag.
+
+2. Use `changeset version` to bump up the versions and generate a changelog for each package.
+
+> After both of these steps, a commit will be created automatically.
+
 ### Utilities
 
 This Turborepo has some additional tools already setup for you:
@@ -106,6 +121,7 @@ This Turborepo has some additional tools already setup for you:
 - [TypeScript](https://www.typescriptlang.org/) for static type checking
 - [ESLint](https://eslint.org/) for code linting
 - [Prettier](https://prettier.io) for code formatting
+- [Changesets](https://github.com/changesets/changesets) for versioning and changelog generation
 
 ### Remote Caching
 
