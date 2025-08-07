@@ -1,6 +1,6 @@
 {
   "name": "@dkg/plugins",
-  "version": "0.0.2",
+  "version": "0.0.0",
   "description": "Package that provides utilities for creating DKG Node plugins",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

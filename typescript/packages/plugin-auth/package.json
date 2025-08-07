@@ -1,6 +1,6 @@
 {
   "name": "@dkg/plugin-auth",
-  "version": "0.0.2",
+  "version": "0.0.0",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -12,7 +12,7 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
-    "@dkg/plugins": "^0.0.2",
+    "@dkg/plugins": "^0.0.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1"
   },
