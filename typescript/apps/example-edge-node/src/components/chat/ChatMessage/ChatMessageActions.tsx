@@ -1,8 +1,8 @@
 import { View, ViewProps } from "react-native";
 
-import Button from "../Button";
-import CopyIcon from "../icons/CopyIcon";
-import StartAgainIcon from "../icons/StartAgainIcon";
+import Button from "../../Button";
+import CopyIcon from "../../icons/CopyIcon";
+import StartAgainIcon from "../../icons/StartAgainIcon";
 
 export default function ChatMessageActions(
   props: ViewProps & {

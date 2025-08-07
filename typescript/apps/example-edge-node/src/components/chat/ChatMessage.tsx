@@ -1,10 +1,10 @@
 import { View, ViewProps } from "react-native";
 
-import UserIcon from "./UserIcon";
-import AssistantIcon from "./AssistantIcon";
-import ChatMessageContent from "./ChatMessageContent";
-import ChatMessageToolCall from "./ChatMessageToolCall";
-import ChatMessageActions from "./ChatMessageActions";
+import UserIcon from "./ChatMessage/UserIcon";
+import AssistantIcon from "./ChatMessage/AssistantIcon";
+import ChatMessageContent from "./ChatMessage/ChatMessageContent";
+import ChatMessageToolCall from "./ChatMessage/ChatMessageToolCall";
+import ChatMessageActions from "./ChatMessage/ChatMessageActions";
 
 export default function ChatMessage({
   icon,

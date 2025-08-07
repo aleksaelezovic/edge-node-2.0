@@ -17,7 +17,7 @@ import useColors from "@/hooks/useColors";
 import { ChatMessage } from "@/shared/chat";
 import usePlatform from "@/hooks/usePlatform";
 
-import FilesSelected from "./FilesSelected";
+import FilesSelected from "./ChatInput/FilesSelected";
 
 export type FileDefinition = {
   uri?: string;
@@ -43,10 +43,20 @@ export default function ChatInput({
   const onSubmit = useCallback(() => {
     onSendMessage({
       role: "user",
-      content: message.trim(),
+      content: [
+        ...selectedFiles.map((f) => ({
+          type: "file",
+          file: {
+            filename: f.name,
+            file_data: f.base64,
+          },
+        })),
+        { type: "text", text: message.trim() },
+      ],
     });
     setMessage("");
-  }, [message, onSendMessage]);
+    setSelectedFiles([]);
+  }, [message, selectedFiles, onSendMessage]);
 
   return (
     <View style={[{ width: "100%", position: "relative" }, style]}>
@@ -95,7 +105,11 @@ export default function ChatInput({
           style={{ height: "100%" }}
           onPress={() => {
             if (isWeb)
-              DocumentPicker.getDocumentAsync().then((r) => {
+              DocumentPicker.getDocumentAsync({
+                base64: true,
+                multiple: true,
+                type: "application/pdf",
+              }).then((r) => {
                 if (!r.assets) return;
                 setSelectedFiles((oldFiles) => {
                   const newFiles: FileDefinition[] = r.assets.map((a) => ({

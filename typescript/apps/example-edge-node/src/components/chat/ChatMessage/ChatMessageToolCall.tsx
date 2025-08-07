@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import useColors from "@/hooks/useColors";
-import Button from "../Button";
-import Checkbox from "../Checkbox";
+import Button from "../../Button";
+import Checkbox from "../../Checkbox";
 
 export default function ToolCall({
   title,

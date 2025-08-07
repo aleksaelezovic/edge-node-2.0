@@ -1,8 +1,10 @@
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 import { Image, useImage } from "expo-image";
 import type { MessageContentComplex } from "@langchain/core/messages";
 
 import useThemeColor from "@/hooks/useThemeColor";
+
+import AttachmentChip from "../ChatInput/AttachmentChip";
 
 function TextContent(props: { text: string }) {
   const textColor = useThemeColor("text");
@@ -37,6 +39,18 @@ function ImageContent(props: { url: string }) {
   );
 }
 
+function FileContent(props: { name: string; base64: string }) {
+  const mimeType = props.base64.split(";").at(0)?.split(":")[1];
+
+  return (
+    <View style={{ display: "flex", flexDirection: "row" }}>
+      <AttachmentChip
+        file={{ name: props.name, base64: props.base64, mimeType }}
+      />
+    </View>
+  );
+}
+
 export default function ChatMessageContent({
   content: c,
 }: {
@@ -47,6 +61,14 @@ export default function ChatMessageContent({
   }
   if (c.type === "image_url") {
     return <ImageContent url={c.image_url?.url ?? c.image_url} />;
+  }
+  if (c.type === "file") {
+    return (
+      <FileContent
+        name={c.file?.filename ?? "unknown"}
+        base64={c.file.file_data}
+      />
+    );
   }
   return null;
 }
