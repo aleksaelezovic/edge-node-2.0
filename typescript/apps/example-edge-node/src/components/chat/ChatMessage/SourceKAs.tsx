@@ -1,40 +1,52 @@
-import { ComponentProps, useState } from "react";
-import { Text, TouchableOpacity, View, ViewProps } from "react-native";
-
-import useColors from "@/hooks/useColors";
-import KAIcon from "@/components/icons/KAIcon";
+import { useState } from "react";
+import { View, ViewProps } from "react-native";
 
 import SourceKAsCollapsible from "./SourceKAs/SourceKAsCollapsible";
 import SourceKAsChip from "./SourceKAs/SourceKAsChip";
+import SourceKAsModal from "./SourceKAs/SourceKAsModal";
+import MoreChip from "./SourceKAs/MoreChip";
 
 const minChipWidth = 225;
 const chipGap = 8;
 const minLastChipWidth = 80;
 
-type SourceKAsChipComponent = React.ReactElement<
-  ComponentProps<typeof SourceKAsChip>
->;
+// type SourceKAsChipComponent = React.ReactElement<
+//   ComponentProps<typeof SourceKAsChip>
+// >;
+
+export type SourceKA = {
+  title: string;
+  issuer: string;
+  UAL: string;
+  publisher: string;
+  nquads: string;
+  lastUpdate: number;
+};
 
 export default function SourceKAs({
-  children,
-  onPress,
+  kas,
   style,
   ...props
 }: Omit<ViewProps, "children"> & {
-  onPress?: () => void;
-  children: SourceKAsChipComponent[] | SourceKAsChipComponent;
-}) {
-  const [viewWidth, setViewWidth] = useState(0);
-  const colors = useColors();
+  kas: SourceKA[];
 
-  const childrenArray = Array.isArray(children) ? children : [children];
+  //children?: SourceKAsChipComponent[] | SourceKAsChipComponent;
+}) {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [viewWidth, setViewWidth] = useState(0);
+
+  // const childrenArray = !children
+  //   ? []
+  //   : Array.isArray(children)
+  //     ? children
+  //     : [children];
 
   const numberOfVisibleChips =
-    (minChipWidth + chipGap) * childrenArray.length - chipGap <= viewWidth
-      ? childrenArray.length
+    (minChipWidth + chipGap) * kas.length - chipGap <= viewWidth
+      ? kas.length
       : Math.floor((viewWidth - minLastChipWidth) / (minChipWidth + chipGap));
 
-  const numberOfHiddenChips = childrenArray.length - numberOfVisibleChips;
+  const numberOfHiddenChips = kas.length - numberOfVisibleChips;
 
   return (
     <View
@@ -44,77 +56,37 @@ export default function SourceKAs({
         setViewWidth(e.nativeEvent.layout.width);
       }}
     >
-      {childrenArray.map(
-        (child, i) =>
+      {kas.map(
+        (ka, i) =>
           i < numberOfVisibleChips && (
             <SourceKAsChip
-              key={child.key ?? i}
-              {...child.props}
-              onPress={child.props.onPress ?? onPress}
-              style={[
-                child.props.style,
-                { minWidth: minChipWidth, flex: 1, marginRight: chipGap },
-              ]}
+              key={i}
+              title={ka.title}
+              issuer={ka.issuer}
+              onPress={() => setModalVisible(true)}
+              style={{ minWidth: minChipWidth, flex: 1, marginRight: chipGap }}
             />
           ),
       )}
       {numberOfHiddenChips > 0 && (
-        <TouchableOpacity
-          onPress={onPress}
-          style={{
-            backgroundColor: colors.card,
-            padding: 12,
-            borderRadius: 16,
-            flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 8,
-            minWidth: minLastChipWidth,
-          }}
-        >
-          {numberOfVisibleChips ? (
-            <Text
-              style={{
-                color: colors.secondary,
-                fontFamily: "Manrope_400Regular",
-              }}
-            >
-              {`+ ${numberOfHiddenChips} more`}
-            </Text>
-          ) : (
-            <>
-              <KAIcon
-                width={36}
-                height={36}
-                fill={colors.secondary}
-                stroke={colors.secondary}
-              />
-              <View>
-                <Text
-                  style={{
-                    color: colors.secondary,
-                    fontFamily: "Manrope_400Regular",
-                  }}
-                >
-                  {numberOfHiddenChips} Knowledge Assets
-                </Text>
-                <Text
-                  style={{
-                    color: colors.text,
-                    fontFamily: "Manrope_400Regular",
-                    fontSize: 11,
-                  }}
-                >
-                  See more
-                </Text>
-              </View>
-            </>
-          )}
-        </TouchableOpacity>
+        <MoreChip
+          moreNumber={numberOfHiddenChips}
+          zeroVisible={numberOfVisibleChips === 0}
+          style={{ minWidth: minLastChipWidth }}
+          onPress={() => setModalVisible(true)}
+        />
       )}
+
+      <SourceKAsModal
+        kas={kas}
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 }
 
 SourceKAs.Chip = SourceKAsChip;
+SourceKAs.MoreChip = MoreChip;
+SourceKAs.Modal = SourceKAsModal;
 SourceKAs.Collapsible = SourceKAsCollapsible;

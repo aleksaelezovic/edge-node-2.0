@@ -8,6 +8,7 @@ import {
   Manrope_400Regular,
   Manrope_500Medium,
   Manrope_600SemiBold,
+  Manrope_800ExtraBold,
 } from "@expo-google-fonts/manrope";
 import {
   SpaceGrotesk_400Regular,
@@ -31,6 +32,7 @@ export default function RootLayout() {
     Manrope_400Regular,
     Manrope_500Medium,
     Manrope_600SemiBold,
+    Manrope_800ExtraBold,
     SpaceGrotesk_400Regular,
     SpaceGrotesk_700Bold,
   });

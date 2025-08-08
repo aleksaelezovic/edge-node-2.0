@@ -25,6 +25,7 @@ import {
   type ToolCallsMap,
   makeCompletionRequest,
 } from "@/shared/chat";
+import type { SourceKA } from "@/components/chat/ChatMessage/SourceKAs";
 
 export default function ChatPage() {
   const colors = useColors();
@@ -148,6 +149,15 @@ export default function ChatPage() {
   const isLandingScreen = !messages.length && !isNativeMobile;
   console.log(messages);
 
+  const mockKAs = Array<SourceKA>(5).fill({
+    title: "OriginTrail",
+    issuer: "OriginTrail",
+    publisher: "0x147f32aE74d8667d8C0153004150752DA10879dD",
+    UAL: "did:dkg:otp:2043:0xDbF8e9d36A73C.../32145",
+    nquads: `<https://ontology.origintrail.io/dkg/1.0#metadata-hash:0xfe30a2c10e9812d2dd58395710515f00e4c5fbbc01cb5542fd00966741e0aee8> <https://ontology.origintrail.io/dkg/1.0#representsPrivateResource> <uuid:2616fbc2-2b1b-45d8-85cb-11f7e18f5040> .`,
+    lastUpdate: Date.now(),
+  });
+
   return (
     <Page style={{ flex: 1, position: "relative", marginBottom: 0 }}>
       <Chat>
@@ -196,18 +206,7 @@ export default function ChatPage() {
                     style={{ gap: 8 }}
                   >
                     {/* Source Knowledge Assets */}
-                    {/* mock example */}
-                    {/*<Chat.Message.SourceKAs onPress={() => console.log("PRR")}>
-                      {Array(5)
-                        .fill(0)
-                        .map((_, index) => (
-                          <Chat.Message.SourceKAs.Chip
-                            key={index}
-                            title="OriginTrail"
-                            issuer="OriginTrail"
-                          />
-                        ))}
-                    </Chat.Message.SourceKAs>*/}
+                    <Chat.Message.SourceKAs kas={mockKAs} />
 
                     {/* Message contnet (text/image) */}
                     {content.map((c, i) => (
