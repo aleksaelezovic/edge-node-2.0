@@ -5,6 +5,7 @@ import AssistantIcon from "./ChatMessage/AssistantIcon";
 import ChatMessageContent from "./ChatMessage/ChatMessageContent";
 import ChatMessageToolCall from "./ChatMessage/ChatMessageToolCall";
 import ChatMessageActions from "./ChatMessage/ChatMessageActions";
+import ChatMessageSourceKAs from "./ChatMessage/SourceKAs";
 
 export default function ChatMessage({
   icon,
@@ -28,3 +29,4 @@ export default function ChatMessage({
 ChatMessage.Content = ChatMessageContent;
 ChatMessage.ToolCall = ChatMessageToolCall;
 ChatMessage.Actions = ChatMessageActions;
+ChatMessage.SourceKAs = ChatMessageSourceKAs;

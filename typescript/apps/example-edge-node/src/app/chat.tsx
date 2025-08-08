@@ -196,6 +196,18 @@ export default function ChatPage() {
                     style={{ gap: 8 }}
                   >
                     {/* Source Knowledge Assets */}
+                    {/* mock example */}
+                    {/*<Chat.Message.SourceKAs onPress={() => console.log("PRR")}>
+                      {Array(5)
+                        .fill(0)
+                        .map((_, index) => (
+                          <Chat.Message.SourceKAs.Chip
+                            key={index}
+                            title="OriginTrail"
+                            issuer="OriginTrail"
+                          />
+                        ))}
+                    </Chat.Message.SourceKAs>*/}
 
                     {/* Message contnet (text/image) */}
                     {content.map((c, i) => (
