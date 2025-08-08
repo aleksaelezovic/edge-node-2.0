@@ -1,5 +1,9 @@
 import { Modal, View } from "react-native";
-import Animated, { useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import Background from "@/components/layout/Background";
@@ -28,6 +32,11 @@ export default function SourceKAsModal(props: {
     }
   }
 
+  const sizeStyle = useAnimatedStyle(() => ({
+    maxHeight: modalHeight.value,
+    maxWidth: modalWidth.value,
+  }));
+
   return (
     <Modal
       animationType="fade"
@@ -45,13 +54,15 @@ export default function SourceKAsModal(props: {
         }}
       >
         <Animated.View
-          style={{
-            width: "100%",
-            maxWidth: modalWidth,
-            maxHeight: modalHeight,
-            borderRadius: 8,
-            overflow: "hidden",
-          }}
+          style={[
+            {
+              width: "100%",
+              height: "100%",
+              borderRadius: 8,
+              overflow: "hidden",
+            },
+            sizeStyle,
+          ]}
         >
           <Background>
             <View
