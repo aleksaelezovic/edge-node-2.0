@@ -50,7 +50,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (!connected) return;
     SplashScreen.hide();
-    mcp
+    mcp.current
       .listTools()
       .then(({ tools }) => {
         const toolFns: ToolDefinition[] = [];
@@ -84,7 +84,7 @@ export default function ChatPage() {
       [tc.id!]: { input: tc.args, status: "loading" },
     }));
 
-    return mcp
+    return mcp.current
       .callTool({ name: tc.name, arguments: tc.args })
       .then((result) => {
         setToolCalls((p) => ({
@@ -161,7 +161,7 @@ export default function ChatPage() {
 
   const kaResolver = useCallback<SourceKAResolver>(
     async (ual) => {
-      const resource = await mcp.readResource({ uri: ual });
+      const resource = await mcp.current.readResource({ uri: ual });
       const content = resource.contents[0]?.text as string;
       if (!content) throw new Error("Resource not found");
 

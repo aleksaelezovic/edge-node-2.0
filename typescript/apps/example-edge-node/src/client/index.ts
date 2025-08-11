@@ -6,7 +6,7 @@ import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { Platform } from "react-native";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import AsyncStorageOAuthClientProvider from "./AsyncStorageOAuthClientProvider";
 import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
@@ -65,9 +65,8 @@ export const useMcpClient = ({
   const [connected, setConnected] = useState(false);
   const transportObj = useRef(createTransport());
 
-  const mcp = useMemo(
-    () => new Client({ name: "edge-node-agent", version: "1.0.0" }),
-    [],
+  const mcp = useRef<Client>(
+    new Client({ name: "edge-node-agent", version: "1.0.0" }),
   );
 
   const getToken = useCallback(async () => {
@@ -90,7 +89,7 @@ export const useMcpClient = ({
         });
     } else {
       console.log("Connecting to MCP...");
-      mcp
+      mcp.current
         .connect(transportObj.current.transport)
         .then(() => {
           setConnected(true);
@@ -108,7 +107,7 @@ export const useMcpClient = ({
           SplashScreen.hide();
         });
     }
-  }, [authorizationCode, onAuthorized, mcp, transportObj]);
+  }, [authorizationCode, onAuthorized, transportObj]);
 
   return { connected, mcp, getToken };
 };
