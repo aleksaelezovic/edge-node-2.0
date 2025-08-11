@@ -1,6 +1,6 @@
 {
   "name": "@dkg/plugin-example",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -18,7 +18,7 @@
     "tsup": "^8.5.0"
   },
   "dependencies": {
-    "@dkg/plugin-dkg-essentials": "^0.0.1",
+    "@dkg/plugin-dkg-essentials": "^0.0.2",
     "@dkg/plugin-swagger": "^0.0.1",
     "@dkg/plugins": "^0.0.1"
   }

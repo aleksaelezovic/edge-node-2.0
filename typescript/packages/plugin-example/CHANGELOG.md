@@ -1,5 +1,14 @@
 # @dkg/plugin-example
 
+## 0.0.2
+
+### Patch Changes
+
+- 18be457: Added Source Knowledge Assets support.
+  Added Markdown support.
+- Updated dependencies [18be457]
+  - @dkg/plugin-dkg-essentials@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes
