@@ -19,27 +19,27 @@ export default defineDkgPlugin((_, mcp, api) => {
           {
             title: "OriginTrail",
             issuer: "OriginTrail",
-            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269082/1",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269082",
           },
           {
             title: "OriginTrail",
             issuer: "OriginTrail",
-            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269086/1",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269086",
           },
           {
             title: "OriginTrail",
             issuer: "OriginTrail",
-            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269077/1",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269077",
           },
           {
             title: "OriginTrail",
             issuer: "OriginTrail",
-            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269088/1",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269088",
           },
           {
             title: "OriginTrail",
             issuer: "OriginTrail",
-            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269080/1",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269080",
           },
         ],
       );

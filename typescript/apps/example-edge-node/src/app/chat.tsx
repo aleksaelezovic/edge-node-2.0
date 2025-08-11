@@ -166,7 +166,22 @@ export default function ChatPage() {
       if (!content) throw new Error("Resource not found");
 
       const parsedContent = JSON.parse(content);
-      return parsedContent;
+      return {
+        assertion: parsedContent.assertion,
+        publisher:
+          parsedContent.metadata
+            .at(0)
+            ?.["https://ontology.origintrail.io/dkg/1.0#publishedBy"]?.at(0)
+            ?.["@id"]?.split("/")
+            .at(1) ?? "unknown",
+        lastUpdated: new Date(
+          parsedContent.metadata
+            .at(0)
+            ?.["https://ontology.origintrail.io/dkg/1.0#publishTime"]?.at(0)?.[
+            "@value"
+          ] ?? Date.now(),
+        ).getTime(),
+      };
     },
     [mcp],
   );
