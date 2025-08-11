@@ -1,5 +1,6 @@
 import { defineDkgPlugin } from "@dkg/plugins";
 import { openAPIRoute, z } from "@dkg/plugin-swagger";
+import { withSourceKnowledgeAssets } from "@dkg/plugin-dkg-essentials/utils";
 
 export default defineDkgPlugin((_, mcp, api) => {
   mcp.registerTool(
@@ -10,18 +11,38 @@ export default defineDkgPlugin((_, mcp, api) => {
       inputSchema: { a: z.number(), b: z.number() },
     },
     async ({ a, b }) => {
-      return {
-        content: [
-          { type: "text", text: String(a + b) },
-          // {
-          //   type: "resource_link",
-          //   name: "Knowledge Asset",
-          //   title: "OriginTrail",
-          //   description: "DKG Knowledge Asset (UAL)",
-          //   uri: "did:dkg:otp:20430/0x123/1/1",
-          // },
+      return withSourceKnowledgeAssets(
+        {
+          content: [{ type: "text", text: String(a + b) }],
+        },
+        [
+          {
+            title: "OriginTrail",
+            issuer: "OriginTrail",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269082/1",
+          },
+          {
+            title: "OriginTrail",
+            issuer: "OriginTrail",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269086/1",
+          },
+          {
+            title: "OriginTrail",
+            issuer: "OriginTrail",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269077/1",
+          },
+          {
+            title: "OriginTrail",
+            issuer: "OriginTrail",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269088/1",
+          },
+          {
+            title: "OriginTrail",
+            issuer: "OriginTrail",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269080/1",
+          },
         ],
-      };
+      );
     },
   );
 

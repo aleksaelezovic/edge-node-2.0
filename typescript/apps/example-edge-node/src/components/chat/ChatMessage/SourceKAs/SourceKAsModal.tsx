@@ -5,15 +5,17 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import type { SourceKA } from "@dkg/plugin-dkg-essentials/utils";
 
 import Background from "@/components/layout/Background";
 import useColors from "@/hooks/useColors";
 
 import SourceKAsCollapsible from "./SourceKAsCollapsible";
-import type { SourceKA } from "../SourceKAs";
+import { SourceKAResolver } from "./SourceKAsCollapisbleItem";
 
 export default function SourceKAsModal(props: {
   kas: SourceKA[];
+  resolver: SourceKAResolver;
   visible?: boolean;
   onClose?: () => void;
 }) {
@@ -89,7 +91,11 @@ export default function SourceKAsModal(props: {
                 onExpandChange={handleExpand}
               >
                 {props.kas.map((ka, index) => (
-                  <SourceKAsCollapsible.Item key={index} {...ka} />
+                  <SourceKAsCollapsible.Item
+                    key={index}
+                    {...ka}
+                    resolver={props.resolver}
+                  />
                 ))}
               </SourceKAsCollapsible>
             </View>

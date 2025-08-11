@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { View, ViewProps } from "react-native";
+import type { SourceKA } from "@dkg/plugin-dkg-essentials/utils";
 
 import SourceKAsCollapsible from "./SourceKAs/SourceKAsCollapsible";
 import SourceKAsChip from "./SourceKAs/SourceKAsChip";
 import SourceKAsModal from "./SourceKAs/SourceKAsModal";
 import MoreChip from "./SourceKAs/MoreChip";
+import { SourceKAResolver } from "./SourceKAs/SourceKAsCollapisbleItem";
 
 const minChipWidth = 225;
 const chipGap = 8;
@@ -14,21 +16,14 @@ const minLastChipWidth = 80;
 //   ComponentProps<typeof SourceKAsChip>
 // >;
 
-export type SourceKA = {
-  title: string;
-  issuer: string;
-  UAL: string;
-  publisher: string;
-  nquads: string;
-  lastUpdate: number;
-};
-
 export default function SourceKAs({
   kas,
+  resolver,
   style,
   ...props
 }: Omit<ViewProps, "children"> & {
   kas: SourceKA[];
+  resolver: SourceKAResolver;
 
   //children?: SourceKAsChipComponent[] | SourceKAsChipComponent;
 }) {
@@ -47,6 +42,8 @@ export default function SourceKAs({
       : Math.floor((viewWidth - minLastChipWidth) / (minChipWidth + chipGap));
 
   const numberOfHiddenChips = kas.length - numberOfVisibleChips;
+
+  if (!kas.length) return null;
 
   return (
     <View
@@ -79,6 +76,7 @@ export default function SourceKAs({
 
       <SourceKAsModal
         kas={kas}
+        resolver={resolver}
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
       />

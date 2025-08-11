@@ -3,11 +3,9 @@ import { z } from "@dkg/plugins/helpers";
 import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 // @ts-expect-error dkg.js
 import { BLOCKCHAIN_IDS } from "dkg.js/constants";
+import { getExplorerUrl } from "./utils";
 
 export default defineDkgPlugin((ctx, mcp) => {
-  const DKG_EXPLORER_BASE_URL =
-    "https://dkg-testnet.origintrail.io/explore?ual=";
-
   async function publishJsonLdAsset(
     jsonldRaw: string,
     privacy: "private" | "public",
@@ -92,7 +90,9 @@ export default defineDkgPlugin((ctx, mcp) => {
         "A resource for accessing Knowledge Assets and Collections on OriginTrail Decentralized Knowledge Graph (DKG).",
     },
     async (ual) => {
-      const getAssetResult = await ctx.dkg.asset.get(ual.href.toLowerCase());
+      const getAssetResult = await ctx.dkg.asset.get(ual.href.toLowerCase(), {
+        includeMetadata: true,
+      });
       return {
         contents: [
           { uri: ual.href, text: JSON.stringify(getAssetResult, null, 2) },
@@ -124,7 +124,7 @@ export default defineDkgPlugin((ctx, mcp) => {
         throw new Error("Failed to create asset: " + error);
       }
 
-      const explorerLink = `${DKG_EXPLORER_BASE_URL}${ual}`;
+      const explorerLink = getExplorerUrl(ual!);
       const response = `Knowledge Asset collection successfully created.\n\nUAL: ${ual}\nDKG Explorer link: ${explorerLink}`;
       console.log("Formatted response:", response);
       return {

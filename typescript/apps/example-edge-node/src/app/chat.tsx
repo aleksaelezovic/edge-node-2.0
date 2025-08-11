@@ -24,8 +24,10 @@ import {
   type ToolsInfoMap,
   type ToolCallsMap,
   makeCompletionRequest,
+  toContents,
 } from "@/shared/chat";
-import type { SourceKA } from "@/components/chat/ChatMessage/SourceKAs";
+import { SourceKAResolver } from "@/components/chat/ChatMessage/SourceKAs/SourceKAsCollapisbleItem";
+import { parseSourceKAContent } from "@dkg/plugin-dkg-essentials/utils";
 
 export default function ChatPage() {
   const colors = useColors();
@@ -142,21 +144,35 @@ export default function ChatPage() {
         bearerToken: token,
       },
     );
+
+    if (newMessage.role === "tool") {
+      for (const c of toContents(newMessage.content) as ToolCallResultContent) {
+        const kas = parseSourceKAContent(c);
+        if (!kas) continue;
+
+        completion.content = toContents(completion.content);
+        completion.content.push(c);
+      }
+    }
+
     setMessages((prevMessages) => [...prevMessages, completion]);
     setIsGenerating(false);
   }
 
+  const kaResolver = useCallback<SourceKAResolver>(
+    async (ual) => {
+      const resource = await mcp.readResource({ uri: ual });
+      const content = resource.contents[0]?.text as string;
+      if (!content) throw new Error("Resource not found");
+
+      const parsedContent = JSON.parse(content);
+      return parsedContent;
+    },
+    [mcp],
+  );
+
   const isLandingScreen = !messages.length && !isNativeMobile;
   console.log(messages);
-
-  const mockKAs = Array<SourceKA>(5).fill({
-    title: "OriginTrail",
-    issuer: "OriginTrail",
-    publisher: "0x147f32aE74d8667d8C0153004150752DA10879dD",
-    UAL: "did:dkg:otp:2043:0xDbF8e9d36A73C.../32145",
-    nquads: `<https://ontology.origintrail.io/dkg/1.0#metadata-hash:0xfe30a2c10e9812d2dd58395710515f00e4c5fbbc01cb5542fd00966741e0aee8> <https://ontology.origintrail.io/dkg/1.0#representsPrivateResource> <uuid:2616fbc2-2b1b-45d8-85cb-11f7e18f5040> .`,
-    lastUpdate: Date.now(),
-  });
 
   return (
     <Page style={{ flex: 1, position: "relative", marginBottom: 0 }}>
@@ -194,10 +210,17 @@ export default function ChatPage() {
               {messages.map((m, i) => {
                 if (m.role !== "user" && m.role !== "assistant") return null;
 
-                const content =
-                  typeof m.content === "string"
-                    ? [{ type: "text", text: m.content }]
-                    : m.content;
+                const content = toContents(m.content);
+
+                const [kas, kasIndex] = (() => {
+                  for (const [i, c] of content.entries()) {
+                    const kas = parseSourceKAContent(c as unknown as any);
+                    if (!kas) continue;
+
+                    return [kas, i];
+                  }
+                  return [[], -1];
+                })();
 
                 return (
                   <Chat.Message
@@ -206,12 +229,15 @@ export default function ChatPage() {
                     style={{ gap: 8 }}
                   >
                     {/* Source Knowledge Assets */}
-                    <Chat.Message.SourceKAs kas={mockKAs} />
+                    <Chat.Message.SourceKAs kas={kas} resolver={kaResolver} />
 
                     {/* Message contnet (text/image) */}
-                    {content.map((c, i) => (
-                      <Chat.Message.Content key={i} content={c} />
-                    ))}
+                    {content.map(
+                      (c, i) =>
+                        i !== kasIndex && (
+                          <Chat.Message.Content key={i} content={c} />
+                        ),
+                    )}
 
                     {/* Tool calls */}
                     {m.tool_calls?.map((tc, i) => {
