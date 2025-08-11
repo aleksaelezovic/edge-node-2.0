@@ -6,7 +6,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Clipboard from "expo-clipboard";
 import { fetch } from "expo/fetch";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+//import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useMcpClient } from "@/client";
 import useColors from "@/hooks/useColors";
