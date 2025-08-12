@@ -11,7 +11,7 @@ import Background from "@/components/layout/Background";
 import useColors from "@/hooks/useColors";
 
 import SourceKAsCollapsible from "./SourceKAsCollapsible";
-import { SourceKAResolver } from "./SourceKAsCollapisbleItem";
+import { SourceKAResolver } from "./SourceKAsCollapsibleItem";
 
 export default function SourceKAsModal(props: {
   kas: SourceKA[];

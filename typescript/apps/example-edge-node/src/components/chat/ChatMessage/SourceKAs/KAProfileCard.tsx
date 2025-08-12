@@ -4,7 +4,7 @@ import { SourceKA } from "@dkg/plugin-dkg-essentials/utils";
 import useColors from "@/hooks/useColors";
 import KAIcon from "@/components/icons/KAIcon";
 
-import { SourceKAResolved } from "./SourceKAsCollapisbleItem";
+import { SourceKAResolved } from "./SourceKAsCollapsibleItem";
 
 export default function KAProfileCard({
   ual,

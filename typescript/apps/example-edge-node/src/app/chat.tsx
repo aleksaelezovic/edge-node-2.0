@@ -26,7 +26,7 @@ import {
   makeCompletionRequest,
   toContents,
 } from "@/shared/chat";
-import { SourceKAResolver } from "@/components/chat/ChatMessage/SourceKAs/SourceKAsCollapisbleItem";
+import { SourceKAResolver } from "@/components/chat/ChatMessage/SourceKAs/SourceKAsCollapsibleItem";
 import { parseSourceKAContent } from "@dkg/plugin-dkg-essentials/utils";
 
 export default function ChatPage() {

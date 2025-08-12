@@ -6,7 +6,7 @@ import SourceKAsCollapsible from "./SourceKAs/SourceKAsCollapsible";
 import SourceKAsChip from "./SourceKAs/SourceKAsChip";
 import SourceKAsModal from "./SourceKAs/SourceKAsModal";
 import MoreChip from "./SourceKAs/MoreChip";
-import { SourceKAResolver } from "./SourceKAs/SourceKAsCollapisbleItem";
+import { SourceKAResolver } from "./SourceKAs/SourceKAsCollapsibleItem";
 
 const minChipWidth = 225;
 const chipGap = 8;

@@ -1,7 +1,7 @@
 import { ComponentProps, useState } from "react";
 import { ScrollView, ViewProps } from "react-native";
 
-import SourceKAsCollapsibleItem from "./SourceKAsCollapisbleItem";
+import SourceKAsCollapsibleItem from "./SourceKAsCollapsibleItem";
 
 type SourceKAsCollapsibleItemComponent = React.ReactElement<
   ComponentProps<typeof SourceKAsCollapsibleItem>
