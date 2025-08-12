@@ -25,7 +25,7 @@
       "outputs": ["drizzle/*"]
     },
     "build:scripts": {
-      "inputs": ["$TURBO_DEFAULT$", "src/scripts"],
+      "inputs": ["$TURBO_DEFAULT$", "src/server/scripts"],
       "outputs": ["dist/scripts/**"]
     },
     "dev": {
