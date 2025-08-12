@@ -38,6 +38,9 @@ export type ChatMessage = MessageFieldWithRole & {
 export type ToolCall = NonNullable<AIMessageChunk["tool_calls"]>[number];
 export type ToolCallResultContent = CallToolResult["content"];
 
+export const toContents = (content: ChatMessage["content"]) =>
+  typeof content === "string" ? [{ type: "text", text: content }] : content;
+
 const llmProviderFromEnv = () => {
   // Check .env and use a switch statement
   return new ChatOpenAI({

@@ -1,13 +1,14 @@
 import { defineDkgPlugin } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
-import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
+import {
+  CompleteResourceTemplateCallback,
+  ResourceTemplate,
+} from "@modelcontextprotocol/sdk/server/mcp.js";
 // @ts-expect-error dkg.js
 import { BLOCKCHAIN_IDS } from "dkg.js/constants";
+import { getExplorerUrl } from "./utils";
 
 export default defineDkgPlugin((ctx, mcp) => {
-  const DKG_EXPLORER_BASE_URL =
-    "https://dkg-testnet.origintrail.io/explore?ual=";
-
   async function publishJsonLdAsset(
     jsonldRaw: string,
     privacy: "private" | "public",
@@ -46,53 +47,83 @@ export default defineDkgPlugin((ctx, mcp) => {
     },
   );
 
+  const ualCompleteOptions: Record<string, CompleteResourceTemplateCallback> = {
+    blockchainName: (val) =>
+      (Object.values(BLOCKCHAIN_IDS) as string[]).reduce<string[]>(
+        (acc, id) => {
+          const blockchainName = id.split(":")[0]!;
+          if (
+            blockchainName.includes(val.toLowerCase()) &&
+            !acc.includes(blockchainName)
+          )
+            acc.push(blockchainName);
+
+          return acc;
+        },
+        [],
+      ),
+    blockchainId: (val, ctx) =>
+      (Object.values(BLOCKCHAIN_IDS) as string[]).reduce<string[]>(
+        (acc, id) => {
+          const [blockchainName, blockchainId] = id.split(":");
+          if (
+            blockchainName === ctx?.arguments?.blockchainName &&
+            blockchainId!.includes(val)
+          )
+            acc.push(blockchainId!);
+
+          return acc;
+        },
+        [],
+      ),
+    // TODO: List possible blockchain contract addresses for v8 and v6
+    // blockchainAddress: (val, ctx) =>...
+  };
+
   mcp.registerResource(
     "dkg-knowledge-asset",
     new ResourceTemplate(
       "did:dkg:{blockchainName}:{blockchainId}/{blockchainAddress}/{collectionId}/{assetId}",
       {
         list: undefined,
-        complete: {
-          blockchainName: (val) =>
-            (Object.values(BLOCKCHAIN_IDS) as string[]).reduce<string[]>(
-              (acc, id) => {
-                const blockchainName = id.split(":")[0]!;
-                if (
-                  blockchainName.includes(val.toLowerCase()) &&
-                  !acc.includes(blockchainName)
-                )
-                  acc.push(blockchainName);
-
-                return acc;
-              },
-              [],
-            ),
-          blockchainId: (val, ctx) =>
-            (Object.values(BLOCKCHAIN_IDS) as string[]).reduce<string[]>(
-              (acc, id) => {
-                const [blockchainName, blockchainId] = id.split(":");
-                if (
-                  blockchainName === ctx?.arguments?.blockchainName &&
-                  blockchainId!.includes(val)
-                )
-                  acc.push(blockchainId!);
-
-                return acc;
-              },
-              [],
-            ),
-          // TODO: List possible blockchain contract addresses for v8 and v6
-          // blockchainAddress: (val, ctx) =>...
-        },
+        complete: ualCompleteOptions,
       },
     ),
     {
       title: "DKG Knowledge Asset",
       description:
-        "A resource for accessing Knowledge Assets and Collections on OriginTrail Decentralized Knowledge Graph (DKG).",
+        "A resource for accessing Knowledge Assets on OriginTrail Decentralized Knowledge Graph (DKG).",
     },
     async (ual) => {
-      const getAssetResult = await ctx.dkg.asset.get(ual.href.toLowerCase());
+      const getAssetResult = await ctx.dkg.asset.get(ual.href.toLowerCase(), {
+        includeMetadata: true,
+      });
+      return {
+        contents: [
+          { uri: ual.href, text: JSON.stringify(getAssetResult, null, 2) },
+        ],
+      };
+    },
+  );
+
+  mcp.registerResource(
+    "dkg-knowledge-collection",
+    new ResourceTemplate(
+      "did:dkg:{blockchainName}:{blockchainId}/{blockchainAddress}/{collectionId}",
+      {
+        list: undefined,
+        complete: ualCompleteOptions,
+      },
+    ),
+    {
+      title: "DKG Knowledge Collection",
+      description:
+        "A resource for accessing Knowledge Collections on OriginTrail Decentralized Knowledge Graph (DKG).",
+    },
+    async (ual) => {
+      const getAssetResult = await ctx.dkg.asset.get(ual.href.toLowerCase(), {
+        includeMetadata: true,
+      });
       return {
         contents: [
           { uri: ual.href, text: JSON.stringify(getAssetResult, null, 2) },
@@ -124,7 +155,7 @@ export default defineDkgPlugin((ctx, mcp) => {
         throw new Error("Failed to create asset: " + error);
       }
 
-      const explorerLink = `${DKG_EXPLORER_BASE_URL}${ual}`;
+      const explorerLink = getExplorerUrl(ual!);
       const response = `Knowledge Asset collection successfully created.\n\nUAL: ${ual}\nDKG Explorer link: ${explorerLink}`;
       console.log("Formatted response:", response);
       return {

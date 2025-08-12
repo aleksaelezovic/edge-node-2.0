@@ -1,26 +1,12 @@
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import { Image, useImage } from "expo-image";
 import type { MessageContentComplex } from "@langchain/core/messages";
 
-import useThemeColor from "@/hooks/useThemeColor";
-
+import Markdown from "@/components/Markdown";
 import AttachmentChip from "../ChatInput/AttachmentChip";
 
 function TextContent(props: { text: string }) {
-  const textColor = useThemeColor("text");
-
-  return (
-    <Text
-      style={{
-        color: textColor,
-        fontFamily: "Manrope_400Regular",
-        fontSize: 16,
-        paddingTop: 4,
-      }}
-    >
-      {props.text}
-    </Text>
-  );
+  return <Markdown>{props.text}</Markdown>;
 }
 
 function ImageContent(props: { url: string }) {

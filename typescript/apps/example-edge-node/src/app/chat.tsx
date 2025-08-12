@@ -6,7 +6,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Clipboard from "expo-clipboard";
 import { fetch } from "expo/fetch";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+//import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useMcpClient } from "@/client";
 import useColors from "@/hooks/useColors";
@@ -24,7 +24,10 @@ import {
   type ToolsInfoMap,
   type ToolCallsMap,
   makeCompletionRequest,
+  toContents,
 } from "@/shared/chat";
+import { SourceKAResolver } from "@/components/chat/ChatMessage/SourceKAs/SourceKAsCollapsibleItem";
+import { parseSourceKAContent } from "@dkg/plugin-dkg-essentials/utils";
 
 export default function ChatPage() {
   const colors = useColors();
@@ -47,7 +50,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (!connected) return;
     SplashScreen.hide();
-    mcp
+    mcp.current
       .listTools()
       .then(({ tools }) => {
         const toolFns: ToolDefinition[] = [];
@@ -81,7 +84,7 @@ export default function ChatPage() {
       [tc.id!]: { input: tc.args, status: "loading" },
     }));
 
-    return mcp
+    return mcp.current
       .callTool({ name: tc.name, arguments: tc.args })
       .then((result) => {
         setToolCalls((p) => ({
@@ -141,9 +144,47 @@ export default function ChatPage() {
         bearerToken: token,
       },
     );
+
+    if (newMessage.role === "tool") {
+      for (const c of toContents(newMessage.content) as ToolCallResultContent) {
+        const kas = parseSourceKAContent(c);
+        if (!kas) continue;
+
+        completion.content = toContents(completion.content);
+        completion.content.push(c);
+      }
+    }
+
     setMessages((prevMessages) => [...prevMessages, completion]);
     setIsGenerating(false);
   }
+
+  const kaResolver = useCallback<SourceKAResolver>(
+    async (ual) => {
+      const resource = await mcp.current.readResource({ uri: ual });
+      const content = resource.contents[0]?.text as string;
+      if (!content) throw new Error("Resource not found");
+
+      const parsedContent = JSON.parse(content);
+      return {
+        assertion: parsedContent.assertion,
+        publisher:
+          parsedContent.metadata
+            .at(0)
+            ?.["https://ontology.origintrail.io/dkg/1.0#publishedBy"]?.at(0)
+            ?.["@id"]?.split("/")
+            .at(1) ?? "unknown",
+        lastUpdated: new Date(
+          parsedContent.metadata
+            .at(0)
+            ?.["https://ontology.origintrail.io/dkg/1.0#publishTime"]?.at(0)?.[
+            "@value"
+          ] ?? Date.now(),
+        ).getTime(),
+      };
+    },
+    [mcp],
+  );
 
   const isLandingScreen = !messages.length && !isNativeMobile;
   console.log(messages);
@@ -184,10 +225,17 @@ export default function ChatPage() {
               {messages.map((m, i) => {
                 if (m.role !== "user" && m.role !== "assistant") return null;
 
-                const content =
-                  typeof m.content === "string"
-                    ? [{ type: "text", text: m.content }]
-                    : m.content;
+                const content = toContents(m.content);
+
+                const [kas, kasIndex] = (() => {
+                  for (const [i, c] of content.entries()) {
+                    const kas = parseSourceKAContent(c as unknown as any);
+                    if (!kas) continue;
+
+                    return [kas, i];
+                  }
+                  return [[], -1];
+                })();
 
                 return (
                   <Chat.Message
@@ -196,11 +244,15 @@ export default function ChatPage() {
                     style={{ gap: 8 }}
                   >
                     {/* Source Knowledge Assets */}
+                    <Chat.Message.SourceKAs kas={kas} resolver={kaResolver} />
 
                     {/* Message contnet (text/image) */}
-                    {content.map((c, i) => (
-                      <Chat.Message.Content key={i} content={c} />
-                    ))}
+                    {content.map(
+                      (c, i) =>
+                        i !== kasIndex && (
+                          <Chat.Message.Content key={i} content={c} />
+                        ),
+                    )}
 
                     {/* Tool calls */}
                     {m.tool_calls?.map((tc, i) => {
