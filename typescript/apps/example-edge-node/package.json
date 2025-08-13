@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "check-types": "tsc --noEmit",
+    "check-types": "expo customize tsconfig.json && tsc --noEmit",
     "build:server": "tsup src/server/*.ts --format esm,cjs",
     "build:scripts": "tsup src/server/scripts/*.ts --format esm,cjs --out-dir dist/scripts",
     "build:web": "expo export -p web --output-dir dist/app",

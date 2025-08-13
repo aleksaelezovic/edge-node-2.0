@@ -1,0 +1,46 @@
+name: PR Validation
+
+concurrency:
+  group: pr-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Check Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TURBO_TELEMETRY_DISABLED: 1
+    defaults:
+      run:
+        working-directory: ./typescript
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: 'typescript/.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: 'typescript/package-lock.json'
+
+      - name: Install Turbo globally
+        run: npm install -g turbo
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check code quality
+        run: turbo format check-types lint
+
+      - name: Build packages and apps
+        run: npm run build
+
+
