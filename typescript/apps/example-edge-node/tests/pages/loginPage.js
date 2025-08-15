@@ -1,0 +1,18 @@
+const { expect } = require("@playwright/test");
+
+class LoginPage {
+    constructor(page) {
+      this.page = page;
+      this.input_username = this.page.locator('[placeholder="Username"]');
+      this.input_password = this.page.locator('[placeholder="Password"]');
+      this.btn_login = this.page.locator('.r-transitionProperty-1i6wzkk');
+    }
+
+    async login(username, password) {
+        await this.input_username.fill(username);
+        await this.input_password.fill(password);
+        await this.btn_login.click();
+    }
+}
+
+module.exports = { LoginPage };
