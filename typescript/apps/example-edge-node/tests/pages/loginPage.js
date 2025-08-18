@@ -13,6 +13,10 @@ class LoginPage {
         await this.input_password.fill(password);
         await this.btn_login.click();
     }
+    async successfullLogin() {
+        await this.login("admin", "admin123");
+        await expect(this.page.locator('[placeholder="Ask anything..."]')).toBeVisible();
+    }
 }
 
 module.exports = { LoginPage };
