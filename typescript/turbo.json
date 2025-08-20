@@ -15,6 +15,11 @@
     "check-types": {
       "dependsOn": ["^build", "^check-types"]
     },
+    "test": {
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "tests/**", "*.config.*"],
+      "outputs": []
+    },
     "dev": {
       "cache": false,
       "persistent": true

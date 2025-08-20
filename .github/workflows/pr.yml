@@ -43,4 +43,5 @@ jobs:
       - name: Build packages and apps
         run: npm run build
 
-
+      - name: Run tests from all packages
+        run: npm run test

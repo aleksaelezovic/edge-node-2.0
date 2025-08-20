@@ -9,7 +9,8 @@
     "dev": "tsup src/*.ts --format cjs,esm --dts --watch",
     "build": "tsup src/*.ts --format cjs,esm --dts",
     "check-types": "tsc --noEmit",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "test": "echo 'No tests yet in /plugin-swagger - placeholder' && exit 0"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
