@@ -31,7 +31,7 @@ test('Test wrong username and password', async ({ page }) => {
   await expect(page.getByText('Invalid username or password', { exact: true })).toBeVisible();
 });
 
-test.only('Test valid login', async () => {
+test('Test valid login', async () => {
   await loginPage.successfullLogin();
 });
 
