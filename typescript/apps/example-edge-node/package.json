@@ -19,7 +19,8 @@
     "script:setup": "node dist/scripts/setup.js",
     "script:createUser": "node dist/scripts/createUser.js",
     "script:createToken": "node dist/scripts/createToken.js",
-    "postinstall": "node fix-uuid.js"
+    "postinstall": "node fix-uuid.js",
+    "test": "echo 'No tests yet in /example-edge-node - placeholder' && exit 0"
   },
   "dependencies": {
     "@dkg/plugin-dkg-essentials": "^0.0.2",
