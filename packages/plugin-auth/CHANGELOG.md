@@ -1,5 +1,13 @@
 # @dkg/plugin-auth
 
+## 0.0.2
+
+### Patch Changes
+
+- d72510c: Monorepo restructure
+- Updated dependencies [d72510c]
+  - @dkg/plugins@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes

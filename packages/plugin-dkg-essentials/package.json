@@ -1,6 +1,6 @@
 {
   "name": "@dkg/plugin-dkg-essentials",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "exports": {
     ".": {
@@ -22,7 +22,7 @@
     "test": "echo 'No tests yet in /plugin-dkg-essentials - placeholder' && exit 0"
   },
   "dependencies": {
-    "@dkg/plugins": "^0.0.1"
+    "@dkg/plugins": "^0.0.2"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
