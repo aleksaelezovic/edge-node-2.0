@@ -85,7 +85,7 @@ Here you can also configure these plugins with extension methods (i.e `.withName
 
 Run `turbo ls` to see the full list.
 
-- `@dkg/dkg-node`: Example of a DKG node (Expo UI + MCP Server)
+- `@dkg/agnet`: Example of a DKG Agent (Expo UI + MCP Server)
 
 - `@dkg/plugins`: Utility package for creating DKG plugins
 - `@dkg/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
