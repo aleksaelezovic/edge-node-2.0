@@ -52,18 +52,18 @@ Creating plugin outside of this monorepo:
 4. (Optionally) define your plugin as `(options: {...}) => defineDkgPlugin(...)` in order to allow users
    to configure your plugin with custom options.
 
-The `defineDkgPlugin` function exposes 3 arguments that will be injected by the Edge Node:
+The `defineDkgPlugin` function exposes 3 arguments that will be injected by the DKG Agent:
 
-- `ctx` (context): Context object containing injected Edge Node environment:
+- `ctx` (context): Context object containing injected DKG environment:
   - `ctx.logger`: Logger instance for logging messages.
   - `ctx.dkg`: DKG Client instance for interacting with the DKG network.
   - ...
 - `mcp` (MCP Server instance): Instance of the MCP Server from `@modelcontextprotocol/sdk` npm package.
   Use it to register MCP tools and resources.
 - `api` (API Server instance): Express server instance from [`express`](https://expressjs.com/) npm package.
-  Use it to expose API routes from you plugin.
+  Agent Use it to expose API routes from you plugin.
 
-Registered routes and MCP tools/resources will be available as part of the Edge Node API server.
+Registered routes and MCP tools/resources will be available as part of the DKG Agent API server.
 
 > [!NOTE]
 > Plugins are just functions that will be applied in the provided order and

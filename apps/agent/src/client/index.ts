@@ -23,7 +23,7 @@ const createTransport = () => {
     clientUri + "/chat",
     {
       redirect_uris: [clientUri + "/chat"],
-      client_name: "Edge Node Agent",
+      client_name: "DKG Agent",
       client_uri: clientUri,
       logo_uri: process.env.EXPO_PUBLIC_APP_URL + "/logo.png",
       scope: "mcp llm",
@@ -66,7 +66,7 @@ export const useMcpClient = ({
   const transportObj = useRef(createTransport());
 
   const mcp = useRef<Client>(
-    new Client({ name: "edge-node-agent", version: "1.0.0" }),
+    new Client({ name: "dkg-agent", version: "1.0.0" }),
   );
 
   const getToken = useCallback(async () => {

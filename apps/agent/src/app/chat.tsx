@@ -67,7 +67,7 @@ export default function ChatPage() {
           toolsInfo[tool.name] = {
             title: tool.name,
             description: tool.description,
-            mcpServer: "edge-node-2.0",
+            mcpServer: "dkg-agent-2.0",
           };
         }
         setTools(toolFns);

@@ -1,4 +1,4 @@
-# Edge Node app
+# DKG Agent app
 
 ## Get started
 
