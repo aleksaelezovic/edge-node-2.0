@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { describe, it, beforeEach } from "mocha";
+import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
+import sinon from "sinon";
 import dkgEssentialsPlugin from "../src/index.js";
+import { getExplorerUrl, withSourceKnowledgeAssets, serializeSourceKAContent, parseSourceKAContent } from "../src/utils.js";
 import express from "express";
 
 // Mock DKG context
@@ -361,6 +363,334 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
       // Restore original mock
       mockDkgContext.dkg.asset.get = originalGet;
+    });
+  });
+
+  describe("Utility Functions", () => {
+    describe("getExplorerUrl", () => {
+      it("should generate correct explorer URL", () => {
+        const ual = "did:dkg:otp:20430/0x123456/12345";
+        const expectedUrl = "https://dkg-testnet.origintrail.io/explore?ual=did:dkg:otp:20430/0x123456/12345";
+        
+        expect(getExplorerUrl(ual)).to.equal(expectedUrl);
+      });
+
+      it("should handle empty UAL", () => {
+        const ual = "";
+        const expectedUrl = "https://dkg-testnet.origintrail.io/explore?ual=";
+        
+        expect(getExplorerUrl(ual)).to.equal(expectedUrl);
+      });
+
+      it("should handle special characters in UAL", () => {
+        const ual = "did:dkg:test/with-special@chars";
+        const expectedUrl = "https://dkg-testnet.origintrail.io/explore?ual=did:dkg:test/with-special@chars";
+        
+        expect(getExplorerUrl(ual)).to.equal(expectedUrl);
+      });
+    });
+
+    describe("withSourceKnowledgeAssets", () => {
+      it("should append source knowledge assets to content", () => {
+        const originalData = {
+          content: [{ type: "text" as const, text: "Original content" }]
+        };
+        const kas = [
+          {
+            title: "Test Asset",
+            issuer: "Test Issuer",
+            ual: "did:dkg:test/123"
+          }
+        ];
+
+        const result = withSourceKnowledgeAssets(originalData, kas);
+        
+        expect(result.content).to.have.length(2);
+        expect(result.content[0]).to.deep.equal(originalData.content[0]);
+        expect(result.content[1].type).to.equal("text");
+        expect(result.content[1].text).to.include("**Source Knowledge Assets:**");
+        expect(result.content[1].text).to.include("Test Asset");
+        expect(result.content[1].text).to.include("Test Issuer");
+      });
+
+      it("should handle multiple knowledge assets", () => {
+        const originalData = {
+          content: [{ type: "text" as const, text: "Original content" }]
+        };
+        const kas = [
+          { title: "Asset 1", issuer: "Issuer 1", ual: "did:dkg:test/1" },
+          { title: "Asset 2", issuer: "Issuer 2", ual: "did:dkg:test/2" }
+        ];
+
+        const result = withSourceKnowledgeAssets(originalData, kas);
+        
+        expect(result.content[1].text).to.include("Asset 1");
+        expect(result.content[1].text).to.include("Asset 2");
+        expect(result.content[1].text).to.include("Issuer 1");
+        expect(result.content[1].text).to.include("Issuer 2");
+      });
+
+      it("should handle empty knowledge assets array", () => {
+        const originalData = {
+          content: [{ type: "text" as const, text: "Original content" }]
+        };
+        const kas: any[] = [];
+
+        const result = withSourceKnowledgeAssets(originalData, kas);
+        
+        expect(result.content).to.have.length(2);
+        expect(result.content[1].text).to.equal("**Source Knowledge Assets:**\n");
+      });
+    });
+
+    describe("serializeSourceKAContent", () => {
+      it("should serialize knowledge assets correctly", () => {
+        const kas = [
+          {
+            title: "Test Asset",
+            issuer: "Test Issuer",
+            ual: "did:dkg:test/123"
+          }
+        ];
+
+        const result = serializeSourceKAContent(kas);
+        
+        expect(result.type).to.equal("text");
+        expect(result.text).to.include("**Source Knowledge Assets:**");
+        expect(result.text).to.include("**Test Asset**: Test Issuer");
+        expect(result.text).to.include("[did:dkg:test/123]");
+        expect(result.text).to.include("https://dkg-testnet.origintrail.io/explore?ual=did:dkg:test/123");
+        expect(result.description).to.be.a("string");
+      });
+    });
+
+    describe("parseSourceKAContent", () => {
+      it("should parse serialized knowledge assets", () => {
+        const content = {
+          type: "text" as const,
+          text: "**Source Knowledge Assets:**\n- **Test Asset**: Test Issuer\n  [did:dkg:test/123](https://dkg-testnet.origintrail.io/explore?ual=did:dkg:test/123)"
+        };
+
+        const result = parseSourceKAContent(content);
+        
+        expect(result).to.not.be.null;
+        expect(result).to.have.length(1);
+        expect(result![0].title).to.equal("Test Asset");
+        expect(result![0].issuer).to.equal("Test Issuer");
+        expect(result![0].ual).to.equal("did:dkg:test/123");
+      });
+
+      it("should return null for non-text content", () => {
+        const content = {
+          type: "image" as any,
+          text: "some text"
+        };
+
+        const result = parseSourceKAContent(content);
+        
+        expect(result).to.be.null;
+      });
+
+      it("should return null for text without knowledge assets", () => {
+        const content = {
+          type: "text" as const,
+          text: "Just some regular text without knowledge assets"
+        };
+
+        const result = parseSourceKAContent(content);
+        
+        expect(result).to.be.null;
+      });
+    });
+  });
+
+  describe("Asset Creation Options", () => {
+    it("should call asset.create with correct options", async () => {
+      const spy = sinon.spy(mockDkgContext.dkg.asset, "create");
+      
+      const dkgCreateTool = mockMcpServer.getRegisteredTools().get("dkg-create");
+      const testJsonLd = JSON.stringify({ "@type": "Thing" });
+      
+      await dkgCreateTool.handler({ jsonld: testJsonLd, privacy: "private" });
+      
+      expect(spy.calledOnce).to.be.true;
+      const [data, options] = spy.firstCall.args;
+      
+      expect(data).to.deep.equal({ private: { "@type": "Thing" } });
+      expect(options).to.deep.equal({
+        epochsNum: 2,
+        minimumNumberOfFinalizationConfirmations: 3,
+        minimumNumberOfNodeReplications: 1,
+      });
+      
+      spy.restore();
+    });
+
+    it("should wrap data correctly for public privacy", async () => {
+      const spy = sinon.spy(mockDkgContext.dkg.asset, "create");
+      
+      const dkgCreateTool = mockMcpServer.getRegisteredTools().get("dkg-create");
+      const testJsonLd = JSON.stringify({ "@type": "Thing" });
+      
+      await dkgCreateTool.handler({ jsonld: testJsonLd, privacy: "public" });
+      
+      const [data] = spy.firstCall.args;
+      expect(data).to.deep.equal({ public: { "@type": "Thing" } });
+      
+      spy.restore();
+    });
+  });
+
+  describe("Resource Handler Options", () => {
+    it("should call asset.get with includeMetadata for knowledge asset resource", async () => {
+      const spy = sinon.spy(mockDkgContext.dkg.asset, "get");
+      
+      const assetResource = mockMcpServer.getRegisteredResources().get("dkg-knowledge-asset");
+      const mockUal = { href: "DID:DKG:TEST:123" };
+      
+      await assetResource.handler(mockUal);
+      
+      expect(spy.calledOnce).to.be.true;
+      const [ual, options] = spy.firstCall.args;
+      
+      expect(ual).to.equal("did:dkg:test:123"); // Should be lowercase
+      expect(options).to.deep.equal({ includeMetadata: true });
+      
+      spy.restore();
+    });
+
+    it("should call asset.get with includeMetadata for knowledge collection resource", async () => {
+      const spy = sinon.spy(mockDkgContext.dkg.asset, "get");
+      
+      const collectionResource = mockMcpServer.getRegisteredResources().get("dkg-knowledge-collection");
+      const mockUal = { href: "DID:DKG:COLLECTION:456" };
+      
+      await collectionResource.handler(mockUal);
+      
+      expect(spy.calledOnce).to.be.true;
+      const [ual, options] = spy.firstCall.args;
+      
+      expect(ual).to.equal("did:dkg:collection:456"); // Should be lowercase
+      expect(options).to.deep.equal({ includeMetadata: true });
+      
+      spy.restore();
+    });
+  });
+
+
+
+  describe("Console Logging", () => {
+    let consoleLogSpy: sinon.SinonSpy;
+    let consoleErrorSpy: sinon.SinonSpy;
+
+    beforeEach(() => {
+      consoleLogSpy = sinon.spy(console, "log");
+      consoleErrorSpy = sinon.spy(console, "error");
+    });
+
+    afterEach(() => {
+      consoleLogSpy.restore();
+      consoleErrorSpy.restore();
+    });
+
+    it("should log formatted response on successful asset creation", async () => {
+      const dkgCreateTool = mockMcpServer.getRegisteredTools().get("dkg-create");
+      const testJsonLd = JSON.stringify({ "@type": "Thing" });
+      
+      await dkgCreateTool.handler({ jsonld: testJsonLd });
+      
+      expect(consoleLogSpy.calledOnce).to.be.true;
+      expect(consoleLogSpy.firstCall.args[0]).to.equal("Formatted response:");
+      expect(consoleLogSpy.firstCall.args[1]).to.include("Knowledge Asset collection successfully created");
+    });
+
+    it("should log error on asset creation failure", async () => {
+      // Override mock to simulate error
+      const originalCreate = mockDkgContext.dkg.asset.create;
+      mockDkgContext.dkg.asset.create = () => {
+        throw new Error("Test error");
+      };
+
+      const dkgCreateTool = mockMcpServer.getRegisteredTools().get("dkg-create");
+      
+      try {
+        await dkgCreateTool.handler({ jsonld: "{}" });
+        expect.fail("Should have thrown an error");
+      } catch (error) {
+        expect(consoleErrorSpy.calledOnce).to.be.true;
+        expect(consoleErrorSpy.firstCall.args[0]).to.equal("Error creating asset:");
+        expect(consoleErrorSpy.firstCall.args[1]).to.equal("Test error");
+      }
+
+      // Restore original mock
+      mockDkgContext.dkg.asset.create = originalCreate;
+    });
+
+    it("should log error when no JSON-LD content provided", async () => {
+      const dkgCreateTool = mockMcpServer.getRegisteredTools().get("dkg-create");
+      
+      try {
+        await dkgCreateTool.handler({ jsonld: "" });
+        expect.fail("Should have thrown an error");
+      } catch (error) {
+        expect(consoleErrorSpy.calledOnce).to.be.true;
+        expect(consoleErrorSpy.firstCall.args[0]).to.equal("No JSON-LD content provided after file read.");
+      }
+    });
+  });
+
+  describe("Edge Cases and Validation", () => {
+    it("should handle malformed JSON in asset creation", async () => {
+      const dkgCreateTool = mockMcpServer.getRegisteredTools().get("dkg-create");
+      
+      try {
+        await dkgCreateTool.handler({ jsonld: "{ invalid json }" });
+        expect.fail("Should have thrown an error");
+      } catch (error) {
+        expect(error.message).to.include("Failed to create asset");
+      }
+    });
+
+    it("should handle undefined UAL from asset creation", async () => {
+      // Override mock to return undefined UAL
+      const originalCreate = mockDkgContext.dkg.asset.create;
+      mockDkgContext.dkg.asset.create = () => Promise.resolve({} as any);
+
+      const dkgCreateTool = mockMcpServer.getRegisteredTools().get("dkg-create");
+      
+      const result = await dkgCreateTool.handler({ jsonld: "{}" });
+      
+      // Should still return a response but with null UAL
+      expect(result.content[0].text).to.include("Knowledge Asset collection successfully created");
+      expect(result.content[0].text).to.include("UAL: null");
+      expect(result.content[0].text).to.include("DKG Explorer link:");
+
+      // Restore original mock
+      mockDkgContext.dkg.asset.create = originalCreate;
+    });
+
+    it("should handle very long UAL strings", async () => {
+      const longUal = "did:dkg:test/" + "a".repeat(1000);
+      const dkgGetTool = mockMcpServer.getRegisteredTools().get("dkg-get");
+      
+      const result = await dkgGetTool.handler({ ual: longUal });
+      
+      expect(result.content[0].text).to.be.a("string");
+      // Should not throw any errors
+    });
+
+    it("should handle empty privacy string as private", async () => {
+      const spy = sinon.spy(mockDkgContext.dkg.asset, "create");
+      
+      const dkgCreateTool = mockMcpServer.getRegisteredTools().get("dkg-create");
+      const testJsonLd = JSON.stringify({ "@type": "Thing" });
+      
+      await dkgCreateTool.handler({ jsonld: testJsonLd, privacy: undefined });
+      
+      const [data] = spy.firstCall.args;
+      expect(data).to.deep.equal({ private: { "@type": "Thing" } });
+      
+      spy.restore();
     });
   });
 });
