@@ -18,7 +18,7 @@ jobs:
       TURBO_TELEMETRY_DISABLED: 1
     defaults:
       run:
-        working-directory: ./typescript
+        working-directory: ./
 
     steps:
       - name: Checkout repository
@@ -27,9 +27,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: 'typescript/.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: 'typescript/package-lock.json'
+          node-version-file: "typescript/.nvmrc"
+          cache: "npm"
+          cache-dependency-path: "typescript/package-lock.json"
 
       - name: Install Turbo globally
         run: npm install -g turbo
