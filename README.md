@@ -13,8 +13,6 @@ npm i -g turbo
 
 ## Quick start
 
-Make sure you are inside of this (`typescript`) directory.
-
 1. Run `npm install`
 2. Run `npm run build` to build all packages and applications
 3. Run `npm run dev` to start all applications and packages in dev mode (with automatic reload)
