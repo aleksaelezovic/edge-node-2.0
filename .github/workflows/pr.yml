@@ -16,9 +16,6 @@ jobs:
     timeout-minutes: 15
     env:
       TURBO_TELEMETRY_DISABLED: 1
-    defaults:
-      run:
-        working-directory: ./
 
     steps:
       - name: Checkout repository
@@ -27,18 +24,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: "./.nvmrc"
+          node-version-file: ".nvmrc"
           cache: "npm"
-          cache-dependency-path: "./package-lock.json"
-
-      - name: Install Turbo globally
-        run: npm install -g turbo
+          cache-dependency-path: "package-lock.json"
 
       - name: Install dependencies
         run: npm install
 
       - name: Check code quality
-        run: turbo format check-types lint
+        run: npm run check
 
       - name: Build packages and apps
         run: npm run build
