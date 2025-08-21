@@ -1,0 +1,33 @@
+{
+  "name": "@dkg/plugin-dkg-essentials",
+  "version": "0.0.3",
+  "description": "",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/utils.mjs",
+      "require": "./dist/utils.js",
+      "types": "./dist/utils.d.ts"
+    }
+  },
+  "scripts": {
+    "dev": "tsup src/*.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/*.ts --format cjs,esm --dts",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "test": "echo 'No tests yet in /plugin-dkg-essentials - placeholder' && exit 0"
+  },
+  "dependencies": {
+    "@dkg/plugins": "^0.0.2"
+  },
+  "devDependencies": {
+    "@dkg/eslint-config": "*",
+    "@dkg/typescript-config": "*",
+    "eslint": "^9.29.0",
+    "tsup": "^8.5.0"
+  }
+}
