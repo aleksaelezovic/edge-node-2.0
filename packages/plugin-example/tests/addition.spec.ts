@@ -109,7 +109,6 @@ describe("@dkg/plugin-example checks", () => {
   });
 
   describe("API Endpoint Functionality", () => {
-
     it("should respond to GET /add with correct result", async () => {
       const response = await request(app).get("/add?a=5&b=3").expect(200);
 

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "DKG Agent",
-    "slug": "example-edge-node",
+    "slug": "dkg-node",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/images/icon.png",
