@@ -9,7 +9,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "test": "turbo run test",
-    "test:mocha": "mocha"
+    "test:mocha": "mocha",
+    "test:example": "turbo run test --filter=@dkg/plugin-example",
+    "test:dkg-essentials": "turbo run test --filter=@dkg/plugin-dkg-essentials",
+    "test:api": "npm run test:example && npm run test:dkg-essentials"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",

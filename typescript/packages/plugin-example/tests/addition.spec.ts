@@ -9,9 +9,35 @@ import request from "supertest";
 // Mock DKG context
 const mockDkgContext = {
   dkg: {
-    // Mock DKG instance
+    // Mock DKG instance with all required properties
     get: () => Promise.resolve({}),
     query: () => Promise.resolve([]),
+    assertion: {
+      get: () => Promise.resolve({}),
+      create: () => Promise.resolve({}),
+    },
+    asset: {
+      get: () => Promise.resolve({}),
+      create: () => Promise.resolve({}),
+    },
+    blockchain: {
+      get: () => Promise.resolve({}),
+    },
+    node: {
+      get: () => Promise.resolve({}),
+    },
+    graph: {
+      query: () => Promise.resolve([]),
+    },
+    network: {
+      get: () => Promise.resolve({}),
+    },
+    storage: {
+      get: () => Promise.resolve({}),
+    },
+    paranet: {
+      get: () => Promise.resolve({}),
+    },
   },
 };
 
