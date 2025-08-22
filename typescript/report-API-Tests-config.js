@@ -13,7 +13,7 @@ const config = defineConfig({
       targets: [
         {
           name: 'teams',
-          //condition: 'fail',
+          condition: 'fail',
           inputs: {
             url: teamsHookBaseURL,
             only_failures: true,
@@ -31,7 +31,7 @@ const config = defineConfig({
                 links: [
                   {
                     text: 'API Tests HTML Report',
-                    url: 'https://titan.dplcenter.xyz/view/Tests/job/OT-Website-Tests/10/Production_20Report/*zip*/Production_20Report.zip',
+                    url: 'https://titan.dplcenter.xyz/view/Tests/job/DKG-Node-Tests/DKG_20Node_20API_20Report/*zip*/DKG_20Node_20API_20Report.zip',
                   },
                 ],
               },
@@ -48,5 +48,4 @@ const config = defineConfig({
     },
   ],
 });
-
 publish({ config });
