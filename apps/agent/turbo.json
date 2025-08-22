@@ -3,7 +3,6 @@
   "tasks": {
     "build": {
       "dependsOn": [
-        "^build",
         "build:migrations",
         "build:web",
         "build:server",
@@ -13,10 +12,12 @@
       "outputs": ["dist/**"]
     },
     "build:web": {
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/app/**"]
     },
     "build:server": {
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*", "src/server"],
       "outputs": ["dist/*"]
     },
