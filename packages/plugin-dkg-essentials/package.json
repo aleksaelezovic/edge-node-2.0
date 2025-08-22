@@ -4,14 +4,14 @@
   "description": "",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     },
     "./utils": {
+      "types": "./dist/utils.d.ts",
       "import": "./dist/utils.mjs",
-      "require": "./dist/utils.js",
-      "types": "./dist/utils.d.ts"
+      "require": "./dist/utils.js"
     }
   },
   "scripts": {
