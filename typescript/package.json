@@ -12,7 +12,9 @@
     "test:mocha": "mocha",
     "test:example": "turbo run test --filter=@dkg/plugin-example",
     "test:dkg-essentials": "turbo run test --filter=@dkg/plugin-dkg-essentials",
-    "test:api": "npm run test:example && npm run test:dkg-essentials"
+    "test:api": "mocha --timeout 10000000 --exit 'packages/*/tests/*.spec.ts' --reporter mochawesome --reporter-options reportDir=mochawesome-report,reportFilename=DKG_Node_API_Tests,quiet=true",
+    "generate:DKG_Node:api:report": "node report-API-Tests-config.js"
+    
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",
@@ -25,8 +27,8 @@
     "prettier": "^3.5.3",
     "sinon": "^19.0.2",
     "supertest": "^7.1.4",
-    "turbo": "^2.5.5",
     "tsx": "^4.20.4",
+    "turbo": "^2.5.5",
     "typescript": "^5.8.3"
   },
   "engines": {
@@ -36,5 +38,9 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "test-results-reporter": "^1.1.6"
+  }
 }
