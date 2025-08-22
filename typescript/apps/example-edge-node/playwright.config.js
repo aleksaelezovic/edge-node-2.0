@@ -19,13 +19,13 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
   /* Opt out of parallel tests on CI. */
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [['list'], ['html']],
+  reporter: [['list'], ['html'], ['junit', { outputFile: 'DKG_Node_UI_Tests.xml' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:8081',
     browserName: 'chromium',
-    headless: false,
+    headless: true,
     launchOptions: {
       slowMo: 800,
     },
