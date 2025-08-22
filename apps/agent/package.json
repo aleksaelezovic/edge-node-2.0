@@ -11,7 +11,7 @@
     "check-types": "expo customize tsconfig.json && tsc --noEmit",
     "build:server": "tsup src/server/*.ts --format esm,cjs",
     "build:scripts": "tsup src/server/scripts/*.ts --format esm,cjs --out-dir dist/scripts",
-    "build:web": "expo export -p web --output-dir dist/app",
+    "build:web": "expo export --clear -p web --output-dir dist/app",
     "build:migrations": "drizzle-kit generate",
     "dev:app": "expo start --web --port 8081",
     "dev:server": "tsup src/server/*.ts --format esm,cjs --watch --onSuccess=\"node dist/index.js --dev\"",
