@@ -4,6 +4,7 @@ import {
   PropsWithChildren,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 
@@ -55,6 +56,21 @@ export default function McpContextProvider({
   useEffect(() => {
     onConnectedChange?.(connected);
   }, [connected, onConnectedChange]);
+
+  const intervalRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (connected)
+      intervalRef.current = setInterval(
+        // Expecting to error when token is expired / revoked
+        () => mcp.ping().catch(() => null),
+        5000,
+      );
+    else if (intervalRef.current) clearInterval(intervalRef.current);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [connected, mcp]);
 
   return (
     <McpContext.Provider value={{ mcp, getToken, connected }}>
