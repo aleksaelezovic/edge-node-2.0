@@ -1,4 +1,4 @@
-# DKG Turborepo
+# DKG Node
 
 A comprehensive monorepo for building Decentralized Knowledge Graph (DKG) applications with a modern tech stack including Expo, Drizzle ORM, SQLite, and MCP (Model Context Protocol) integration.
 
@@ -29,7 +29,32 @@ npm install
 npm run build
 ```
 
-### 2. Database Setup
+### 2. Environment Variables Setup
+
+Before running the project setup, you'll need to configure the following environment variables. The setup script will prompt you for these values, but you can also prepare them in advance:
+
+#### Required Variables
+- **`DATABASE_URL`**: Database name for SQLite (e.g., `dkg.db`)
+- **`OPENAI_API_KEY`**: Your OpenAI API key for LLM integration
+- **`DKG_PUBLISH_WALLET`**: Private key for publishing to the DKG blockchain. This is used for:
+  - Paying native token fees for blockchain transactions
+  - Paying TRAC tokens for publishing to the DKG
+  - Securing your node identity (keep your private keys secure!)
+
+#### Optional Variables (with defaults)
+- **`DKG_BLOCKCHAIN`**: Blockchain network identifier. Options:
+  - Mainnet: `otp:2043`
+  - Testnet: `otp:20430`
+  - Default: `hardhat1:31337` (local development)
+- **`DKG_OTNODE_URL`**: OT-node server URL. Options:
+  - **Testnet** (safe testing with mock tokens): `https://v6-pegasus-node-02.origin-trail.network:8900`
+  - **Mainnet** (production DKG interactions): `https://positron.origin-trail.network`
+  - **Local development**: `http://localhost:8900` (default)
+- **`PORT`**: Server port (default: `9200`)
+- **`EXPO_PUBLIC_APP_URL`**: Public app URL (default: `http://localhost:9200`)
+- **`EXPO_PUBLIC_MCP_URL`**: MCP server URL (default: `http://localhost:9200`)
+
+### 3. Project Setup
 ```bash
 cd apps/agent
 npm run build:scripts
@@ -42,7 +67,7 @@ The setup script will:
 - Set up the SQLite database with migrations
 - Create an admin user (username: `admin`, password: `admin123`)
 
-### 3. Start Development
+### 4. Start Development
 ```bash
 npm run dev
 ```
@@ -51,26 +76,6 @@ That's it! Your DKG agent is now running with:
 - **Frontend**: [http://localhost:8081](http://localhost:8081) (Expo app)
 - **Backend**: [http://localhost:9200](http://localhost:9200) (MCP server + API)
 - **Database**: SQLite with Drizzle Studio available
-
-## 🔧 Environment Configuration
-
-### Required Environment Variables
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DATABASE_URL` | SQLite database file path | Required |
-| `OPENAI_API_KEY` | OpenAI API key for LLM integration | Required |
-| `DKG_PUBLISH_WALLET` | Private key for DKG publishing | Required |
-| `DKG_BLOCKCHAIN` | Blockchain network identifier | `hardhat1:31337` |
-| `DKG_OTNODE_URL` | OT-node server URL | `http://localhost:8900` |
-| `PORT` | Server port | `9200` |
-| `EXPO_PUBLIC_APP_URL` | Public app URL | `http://localhost:9200` |
-| `EXPO_PUBLIC_MCP_URL` | MCP server URL | `http://localhost:9200` |
-
-### Development Overrides
-Create `.env.development.local` to override values during development:
-```env
-EXPO_PUBLIC_APP_URL="http://localhost:8081"
-```
 
 ## 🗄️ Database Management
 
