@@ -38,3 +38,6 @@ yarn-error.log*
 *.pem
 playwright-report
 mochawesome-report
+DKG_Node_UI_Tests
+DKG_Node_UI_Tests.xml
+test-results
