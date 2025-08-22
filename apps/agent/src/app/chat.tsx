@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { View, Platform, KeyboardAvoidingView } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import * as SplashScreen from "expo-splash-screen";
 import * as Clipboard from "expo-clipboard";
@@ -33,12 +32,7 @@ export default function ChatPage() {
   const colors = useColors();
   const { isNativeMobile, isWeb, width } = usePlatform();
 
-  const { code: authorizationCode } = useLocalSearchParams<{ code?: string }>();
-  const onAuthorized = useCallback(() => router.navigate("/chat"), []);
-  const { connected, mcp, getToken } = useMcpClient({
-    authorizationCode,
-    onAuthorized,
-  });
+  const { connected, mcp, getToken } = useMcpClient();
   const [tools, setTools] = useState<ToolDefinition[]>([]);
   const [toolsInfo, setToolsInfo] = useState<ToolsInfoMap>({});
   const [toolCalls, setToolCalls] = useState<ToolCallsMap>({});
@@ -50,7 +44,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (!connected) return;
     SplashScreen.hide();
-    mcp.current
+    mcp
       .listTools()
       .then(({ tools }) => {
         const toolFns: ToolDefinition[] = [];
@@ -84,7 +78,7 @@ export default function ChatPage() {
       [tc.id!]: { input: tc.args, status: "loading" },
     }));
 
-    return mcp.current
+    return mcp
       .callTool({ name: tc.name, arguments: tc.args })
       .then((result) => {
         setToolCalls((p) => ({
@@ -161,7 +155,7 @@ export default function ChatPage() {
 
   const kaResolver = useCallback<SourceKAResolver>(
     async (ual) => {
-      const resource = await mcp.current.readResource({ uri: ual });
+      const resource = await mcp.readResource({ uri: ual });
       const content = resource.contents[0]?.text as string;
       if (!content) throw new Error("Resource not found");
 

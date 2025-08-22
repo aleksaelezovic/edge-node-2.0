@@ -1,3 +1,5 @@
+import "../polyfills";
+import { useCallback } from "react";
 import {
   DarkTheme,
   DefaultTheme,
@@ -15,15 +17,14 @@ import {
   SpaceGrotesk_500Medium,
   SpaceGrotesk_700Bold,
 } from "@expo-google-fonts/space-grotesk";
-import { Slot } from "expo-router";
+import { router, Slot, useGlobalSearchParams, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Background from "@/components/layout/Background";
-
-import "../polyfills";
+import { McpContextProvider } from "@/client";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -39,6 +40,21 @@ export default function RootLayout() {
     SpaceGrotesk_700Bold,
   });
 
+  const params = useGlobalSearchParams<{ code?: string }>();
+  const isLogin = usePathname() === "/login";
+
+  const onConnectedChange = useCallback((connected: boolean) => {
+    if (connected) {
+      SplashScreen.hide();
+      router.setParams({ code: undefined });
+    }
+  }, []);
+
+  const onError = useCallback((error: Error) => {
+    console.error("MCP ERROR:", error.message);
+    SplashScreen.hide();
+  }, []);
+
   if (!loaded) {
     // Async font loading only occurs in development.
     return null;
@@ -46,10 +62,17 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Background>
-        <Slot />
-      </Background>
-      <StatusBar style="auto" />
+      <McpContextProvider
+        authorizationCode={!isLogin && params.code ? params.code : null}
+        onConnectedChange={onConnectedChange}
+        onError={onError}
+        autoconnect={!isLogin}
+      >
+        <Background>
+          <Slot />
+        </Background>
+        <StatusBar style="auto" />
+      </McpContextProvider>
     </ThemeProvider>
   );
 }
