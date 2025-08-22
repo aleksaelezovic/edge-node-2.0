@@ -5,6 +5,7 @@ A comprehensive monorepo for building Decentralized Knowledge Graph (DKG) applic
 ## 🏗️ Architecture Overview
 
 This project consists of:
+
 - **Agent App**: A full-stack DKG agent with Expo UI and MCP server
 - **Plugin System**: Modular plugins for extending functionality
 - **Database Layer**: SQLite with Drizzle ORM for data persistence
@@ -24,6 +25,7 @@ npm i -g turbo
 ## 🚀 Quick Start
 
 ### 1. Install & Build
+
 ```bash
 npm install
 npm run build
@@ -34,6 +36,7 @@ npm run build
 Before running the project setup, you'll need to configure the following environment variables. The setup script will prompt you for these values, but you can also prepare them in advance:
 
 #### Required Variables
+
 - **`DATABASE_URL`**: Database name for SQLite (e.g., `dkg.db`)
 - **`OPENAI_API_KEY`**: Your OpenAI API key for LLM integration
 - **`DKG_PUBLISH_WALLET`**: Private key for publishing to the DKG blockchain. This is used for:
@@ -42,6 +45,7 @@ Before running the project setup, you'll need to configure the following environ
   - Securing your node identity (keep your private keys secure!)
 
 #### Optional Variables (with defaults)
+
 - **`DKG_BLOCKCHAIN`**: Blockchain network identifier. Options:
   - Mainnet: `otp:2043`
   - Testnet: `otp:20430`
@@ -55,6 +59,7 @@ Before running the project setup, you'll need to configure the following environ
 - **`EXPO_PUBLIC_MCP_URL`**: MCP server URL (default: `http://localhost:9200`)
 
 ### 3. Project Setup
+
 ```bash
 cd apps/agent
 npm run build:scripts
@@ -62,17 +67,20 @@ npm run script:setup
 ```
 
 The setup script will:
+
 - Prompt for required environment variables
 - Create `.env` and `.env.development.local` files
 - Set up the SQLite database with migrations
 - Create an admin user (username: `admin`, password: `admin123`)
 
 ### 4. Start Development
+
 ```bash
 npm run dev
 ```
 
 That's it! Your DKG agent is now running with:
+
 - **Frontend**: [http://localhost:8081](http://localhost:8081) (Expo app)
 - **Backend**: [http://localhost:9200](http://localhost:9200) (MCP server + API)
 - **Database**: SQLite with Drizzle Studio available
@@ -80,13 +88,16 @@ That's it! Your DKG agent is now running with:
 ## 🗄️ Database Management
 
 ### Database Schema
+
 The application uses SQLite with the following tables:
+
 - **`users`**: User authentication and authorization
 - **`oauth_clients`**: OAuth client management
 - **`oauth_codes`**: OAuth authorization codes
 - **`oauth_tokens`**: OAuth access tokens
 
 ### Database Commands
+
 ```bash
 # Generate new migrations
 npm run build:migrations
@@ -100,10 +111,13 @@ npm run script:createToken
 ```
 
 ### Drizzle Studio
+
 Access your database through the web interface:
+
 ```bash
 npm run drizzle:studio
 ```
+
 Then open [https://local.drizzle.studio](https://local.drizzle.studio)
 
 ## 🧩 Plugin Development
@@ -111,45 +125,52 @@ Then open [https://local.drizzle.studio](https://local.drizzle.studio)
 ### Creating MCP/API Plugins
 
 #### 1. Generate Plugin Package
+
 ```bash
 turbo gen plugin
 # Name: plugin-<your-name>
 ```
 
 #### 2. Develop Your Plugin
+
 Edit `packages/plugin-<your-name>/src/index.ts`:
+
 ```typescript
-import { defineDkgPlugin } from '@dkg/plugins';
+import { defineDkgPlugin } from "@dkg/plugins";
 
 export default defineDkgPlugin((ctx, mcp, api) => {
   // Register MCP tools/resources
-  mcp.tools.register('myTool', {
+  mcp.tools.register("myTool", {
     // Tool implementation
   });
-  
+
   // Register API routes
-  api.get('/my-endpoint', (req, res) => {
+  api.get("/my-endpoint", (req, res) => {
     // Route implementation
   });
 });
 ```
 
 #### 3. Use in Agent
+
 ```bash
 cd apps/agent
 npm install --save @dkg/plugin-<your-name>
 ```
 
 Then register in `src/index.ts`:
+
 ```typescript
-import myPlugin from '@dkg/plugin-<your-name>';
+import myPlugin from "@dkg/plugin-<your-name>";
 
 // In createPluginServer function
-plugins: [myPlugin]
+plugins: [myPlugin];
 ```
 
 ### Plugin Context
+
 Plugins receive three injected arguments:
+
 - **`ctx`**: DKG environment context (logger, DKG client, etc.)
 - **`mcp`**: MCP Server instance for registering tools/resources
 - **`api`**: Express server for API routes
@@ -157,6 +178,7 @@ Plugins receive three injected arguments:
 ## 📱 Available Scripts
 
 ### Development
+
 ```bash
 npm run dev              # Start both app and server
 npm run dev:app          # Start Expo app only
@@ -164,6 +186,7 @@ npm run dev:server       # Start MCP server only
 ```
 
 ### Building
+
 ```bash
 npm run build            # Build all packages
 npm run build:server     # Build server code
@@ -173,6 +196,7 @@ npm run build:migrations # Generate database migrations
 ```
 
 ### Testing
+
 ```bash
 npm run test:ui          # Run Playwright tests
 npm run test:headed      # Run tests with browser
@@ -183,6 +207,7 @@ npm run test:report      # Show test report
 ## 🚀 Production Deployment
 
 ### Build for Production
+
 ```bash
 npm run build            # Build all packages
 npm run build:web        # Build web app
@@ -190,6 +215,7 @@ npm run build:server     # Build server
 ```
 
 ### Run Production Server
+
 ```bash
 cd apps/agent
 node dist/index.js
@@ -198,6 +224,7 @@ node dist/index.js
 ## 📦 Package Management
 
 ### Adding Dependencies
+
 ```bash
 # Add to specific package
 cd packages/your-package
@@ -209,6 +236,7 @@ npm install --save package-name
 ```
 
 ### Using Local Packages
+
 ```bash
 # Install local package in another package
 npm install --save @dkg/your-package-name
@@ -219,6 +247,7 @@ npm install --save @dkg/your-package-name
 ### Common Issues
 
 #### Build Failures
+
 ```bash
 # Clean and rebuild
 rm -rf node_modules package-lock.json
@@ -227,6 +256,7 @@ npm run build
 ```
 
 #### Database Issues
+
 ```bash
 # Regenerate migrations
 npm run build:migrations
@@ -237,6 +267,7 @@ npm run script:setup
 ```
 
 #### TypeScript Errors
+
 ```bash
 # Check types
 npm run check-types
@@ -247,6 +278,7 @@ npm run build
 ```
 
 ### Getting Help
+
 - Check the [Turborepo documentation](https://turborepo.com/docs)
 - Review existing plugins in `packages/plugin-*`
 - Check the agent app README in `apps/agent/README.md`
