@@ -12,6 +12,7 @@ export default class AsyncStorageOAuthClientProvider
   implements OAuthClientProvider
 {
   constructor(
+    private readonly _uri: string | URL,
     private readonly _redirectUrl: string | URL,
     private readonly _clientMetadata: OAuthClientMetadata,
     onRedirect?: (url: URL) => void,
@@ -37,12 +38,16 @@ export default class AsyncStorageOAuthClientProvider
     this._onRedirect(authorizationUrl);
   }
 
+  private _transformKey(key: string): string {
+    return `[${this._uri.toString()}]_${key}`;
+  }
+
   private async _save(key: string, value: any) {
-    await AsyncStorage.setItem(key, JSON.stringify(value));
+    await AsyncStorage.setItem(this._transformKey(key), JSON.stringify(value));
   }
 
   private async _load(key: string): Promise<any> {
-    const str = await AsyncStorage.getItem(key);
+    const str = await AsyncStorage.getItem(this._transformKey(key));
     if (str === null) return undefined;
     return JSON.parse(str);
   }

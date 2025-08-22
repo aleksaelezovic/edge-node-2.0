@@ -1,6 +1,7 @@
 import type { PlopTypes } from "@turbo/gen";
 
 import { version as dkgPluginsVersion } from "../../../plugins/package.json";
+import { version as dkgPluginSwaggerVersion } from "../../../plugin-swagger/package.json";
 
 export default function generator(plop: PlopTypes.NodePlopAPI): void {
   plop.setGenerator("package", {
@@ -52,6 +53,12 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         path: "../{{kebabCase name}}/package.json",
         pattern: /"dependencies": {(?<insertion>)/g,
         template: `    "@dkg/plugins": "^${dkgPluginsVersion}"\n  `,
+      },
+      {
+        type: "append",
+        path: "../{{kebabCase name}}/package.json",
+        pattern: /"dependencies": {(?<insertion>)/g,
+        template: `    "@dkg/plugin-swagger": "^${dkgPluginSwaggerVersion}",`,
       },
       {
         type: "modify",
