@@ -31,7 +31,7 @@ const config = defineConfig({
                 links: [
                   {
                     text: 'Production HTML Report',
-                    url: 'https://titan.dplcenter.xyz/view/Tests/job/OT-Website-Tests/10/Production_20Report/*zip*/Production_20Report.zip',
+                    url: 'https://titan.dplcenter.xyz/view/Tests/job/DKG-Node-Tests/DKG_20Node_20UI_20Report/*zip*/DKG_20Node_20UI_20Report.zip',
                   },
                 ],
               },
