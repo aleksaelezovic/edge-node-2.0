@@ -4,17 +4,16 @@
   "description": "",
   "main": "./index.js",
   "scripts": {
-    "dev": "tsup src/*.ts --format cjs,esm --dts --watch",
-    "build": "tsup src/*.ts --format cjs,esm --dts",
-    "check-types": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
     "react-force-graph": "^1.48.0"
   },
+  "peerDependencies": {
+    "expo": "^53.0.0"
+  },
   "devDependencies": {
     "@dkg/eslint-config": "*",
-    "@dkg/typescript-config": "*",
     "eslint": "^9.29.0",
     "tsup": "^8.5.0"
   }

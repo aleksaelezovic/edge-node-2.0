@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { View } from "react-native";
 import { THREE } from "expo-three";
 // @ts-ignore No types for forcegraph
-import initForceGraph3D from "@dkg/expo-forcegraph";
+import useForceGraph3D from "@dkg/expo-forcegraph";
 
 import {
   getNodeMesh,
@@ -24,16 +24,25 @@ export default function GraphView(props: {
   ual: string;
   assertion: Record<string, any>[];
 }) {
-  const [ForceGraph3D, setForceGraph3D] = useState<any>(null);
+  const ForceGraph3D = useForceGraph3D(View, THREE);
+
   const [size, setSize] = useState<{ width: number; height: number }>();
   const graphRef = useRef(null);
 
   useEffect(() => {
-    (window as any).THREE = (window as any).THREE || THREE;
-    initForceGraph3D(View).then((forceGraph3D) => {
-      setForceGraph3D(forceGraph3D);
-    });
-  }, []);
+    if (!size) return;
+
+    const t = setTimeout(() => {
+      (graphRef.current as any)?.cameraPosition(
+        CAMERA.position,
+        CAMERA.target,
+        CAMERA.duration,
+      );
+      (graphRef.current as any)?.lights(lights);
+    }, 300);
+
+    return () => clearTimeout(t);
+  }, [size]);
 
   const kg = new KnowledgeGraph(
     props.ual,
@@ -44,16 +53,7 @@ export default function GraphView(props: {
   return (
     <View
       style={{ flex: 1, width: "100%", height: "100%" }}
-      onLayout={(l) => {
-        setSize(l.nativeEvent.layout);
-        // TODO: throttle!
-        (graphRef.current as any)?.cameraPosition(
-          CAMERA.position,
-          CAMERA.target,
-          CAMERA.duration,
-        );
-        (graphRef.current as any)?.lights(lights);
-      }}
+      onLayout={(l) => setSize(l.nativeEvent.layout)}
     >
       {size && ForceGraph3D && (
         <ForceGraph3D
