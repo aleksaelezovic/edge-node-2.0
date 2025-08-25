@@ -13,7 +13,8 @@
     "test:mocha": "mocha",
     "test:example": "turbo run test --filter=@dkg/plugin-example",
     "test:dkg-essentials": "turbo run test --filter=@dkg/plugin-dkg-essentials",
-    "test:api": "mocha --timeout 10000000 --exit 'packages/*/tests/*.spec.ts' --reporter mochawesome --reporter-options reportDir=mochawesome-report,reportFilename=DKG_Node_API_Tests,quiet=true",
+    "test:auth": "turbo run test --filter=@dkg/plugin-auth",
+    "test:api": "npm run test:example && npm run test:dkg-essentials && npm run test:auth",
     "generate:DKG_Node:api:report": "node report-API-Tests-config.js"
     
   },

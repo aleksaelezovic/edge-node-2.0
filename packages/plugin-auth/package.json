@@ -10,12 +10,13 @@
     "build": "tsup src/*.ts --format cjs,esm --dts",
     "check-types": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
-    "test": "echo 'No tests yet in /plugin-auth - placeholder' && exit 0"
+    "test": "mocha 'tests/**/*.spec.ts'"
   },
   "dependencies": {
     "@dkg/plugins": "^0.0.2",
     "passport": "^0.7.0",
-    "passport-jwt": "^4.0.1"
+    "passport-jwt": "^4.0.1",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
@@ -23,6 +24,15 @@
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
     "eslint": "^9.29.0",
-    "tsup": "^8.5.0"
+    "tsup": "^8.5.0",
+    "mocha": "^10.7.3",
+    "chai": "^5.1.1",
+    "@types/chai": "^4.3.18",
+    "@types/mocha": "^10.0.7",
+    "sinon": "^19.0.2",
+    "@types/sinon": "^17.0.3",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.2",
+    "@types/jsonwebtoken": "^9.0.7"
   }
 }
