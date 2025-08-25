@@ -19,7 +19,7 @@ export default defineDkgPlugin((_, mcp, api) => {
           {
             title: "OriginTrail",
             issuer: "OriginTrail",
-            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269082",
+            ual: "did:dkg:otp:20430/0xCdb28e93eD340ec10A71bba00a31DBFCf1BD5d37/269082/1",
           },
           {
             title: "OriginTrail",
