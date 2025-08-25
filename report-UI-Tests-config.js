@@ -2,8 +2,8 @@ const { publish, defineConfig } = require('test-results-reporter');
 const dotenv = require('dotenv');
 const path = require('path');
 
-// Load .env from example-edge-node directory
-dotenv.config({ path: path.resolve(__dirname, 'apps/example-edge-node/.env') });
+// Load .env from agent directory
+dotenv.config({ path: path.resolve(__dirname, 'apps/agent/.env') });
 
 const teamsHookBaseURL = process.env.DKG_Node_Teams_Hook;
 
@@ -42,7 +42,7 @@ const config = defineConfig({
       results: [
         {
           type: 'junit',
-          files: ['./apps/example-edge-node/DKG_Node_UI_Tests.xml'],
+          files: ['./apps/agent/DKG_Node_UI_Tests.xml'],
         },
       ],
     },

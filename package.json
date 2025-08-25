@@ -12,7 +12,7 @@
     "test": "turbo run test",
     "test:mocha": "mocha",
     "generate:DKG_Node:ui:report": "node report-UI-Tests-config.js",
-    "test:ui": "cd apps/example-edge-node && PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml PLAYWRIGHT_HTML_REPORT=DKG_Node_UI_Tests npx playwright test tests/spec/testUI.spec.js"
+    "test:ui": "cd apps/agent && PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml PLAYWRIGHT_HTML_REPORT=DKG_Node_UI_Tests npx playwright test tests/spec/testUI.spec.js"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",
