@@ -11,7 +11,7 @@
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "test:mocha": "mocha",
-    "generate:dkg_node:ui:report": "node report-UI-Tests-config.js",
+    "test-report:ui": "node report-UI-Tests-config.js",
     "test:ui": "turbo run test --filter=@dkg/agent"
   },
   "devDependencies": {

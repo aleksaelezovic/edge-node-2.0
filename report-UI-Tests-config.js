@@ -1,4 +1,4 @@
-const { publish, defineConfig } = require('test-results-reporter');
+const { publish, defineConfig } = require("test-results-reporter");
 const dotenv = require('dotenv');
 const path = require('path');
 
@@ -30,7 +30,7 @@ const config = defineConfig({
               inputs: {
                 links: [
                   {
-                    text: 'Production HTML Report',
+                    text: 'UI Tests HTML Report',
                     url: 'https://titan.dplcenter.xyz/view/Tests/job/DKG-Node-Tests/DKG_20Node_20UI_20Report/*zip*/DKG_20Node_20UI_20Report.zip',
                   },
                 ],
