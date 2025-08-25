@@ -13,6 +13,7 @@ import GraphView from "@/components/GraphView";
 export type SourceKAResolved = {
   lastUpdated: number;
   publisher: string;
+  txHash: string;
   assertion: Record<string, any>[];
 };
 

@@ -175,6 +175,12 @@ export default function ChatPage() {
             "@value"
           ] ?? Date.now(),
         ).getTime(),
+        txHash:
+          parsedContent.metadata
+            .at(0)
+            ?.["https://ontology.origintrail.io/dkg/1.0#publishTx"]?.at(0)?.[
+            "@value"
+          ] ?? "unknown",
       };
     },
     [mcp],
