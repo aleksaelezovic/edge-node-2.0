@@ -1,0 +1,45 @@
+{
+  "name": "dkg-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "build:check": "turbo run format lint check-types build",
+    "check": "turbo run format check-types lint",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "test": "turbo run test",
+    "test:mocha": "mocha",
+    "generate:DKG_Node:ui:report": "node report-UI-Tests-config.js",
+    "test:ui": "cd apps/example-edge-node && PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml PLAYWRIGHT_HTML_REPORT=DKG_Node_UI_Tests npx playwright test tests/spec/testUI.spec.js"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.5",
+    "@types/chai": "^5.2.2",
+    "@types/mocha": "^10.0.10",
+    "@types/sinon": "^17.0.4",
+    "@types/supertest": "^6.0.3",
+    "chai": "^5.2.1",
+    "mocha": "^11.7.1",
+    "mochawesome": "^7.1.3",
+    "prettier": "^3.5.3",
+    "sinon": "^21.0.0",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.4",
+    "turbo": "^2.5.5",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "test-results-reporter": "^1.1.6"
+  }
+}
