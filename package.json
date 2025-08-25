@@ -1,0 +1,48 @@
+{
+  "name": "dkg-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "build:check": "turbo run format lint check-types build",
+    "check": "turbo run format check-types lint",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "test": "turbo run test",
+    "test:mocha": "mocha",
+    "test:example": "turbo run test --filter=@dkg/plugin-example",
+    "test:dkg-essentials": "turbo run test --filter=@dkg/plugin-dkg-essentials",
+    "test:api": "mocha --timeout 10000000 --exit 'packages/*/tests/*.spec.ts' --reporter mochawesome --reporter-options reportDir=mochawesome-report,reportFilename=DKG_Node_API_Tests,quiet=true",
+    "generate:DKG_Node:api:report": "node report-API-Tests-config.js"
+    
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.5",
+    "@types/chai": "^5.2.2",
+    "@types/mocha": "^10.0.10",
+    "@types/sinon": "^17.0.3",
+    "@types/supertest": "^6.0.3",
+    "chai": "^5.2.1",
+    "mocha": "^11.7.1",
+    "mochawesome": "^7.1.3",
+    "prettier": "^3.5.3",
+    "sinon": "^19.0.2",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.4",
+    "turbo": "^2.5.5",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "test-results-reporter": "^1.1.6"
+  }
+}
