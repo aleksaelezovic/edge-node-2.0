@@ -86,10 +86,7 @@ type TestCredentials = z.infer<typeof testCredentialsSchema>;
 
 // Mock login function using actual system credentials
 const mockLogin = async (credentials: TestCredentials): Promise<string[]> => {
-  if (
-    credentials.username === "admin" &&
-    credentials.password === "admin123"
-  ) {
+  if (credentials.username === "admin" && credentials.password === "admin123") {
     return ["mcp", "llm", "scope123"];
   }
   if (credentials.username === "user" && credentials.password === "userpass") {
@@ -809,7 +806,10 @@ describe("@dkg/plugin-auth checks", function () {
 
     it("should handle tokens with special characters in scope", async () => {
       const specialScopeToken = sign(
-        { scope: "mcp test-scope_123 api:read", exp: Math.floor(Date.now() / 1000) + 3600 },
+        {
+          scope: "mcp test-scope_123 api:read",
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
         TEST_SECRET,
         { algorithm: "HS256" },
       );
@@ -829,7 +829,10 @@ describe("@dkg/plugin-auth checks", function () {
 
     it("should handle case sensitivity in scopes", async () => {
       const upperCaseToken = sign(
-        { scope: "MCP LLM SCOPE123", exp: Math.floor(Date.now() / 1000) + 3600 },
+        {
+          scope: "MCP LLM SCOPE123",
+          exp: Math.floor(Date.now() / 1000) + 3600,
+        },
         TEST_SECRET,
         { algorithm: "HS256" },
       );
@@ -850,17 +853,15 @@ describe("@dkg/plugin-auth checks", function () {
 
     it("should handle concurrent login requests", async () => {
       const promises = Array.from({ length: 5 }, () =>
-        request(app)
-          .post("/login")
-          .send({
-            username: "admin",
-            password: "admin123",
-          })
+        request(app).post("/login").send({
+          username: "admin",
+          password: "admin123",
+        }),
       );
 
       const responses = await Promise.all(promises);
-      
-      responses.forEach(response => {
+
+      responses.forEach((response) => {
         expect(response.status).to.equal(200);
         expect(response.body).to.have.property("token");
       });
