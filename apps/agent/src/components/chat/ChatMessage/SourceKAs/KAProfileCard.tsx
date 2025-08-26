@@ -3,32 +3,59 @@ import { SourceKA } from "@dkg/plugin-dkg-essentials/utils";
 
 import useColors from "@/hooks/useColors";
 import KAIcon from "@/components/icons/KAIcon";
+import ExternalLink from "@/components/ExternalLink";
 
 import { SourceKAResolved } from "./SourceKAsCollapsibleItem";
 
 export default function KAProfileCard({
   ual,
   lastUpdated,
+  txHash,
   assertion,
   publisher,
 }: SourceKA & SourceKAResolved) {
   const colors = useColors();
 
   let blockchain = "";
-  switch (ual.split(":")[2]) {
-    case "otp":
+  let txLink = "";
+  let explorerLink = "";
+
+  switch (ual.split(":").at(3)?.split("/").at(0)) {
+    case "2043":
       blockchain = "NeuroWeb";
+      txLink = `neuroweb.subscan.io/tx/${txHash}`;
+      explorerLink = `dkg.origintrail.io/explore?ual=${ual}`;
       break;
-    case "base":
+    case "20430":
+      blockchain = "NeuroWeb";
+      txLink = `neuroweb-testnet.subscan.io/tx/${txHash}`;
+      explorerLink = `dkg-testnet.origintrail.io/explore?ual=${ual}`;
+      break;
+    case "8453":
       blockchain = "Base";
+      txLink = `basescan.org/tx/${txHash}`;
+      explorerLink = `dkg.origintrail.io/explore?ual=${ual}`;
       break;
-    case "gnosis":
+    case "84532":
+      blockchain = "Base";
+      txLink = `sepolia.basescan.org/tx/${txHash}`;
+      explorerLink = `dkg-testnet.origintrail.io/explore?ual=${ual}`;
+      break;
+    case "100":
       blockchain = "Gnosis";
+      txLink = `gnosisscan.io/tx/${txHash}`;
+      explorerLink = `dkg.origintrail.io/explore?ual=${ual}`;
+      break;
+    case "10200":
+      blockchain = "Gnosis";
+      txLink = `gnosis-chiado.blockscout.com/tx/${txHash}`;
+      explorerLink = `dkg-testnet.origintrail.io/explore?ual=${ual}`;
       break;
     default:
       blockchain = "Unknown";
       break;
   }
+
   return (
     <View
       style={{
@@ -125,19 +152,37 @@ export default function KAProfileCard({
             >
               UAL:
             </Text>
-            <Text
-              style={{
-                color: colors.secondary,
-                fontFamily: "Manrope_400Regular",
-                fontSize: 14,
-                lineHeight: 24,
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                wordWrap: "normal",
-              }}
-            >
-              {ual}
-            </Text>
+            {explorerLink ? (
+              <ExternalLink
+                href={`https://${explorerLink}`}
+                style={{
+                  color: colors.secondary,
+                  fontFamily: "Manrope_400Regular",
+                  fontSize: 14,
+                  lineHeight: 24,
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                  wordWrap: "normal",
+                  textDecorationLine: "underline",
+                }}
+              >
+                {ual}
+              </ExternalLink>
+            ) : (
+              <Text
+                style={{
+                  color: colors.secondary,
+                  fontFamily: "Manrope_400Regular",
+                  fontSize: 14,
+                  lineHeight: 24,
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                  wordWrap: "normal",
+                }}
+              >
+                ual
+              </Text>
+            )}
           </View>
           <View style={{ flexDirection: "row", gap: 8 }}>
             <Text
@@ -160,6 +205,43 @@ export default function KAProfileCard({
             >
               {blockchain}
             </Text>
+          </View>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Text
+              style={{
+                color: colors.placeholder,
+                fontFamily: "Manrope_400Regular",
+                fontSize: 14,
+                lineHeight: 24,
+              }}
+            >
+              Transaction:
+            </Text>
+            {txLink ? (
+              <ExternalLink
+                href={`https://${txLink}`}
+                style={{
+                  color: colors.secondary,
+                  fontFamily: "Manrope_400Regular",
+                  fontSize: 14,
+                  lineHeight: 24,
+                  textDecorationLine: "underline",
+                }}
+              >
+                {txHash}
+              </ExternalLink>
+            ) : (
+              <Text
+                style={{
+                  color: colors.secondary,
+                  fontFamily: "Manrope_400Regular",
+                  fontSize: 14,
+                  lineHeight: 24,
+                }}
+              >
+                txHash
+              </Text>
+            )}
           </View>
         </View>
       </View>

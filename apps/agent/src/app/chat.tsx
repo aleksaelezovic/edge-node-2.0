@@ -160,14 +160,8 @@ export default function ChatPage() {
       if (!content) throw new Error("Resource not found");
 
       const parsedContent = JSON.parse(content);
-      return {
+      const resolved = {
         assertion: parsedContent.assertion,
-        publisher:
-          parsedContent.metadata
-            .at(0)
-            ?.["https://ontology.origintrail.io/dkg/1.0#publishedBy"]?.at(0)
-            ?.["@id"]?.split("/")
-            .at(1) ?? "unknown",
         lastUpdated: new Date(
           parsedContent.metadata
             .at(0)
@@ -175,7 +169,47 @@ export default function ChatPage() {
             "@value"
           ] ?? Date.now(),
         ).getTime(),
+        txHash: parsedContent.metadata
+          .at(0)
+          ?.["https://ontology.origintrail.io/dkg/1.0#publishTx"]?.at(0)?.[
+          "@value"
+        ],
+        publisher: parsedContent.metadata
+          .at(0)
+          ?.["https://ontology.origintrail.io/dkg/1.0#publishedBy"]?.at(0)
+          ?.["@id"]?.split("/")
+          .at(1),
       };
+
+      // hotfix, KC metadata not present in KA metadata
+      if (!resolved.txHash || !resolved.publisher) {
+        const splitUal = ual.split("/");
+        splitUal.pop();
+        const kcUal = splitUal.join("/");
+        const resource = await mcp.readResource({ uri: kcUal });
+        const content = resource.contents[0]?.text as string;
+        if (!content) {
+          resolved.publisher = "unknown";
+          resolved.txHash = "unknown";
+          return resolved;
+        }
+
+        const parsedContent = JSON.parse(content);
+        resolved.txHash =
+          parsedContent.metadata
+            .at(0)
+            ?.["https://ontology.origintrail.io/dkg/1.0#publishTx"]?.at(0)?.[
+            "@value"
+          ] ?? "unknown";
+        resolved.publisher =
+          parsedContent.metadata
+            .at(0)
+            ?.["https://ontology.origintrail.io/dkg/1.0#publishedBy"]?.at(0)
+            ?.["@id"]?.split("/")
+            .at(1) ?? "unknown";
+      }
+
+      return resolved;
     },
     [mcp],
   );
