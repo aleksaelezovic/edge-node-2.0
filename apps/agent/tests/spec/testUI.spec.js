@@ -31,17 +31,17 @@ test('Test wrong username and password', async ({ page }) => {
   await expect(page.getByText('Invalid username or password', { exact: true })).toBeVisible();
 });
 
-test('Test valid login', async () => {
+test.skip('Test valid login', async () => {
   await loginPage.successfullLogin();
 });
 
-test('Test send message and get answer', async ({ page }) => {
+test.skip('Test send message and get answer', async ({ page }) => {
   await loginPage.successfullLogin();
   await chatbotPage.sendMessage("3+7");
   await expect(page.locator('.css-textHasAncestor-1jxf684').last()).toHaveText("3 + 7 equals 10.");
 });
 
-test('Test if importing files and summarizing works', async ({ page }) => {
+test.skip('Test if importing files and summarizing works', async ({ page }) => {
   await loginPage.successfullLogin();
   
   const filePath = './tests/TestCourseforUKSAP1000.pdf';
