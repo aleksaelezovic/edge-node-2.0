@@ -10,6 +10,7 @@ module.exports = defineConfig({
   retries : 1,
   workers: 1,
   timeout: 100 * 2000,
+  globalTimeout: process.env.CI ? 180000 : 0, // 3 minutes in CI, no limit locally
   expect: {
     timeout: 5000,
   },
@@ -17,15 +18,21 @@ module.exports = defineConfig({
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
+  /* Stop after first failure in CI */
+  maxFailures: process.env.CI ? 5 : undefined,
   /* Opt out of parallel tests on CI. */
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [['list'], ['html']],
+  reporter: [
+    ['list'], 
+    ['html', { outputFolder: process.env.PLAYWRIGHT_HTML_REPORT || 'playwright-report', open: 'never' }], 
+    ['junit', { outputFile: process.env.PLAYWRIGHT_JUNIT_OUTPUT_NAME || 'DKG_Node_UI_Tests.xml' }]
+  ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:8081',
     browserName: 'chromium',
-    headless: false,
+    headless: true,
     launchOptions: {
       slowMo: 800,
     },
@@ -88,5 +95,8 @@ module.exports = defineConfig({
     url: 'http://localhost:8081',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000, // 2 minutes timeout for server startup
+    ignoreHTTPSErrors: true,
+    stderr: 'pipe',
+    stdout: 'pipe',
   },
 })
