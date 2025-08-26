@@ -11,9 +11,8 @@
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "test:mocha": "mocha",
-    "test:api": "turbo run test --filter='@dkg/plugin-*'",
-    "test-report:api": "node report-API-Tests-config.js"
-    
+    "test-report:ui": "node report-UI-Tests-config.js",
+    "test:ui": "turbo run test --filter=@dkg/agent"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",
