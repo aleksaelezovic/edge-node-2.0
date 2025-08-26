@@ -152,32 +152,37 @@ export default function KAProfileCard({
             >
               UAL:
             </Text>
-            <Text
-              style={{
-                color: colors.secondary,
-                fontFamily: "Manrope_400Regular",
-                fontSize: 14,
-                lineHeight: 24,
-                textOverflow: "ellipsis",
-                overflow: "hidden",
-                wordWrap: "normal",
-              }}
-            >
-              {explorerLink ? (
-                <ExternalLink
-                  href={`https://${explorerLink}`}
-                  style={{
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    wordWrap: "normal",
-                  }}
-                >
-                  {ual}
-                </ExternalLink>
-              ) : (
+            {explorerLink ? (
+              <ExternalLink
+                href={`https://${explorerLink}`}
+                style={{
+                  color: colors.secondary,
+                  fontFamily: "Manrope_400Regular",
+                  fontSize: 14,
+                  lineHeight: 24,
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                  wordWrap: "normal",
+                  textDecorationLine: "underline",
+                }}
+              >
+                {ual}
+              </ExternalLink>
+            ) : (
+              <Text
+                style={{
+                  color: colors.secondary,
+                  fontFamily: "Manrope_400Regular",
+                  fontSize: 14,
+                  lineHeight: 24,
+                  textOverflow: "ellipsis",
+                  overflow: "hidden",
+                  wordWrap: "normal",
+                }}
+              >
                 ual
-              )}
-            </Text>
+              </Text>
+            )}
           </View>
           <View style={{ flexDirection: "row", gap: 8 }}>
             <Text
@@ -212,20 +217,31 @@ export default function KAProfileCard({
             >
               Transaction:
             </Text>
-            <Text
-              style={{
-                color: colors.secondary,
-                fontFamily: "Manrope_400Regular",
-                fontSize: 14,
-                lineHeight: 24,
-              }}
-            >
-              {txLink ? (
-                <ExternalLink href={`https://${txLink}`}>{txHash}</ExternalLink>
-              ) : (
+            {txLink ? (
+              <ExternalLink
+                href={`https://${txLink}`}
+                style={{
+                  color: colors.secondary,
+                  fontFamily: "Manrope_400Regular",
+                  fontSize: 14,
+                  lineHeight: 24,
+                  textDecorationLine: "underline",
+                }}
+              >
+                {txHash}
+              </ExternalLink>
+            ) : (
+              <Text
+                style={{
+                  color: colors.secondary,
+                  fontFamily: "Manrope_400Regular",
+                  fontSize: 14,
+                  lineHeight: 24,
+                }}
+              >
                 txHash
-              )}
-            </Text>
+              </Text>
+            )}
           </View>
         </View>
       </View>
