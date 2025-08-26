@@ -9,10 +9,11 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "test": "turbo run test",
+    "test": "turbo run test --force",
     "test:mocha": "mocha",
     "test-report:ui": "node report-UI-Tests-config.js",
-    "test:ui": "turbo run test --filter=@dkg/agent"
+    "test-report:api": "node report-API-Tests-config.js",
+    "test:ui": "turbo run test --filter=@dkg/agent --force"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",
