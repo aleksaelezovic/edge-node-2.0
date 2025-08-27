@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 
 import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
@@ -84,7 +85,9 @@ const testCredentialsSchema = z.object({
 type TestCredentials = z.infer<typeof testCredentialsSchema>;
 
 // Mock login function
-const mockLogin = async (credentials: TestCredentials): Promise<{
+const mockLogin = async (
+  credentials: TestCredentials,
+): Promise<{
   scopes: string[];
 }> => {
   if (credentials.username === "admin" && credentials.password === "admin123") {
@@ -444,7 +447,7 @@ describe("@dkg/plugin-oauth checks", function () {
       const stateValue = "random-state-123";
       const mockClient = await storage.getClient("test-client-id");
       const stateCode = "state-auth-code";
-      
+
       await storage.saveCode(stateCode, mockClient!, {
         scopes: ["read"],
         redirectUri: "http://localhost:3000/callback",
@@ -467,7 +470,7 @@ describe("@dkg/plugin-oauth checks", function () {
       const codeChallenge = "custom-code-challenge-value";
       const mockClient = await storage.getClient("test-client-id");
       const pkceCode = "pkce-auth-code";
-      
+
       await storage.saveCode(pkceCode, mockClient!, {
         scopes: ["read"],
         redirectUri: "http://localhost:3000/callback",
@@ -517,7 +520,9 @@ describe("@dkg/plugin-oauth checks", function () {
       pluginWithoutLogout(mockDkgContext, mockMcpServer, routerWithoutLogout);
       appWithoutLogout.use("/", routerWithoutLogout);
 
-      const response = await request(appWithoutLogout).post("/logout").expect(200);
+      const response = await request(appWithoutLogout)
+        .post("/logout")
+        .expect(200);
 
       expect(response.status).to.equal(200);
     });
@@ -595,13 +600,21 @@ describe("@dkg/plugin-oauth checks", function () {
         res.json({ message: "Read access granted", user: req.user });
       });
 
-      protectedApp.get("/protected/write", authorized(["write"]), (req, res) => {
-        res.json({ message: "Write access granted", user: req.user });
-      });
+      protectedApp.get(
+        "/protected/write",
+        authorized(["write"]),
+        (req, res) => {
+          res.json({ message: "Write access granted", user: req.user });
+        },
+      );
 
-      protectedApp.get("/protected/admin", authorized(["admin"]), (req, res) => {
-        res.json({ message: "Admin access granted", user: req.user });
-      });
+      protectedApp.get(
+        "/protected/admin",
+        authorized(["admin"]),
+        (req, res) => {
+          res.json({ message: "Admin access granted", user: req.user });
+        },
+      );
 
       protectedApp.get(
         "/protected/multi",
@@ -776,7 +789,9 @@ describe("@dkg/plugin-oauth checks", function () {
 
       // Should now be confirmed
       const confirmedData = await storage.getCodeData(testCode);
-      expect(confirmedData?.confirmation).to.deep.equal({ includeRefreshToken: true });
+      expect(confirmedData?.confirmation).to.deep.equal({
+        includeRefreshToken: true,
+      });
 
       // Clean up
       await storage.deleteCode(testCode);
@@ -838,7 +853,9 @@ describe("@dkg/plugin-oauth checks", function () {
     it("should handle storage provider errors", async () => {
       // Mock storage to throw errors
       const errorStorage = new DemoOAuthStorageProvider();
-      sinon.stub(errorStorage, "getCodeData").rejects(new Error("Storage error"));
+      sinon
+        .stub(errorStorage, "getCodeData")
+        .rejects(new Error("Storage error"));
 
       const errorApp = express();
       errorApp.use(express.json());
