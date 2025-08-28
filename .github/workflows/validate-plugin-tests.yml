@@ -25,6 +25,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build packages (required for tests)
+        run: |
+          echo "Building packages before running tests..."
+          npm run build
+
       - name: Validate Plugin Testing Requirements
         run: |
           echo "Validating plugin testing requirements..."
@@ -128,8 +133,3 @@ jobs:
             echo ""
             echo "SUCCESS: All plugin tests validation passed!"
           fi
-
-      - name: Run Build to Ensure No Type Conflicts
-        run: |
-          echo "Running build to check for type conflicts..."
-          npm run build
