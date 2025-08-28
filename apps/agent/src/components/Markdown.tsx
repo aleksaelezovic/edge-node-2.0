@@ -101,6 +101,7 @@ export default function Markdown({
           fontFamily: "Manrope_400Regular",
           lineHeight: 24,
           marginBottom: 16,
+          marginTop: 0,
         },
         strong: {
           fontFamily: "Manrope_600SemiBold",
