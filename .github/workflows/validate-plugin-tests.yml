@@ -44,7 +44,7 @@ jobs:
           for plugin in $plugins; do
             name=$(basename "$plugin")
             echo ""
-            echo "🔍 Checking $name..."
+            echo "Checking $name..."
             
             cd "$plugin"
             
