@@ -14,56 +14,72 @@ import MicrophoneIcon from "@/components/icons/MicrophoneIcon";
 import AttachFileIcon from "@/components/icons/AttachFileIcon";
 import ToolsIcon from "@/components/icons/ToolsIcon";
 import useColors from "@/hooks/useColors";
-import { ChatMessage } from "@/shared/chat";
-import usePlatform from "@/hooks/usePlatform";
+import { ChatMessage, toContents } from "@/shared/chat";
+import { toError } from "@/shared/errors";
+import { FileDefinition } from "@/shared/files";
 
 import FilesSelected from "./ChatInput/FilesSelected";
 
-export type FileDefinition = {
-  uri?: string;
-  name?: string;
-  mimeType?: string;
-  base64: string;
-};
-
 export default function ChatInput({
   onSendMessage,
+  onUploadFiles = (assets) =>
+    assets.map((a) => ({
+      id: a.uri,
+      uri: a.uri,
+      name: a.name,
+      mimeType: a.mimeType,
+    })),
+  onUploadError,
+  onAttachFiles = (files) =>
+    files.map((f) => ({
+      type: "file",
+      file: {
+        filename: f.name,
+        file_data: f.uri,
+      },
+    })),
+  onFileRemoved,
   disabled,
   style,
 }: {
   onSendMessage: (message: ChatMessage) => void;
+  onUploadFiles?: (
+    files: DocumentPicker.DocumentPickerAsset[],
+  ) => FileDefinition[] | Promise<FileDefinition[]>;
+  onUploadError?: (error: Error) => void;
+  onAttachFiles?: (files: FileDefinition[]) => ChatMessage["content"];
+  onFileRemoved?: (file: FileDefinition) => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = useColors();
-  const { isWeb } = usePlatform();
   const [message, setMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<FileDefinition[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const onSubmit = useCallback(() => {
     onSendMessage({
       role: "user",
       content: [
-        ...selectedFiles.map((f) => ({
-          type: "file",
-          file: {
-            filename: f.name,
-            file_data: f.base64,
-          },
-        })),
+        ...toContents(onAttachFiles(selectedFiles)),
         { type: "text", text: message.trim() },
       ],
     });
     setMessage("");
     setSelectedFiles([]);
-  }, [message, selectedFiles, onSendMessage]);
+  }, [message, selectedFiles, onSendMessage, onAttachFiles]);
 
   return (
     <View style={[{ width: "100%", position: "relative" }, style]}>
       {!!selectedFiles.length && (
         <FilesSelected
           selectedFiles={selectedFiles}
-          onClear={() => setSelectedFiles([])}
+          onRemove={(removedFile) => {
+            setSelectedFiles((files) =>
+              files.filter((f) => f.id !== removedFile.id),
+            );
+            onFileRemoved?.(removedFile);
+          }}
         />
       )}
 
@@ -86,41 +102,42 @@ export default function ChatInput({
             icon={MicrophoneIcon}
             iconMode="fill"
             style={styles.inputButton}
+            disabled={disabled}
           />
           <Button
             color="primary"
             icon={ArrowUpIcon}
             style={styles.inputButton}
-            disabled={!message.trim() || disabled}
+            disabled={!message.trim() || disabled || isUploading}
             onPress={onSubmit}
           />
         </View>
       </View>
       <View style={styles.inputTools}>
         <Button
+          disabled={disabled || isUploading}
           color="secondary"
           flat
           icon={AttachFileIcon}
           text="Attach file(s)"
           style={{ height: "100%" }}
           onPress={() => {
-            if (isWeb)
-              DocumentPicker.getDocumentAsync({
-                base64: true,
-                multiple: true,
-                type: "application/pdf",
-              }).then((r) => {
-                if (!r.assets) return;
-                setSelectedFiles((oldFiles) => {
-                  const newFiles: FileDefinition[] = r.assets.map((a) => ({
-                    name: a.name,
-                    size: a.size,
-                    mimeType: a.mimeType,
-                    base64: a.uri,
-                  }));
-                  return [...new Set([...oldFiles, ...newFiles])];
-                });
-              });
+            setIsUploading(true);
+            DocumentPicker.getDocumentAsync({
+              base64: true,
+              multiple: true,
+            })
+              .then((r) => {
+                if (!r.assets) return [];
+                return onUploadFiles(r.assets);
+              })
+              .then((newFiles) =>
+                setSelectedFiles((oldFiles) => [
+                  ...new Set([...oldFiles, ...newFiles]),
+                ]),
+              )
+              .catch((error) => onUploadError?.(toError(error)))
+              .finally(() => setIsUploading(false));
           }}
         />
         <Button

@@ -8,6 +8,8 @@ import {
 } from "react";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 
+import { toError } from "@/shared/errors";
+
 import useMcpClientConnection from "./useMcpClientConnection";
 
 const McpContext = createContext<{
@@ -43,9 +45,7 @@ export default function McpContextProvider({
       if (authorizationCode) await authorize(authorizationCode);
       if (autoconnect) await connect();
     } catch (error) {
-      onError?.(
-        error instanceof Error ? error : new Error(`Unknown: ${error}`),
-      );
+      onError?.(toError(error));
     }
   }, [autoconnect, connected, connect, authorizationCode, authorize, onError]);
 

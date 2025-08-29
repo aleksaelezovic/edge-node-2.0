@@ -41,6 +41,8 @@ export type ToolCallResultContent = CallToolResult["content"];
 export const toContents = (content: ChatMessage["content"]) =>
   typeof content === "string" ? [{ type: "text", text: content }] : content;
 
+export type ChatMessageContents = ReturnType<typeof toContents>;
+
 const llmProviderFromEnv = () => {
   // Check .env and use a switch statement
   return new ChatOpenAI({
