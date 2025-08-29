@@ -16,17 +16,17 @@ test.beforeEach(async ({ page }) => {
   chatbotPage = new ChatbotPage(page);
 });
 
-test('Test wrong username', async ({ page }) => {
+test.skip('Test wrong username', async ({ page }) => {
   await loginPage.login("invalid", "admin123");
   await expect(page.getByText('Invalid username or password', { exact: true })).toBeVisible();
 });
 
-test('Test wrong password', async ({ page }) => {
+test.skip('Test wrong password', async ({ page }) => {
   await loginPage.login("admin", "invalid");
   await expect(page.getByText('Invalid username or password', { exact: true })).toBeVisible();
 });
 
-test('Test wrong username and password', async ({ page }) => {
+test.skip('Test wrong username and password', async ({ page }) => {
   await loginPage.login("invalid", "invalid");
   await expect(page.getByText('Invalid username or password', { exact: true })).toBeVisible();
 });

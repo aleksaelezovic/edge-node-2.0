@@ -9,7 +9,8 @@
     "dev": "tsup src/*.ts --format cjs,esm --dts --watch",
     "build": "tsup src/*.ts --format cjs,esm --dts",
     "check-types": "tsc --noEmit",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "test": "mocha 'tests/**/*.spec.ts'"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
@@ -20,7 +21,6 @@
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
     "@types/swagger-ui-express": "^4.1.8",
-    "eslint": "^9.29.0",
     "tsup": "^8.5.0"
   }
 }

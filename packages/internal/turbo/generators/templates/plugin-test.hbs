@@ -1,0 +1,116 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { describe, it, beforeEach, afterEach } from "mocha";
+import { expect } from "chai";
+import sinon from "sinon";
+import {{camelCase name}}Plugin from "../src/index.js";
+import express from "express";
+// import request from "supertest"; // Uncomment when you add API endpoint tests
+
+// Mock DKG context
+const mockDkgContext = {
+  dkg: {
+    get: () => Promise.resolve({}),
+    query: () => Promise.resolve([]),
+    assertion: {
+      get: () => Promise.resolve({}),
+      create: () => Promise.resolve({}),
+    },
+    asset: {
+      get: () => Promise.resolve({}),
+      create: () => Promise.resolve({}),
+    },
+    blockchain: { get: () => Promise.resolve({}) },
+    node: { get: () => Promise.resolve({}) },
+    graph: { query: () => Promise.resolve([]) },
+    network: { get: () => Promise.resolve({}) },
+    storage: { get: () => Promise.resolve({}) },
+    paranet: { get: () => Promise.resolve({}) },
+  },
+};
+
+// Mock MCP server
+function createMockMcpServer(): any {
+  const registeredTools = new Map();
+  const registeredResources = new Map();
+
+  return {
+    registerTool(
+      name: string,
+      config: Record<string, unknown>,
+      handler: (...args: any[]) => any,
+    ) {
+      registeredTools.set(name, { ...config, handler });
+      return this;
+    },
+    registerResource(
+      name: string,
+      template: any,
+      config: Record<string, unknown>,
+      handler: (...args: any[]) => any,
+    ) {
+      registeredResources.set(name, { template, config, handler });
+      return this;
+    },
+    getRegisteredTools() {
+      return registeredTools;
+    },
+    getRegisteredResources() {
+      return registeredResources;
+    },
+  };
+}
+
+describe("@dkg/{{kebabCase name}} checks", function () {
+  let mockMcpServer: any;
+  let apiRouter: express.Router;
+  let app: express.Application;
+
+  this.timeout(5000);
+
+  beforeEach(() => {
+    mockMcpServer = createMockMcpServer();
+    apiRouter = express.Router();
+    app = express();
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+
+    // Initialize plugin
+    {{camelCase name}}Plugin(mockDkgContext, mockMcpServer, apiRouter);
+    app.use("/", apiRouter);
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  describe("Plugin Configuration", () => {
+    it("should create plugin without errors", () => {
+      expect({{camelCase name}}Plugin).to.be.a("function");
+    });
+  });
+
+  describe("Core Functionality", () => {
+    it("should register tools or endpoints", () => {
+      // TODO: Replace this placeholder with your actual tests!
+      // Example for MCP tools:
+      // const tools = mockMcpServer.getRegisteredTools();
+      // expect(tools.has("your-tool-name")).to.equal(true);
+      
+      // Example for API endpoints:
+      // return request(app).get("/your-endpoint").expect(200);
+      
+      throw new Error("TODO: Replace placeholder test with your actual plugin functionality tests");
+    });
+  });
+
+  describe("Error Handling", () => {
+    it("should handle invalid parameters", async () => {
+      // TODO: Replace this placeholder with your actual error handling tests!
+      // Example:
+      // await request(app).get("/invalid-endpoint").expect(400);
+      
+      throw new Error("TODO: Replace placeholder test with your actual error handling tests");
+    });
+  });
+});

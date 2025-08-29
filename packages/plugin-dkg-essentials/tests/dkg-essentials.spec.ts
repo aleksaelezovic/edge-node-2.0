@@ -194,7 +194,6 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
     });
   });
 
-  /* eslint-disable @typescript-eslint/no-unused-expressions */
   describe("DKG Get Tool Functionality", () => {
     it("should retrieve knowledge asset by UAL", async () => {
       const dkgGetTool = mockMcpServer.getRegisteredTools().get("dkg-get");

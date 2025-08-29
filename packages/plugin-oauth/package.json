@@ -9,7 +9,8 @@
     "dev": "tsup src/*.ts --format cjs,esm --dts --watch",
     "build": "tsup src/*.ts --format cjs,esm --dts",
     "check-types": "tsc --noEmit",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "test": "mocha 'tests/**/*.spec.ts'"
   },
   "dependencies": {
     "@dkg/plugin-swagger": "^0.0.2",
@@ -20,7 +21,7 @@
   "devDependencies": {
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
-    "eslint": "^9.29.0",
+    "@types/uuid": "^10.0.0",
     "tsup": "^8.5.0"
   }
 }

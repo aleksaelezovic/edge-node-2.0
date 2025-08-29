@@ -29,4 +29,11 @@ export const config = [
   {
     ignores: ["dist/**"],
   },
+  // Disable no-unused-expressions rule in test files for Chai assertions
+  {
+    files: ["**/*.spec.ts", "**/*.test.ts", "**/tests/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-unused-expressions": "off",
+    },
+  },
 ];

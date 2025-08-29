@@ -66,6 +66,12 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         pattern: /.*$/,
         templateFile: "templates/plugin.hbs",
       },
+      // Create tests directory and test file
+      {
+        type: "add",
+        path: "../{{kebabCase name}}/tests/{{kebabCase name}}.spec.ts",
+        templateFile: "templates/plugin-test.hbs",
+      },
     ],
   });
 }
