@@ -167,12 +167,12 @@ Before submitting your plugin, check that you have:
 - [ ] Plugin Configuration tests work automatically
 - [ ] Mock infrastructure is set up
 
-**Required Customization (tests will fail until you do this!):**
+**Required Customization:**
 
 - [ ] Replaced placeholder **Core Functionality** tests with real tests
 - [ ] Replaced placeholder **Error Handling** tests with real tests
 
-**Optional Enhancements (makes your plugin more trustworthy!):**
+**Optional Enhancements:**
 
 - [ ] Added Edge Cases tests
 - [ ] Added Performance tests
