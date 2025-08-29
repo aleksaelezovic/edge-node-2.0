@@ -4,13 +4,15 @@
 
 ## Why Testing Matters
 
-Tests ensure your plugin works reliably and won't break when integrated with other plugins. They also make your plugin more trustworthy to the community! The good news: when you create a plugin with `turbo gen plugin`, all testing setup is done automatically.
+Tests ensure your plugin works reliably and won't break when integrated with other plugins. They also make your plugin more trustworthy to the community! The good news: when you create a plugin with `turbo gen`, all testing setup is done automatically.
 
 **Testing:** Your plugin needs 2 essential test categories to pass validation: **Core Functionality** and **Error Handling**. We automatically set up configuration tests and infrastructure. **The more comprehensive your testing, the better!** High-quality plugins with extensive test coverage are more trusted by the community.
 
 ## Auto-Generated Testing Setup
 
-When you create a plugin with `turbo gen plugin my-plugin`, you automatically get:
+**Note:** Tests are automatically created when using `turbo gen` → "plugin" option, but not for `turbo gen` → "package" option.
+
+When you create a plugin with `turbo gen` (plugin option), you automatically get:
 
 **Complete Test Infrastructure (Works Automatically):**
 - Test script in `package.json` - `npm test` ready to run  
@@ -92,7 +94,7 @@ describe("Error Handling", () => {
 Beyond the 2 required categories, consider adding more comprehensive tests to make your plugin even more trustworthy:
 
 ```typescript
-// 💡 More comprehensive testing examples:
+// More comprehensive testing examples:
 
 describe("Edge Cases", () => {
   it("should handle very large inputs", async () => {
@@ -131,7 +133,7 @@ describe("Security", () => {
 
 ## Manual Setup (Only if NOT using the generator)
 
-If you didn't use `turbo gen plugin` and need to set up testing manually:
+If you didn't use `turbo gen` (plugin option) and need to set up testing manually:
 
 <details>
 <summary>Click to expand manual setup instructions</summary>
@@ -155,7 +157,7 @@ Create `tests/your-plugin.spec.ts` and copy the template from any existing plugi
 
 Before submitting your plugin, check that you have:
 
-**Automatic Setup (if you used `turbo gen plugin`):**
+**Automatic Setup (if you used `turbo gen` plugin option):**
 
 - [ ] Test script exists in `package.json`
 - [ ] Test file exists in `tests/` directory
