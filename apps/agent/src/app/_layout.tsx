@@ -1,5 +1,6 @@
 import "../polyfills";
-import { useCallback } from "react";
+import { PropsWithChildren, useCallback } from "react";
+import { View } from "react-native";
 import {
   DarkTheme,
   DefaultTheme,
@@ -25,8 +26,49 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Background from "@/components/layout/Background";
 import { McpContextProvider } from "@/client";
+import Alerts, { useAlerts } from "@/components/Alerts";
+import Container from "@/components/layout/Container";
 
 SplashScreen.preventAutoHideAsync();
+
+const McpProvider = ({ children }: PropsWithChildren) => {
+  const params = useGlobalSearchParams<{ code?: string }>();
+  const isLogin = usePathname() === "/login";
+
+  const { showAlert } = useAlerts();
+
+  const onConnectedChange = useCallback((connected: boolean) => {
+    if (connected) {
+      SplashScreen.hide();
+      router.setParams({ code: undefined });
+    }
+  }, []);
+
+  const onError = useCallback(
+    (error: Error) => {
+      SplashScreen.hide();
+
+      showAlert({
+        type: "error",
+        title: "MCP Error",
+        message: error.message,
+        timeout: 5000,
+      });
+    },
+    [showAlert],
+  );
+
+  return (
+    <McpContextProvider
+      authorizationCode={!isLogin && params.code ? params.code : null}
+      onConnectedChange={onConnectedChange}
+      onError={onError}
+      autoconnect={!isLogin}
+    >
+      {children}
+    </McpContextProvider>
+  );
+};
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -40,21 +82,6 @@ export default function RootLayout() {
     SpaceGrotesk_700Bold,
   });
 
-  const params = useGlobalSearchParams<{ code?: string }>();
-  const isLogin = usePathname() === "/login";
-
-  const onConnectedChange = useCallback((connected: boolean) => {
-    if (connected) {
-      SplashScreen.hide();
-      router.setParams({ code: undefined });
-    }
-  }, []);
-
-  const onError = useCallback((error: Error) => {
-    console.error("MCP ERROR:", error.message);
-    SplashScreen.hide();
-  }, []);
-
   if (!loaded) {
     // Async font loading only occurs in development.
     return null;
@@ -62,17 +89,33 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <McpContextProvider
-        authorizationCode={!isLogin && params.code ? params.code : null}
-        onConnectedChange={onConnectedChange}
-        onError={onError}
-        autoconnect={!isLogin}
-      >
-        <Background>
-          <Slot />
-        </Background>
-        <StatusBar style="auto" />
-      </McpContextProvider>
+      <Alerts.Provider>
+        <McpProvider>
+          <Background>
+            <View
+              style={{
+                position: "absolute",
+                top: 100,
+                width: "100%",
+                zIndex: 10000,
+              }}
+            >
+              <Container>
+                <Alerts
+                  style={{
+                    flex: 1,
+                    width: "100%",
+                    height: "100%",
+                    alignItems: "flex-end",
+                  }}
+                />
+              </Container>
+            </View>
+            <Slot />
+          </Background>
+          <StatusBar style="auto" />
+        </McpProvider>
+      </Alerts.Provider>
     </ThemeProvider>
   );
 }
