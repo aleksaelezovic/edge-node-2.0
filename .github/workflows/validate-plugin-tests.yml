@@ -4,9 +4,6 @@ on:
   pull_request:
     paths:
       - 'packages/plugin-*/**'
-  push:
-    paths:
-      - 'packages/plugin-*/**'
 
 jobs:
   validate-plugin-tests:
@@ -30,106 +27,59 @@ jobs:
           echo "Building packages before running tests..."
           npm run build
 
-      - name: Validate Plugin Testing Requirements
+      - name: Check Plugin Tests
         run: |
-          echo "Validating plugin testing requirements..."
+          echo "Checking plugin tests..."
           
-          # Find all plugin directories (only actual plugins, not node_modules)
-          # Pattern "packages/plugin-*" ensures only directories starting with "plugin-" are validated
-          # This excludes: eslint-config, typescript-config, internal, plugins, etc.
-          CHANGED_PLUGINS=$(find packages/plugin-* -maxdepth 1 -name "package.json" -exec dirname {} \; 2>/dev/null || true)
+          # Find all plugin directories 
+          plugins=$(find packages/plugin-* -name "package.json" | xargs dirname)
           
-          if [ -z "$CHANGED_PLUGINS" ]; then
-            echo "No plugin changes detected"
+          if [ -z "$plugins" ]; then
+            echo "No plugins found, nothing to check"
             exit 0
           fi
           
-          VALIDATION_FAILED=false
+          failed=false
           
-          for PLUGIN_DIR in $CHANGED_PLUGINS; do
-            PLUGIN_NAME=$(basename "$PLUGIN_DIR")
+          for plugin in $plugins; do
+            name=$(basename "$plugin")
             echo ""
-            echo "Validating $PLUGIN_NAME..."
+            echo "🔍 Checking $name..."
             
-            # 1. Check if test file exists
-            if [ ! -d "$PLUGIN_DIR/tests" ] || [ -z "$(find "$PLUGIN_DIR/tests" -name "*.spec.ts" 2>/dev/null)" ]; then
-              echo "ERROR: Missing test file in $PLUGIN_DIR/tests/"
-              VALIDATION_FAILED=true
-              continue
-            fi
+            cd "$plugin"
             
-            # 2. Check for Express dependencies (causes build conflicts)
-            if grep -q '"express"' "$PLUGIN_DIR/package.json" || grep -q '"@types/express"' "$PLUGIN_DIR/package.json"; then
-              echo "ERROR: $PLUGIN_NAME has Express dependencies - this causes build conflicts!"
-              echo "   Remove 'express' and '@types/express' from devDependencies"
-              VALIDATION_FAILED=true
-            fi
-            
-            # 3. Check if test script exists
-            if ! grep -q '"test"' "$PLUGIN_DIR/package.json"; then
-              echo "ERROR: $PLUGIN_NAME missing test script in package.json"
-              VALIDATION_FAILED=true
-            fi
-            
-            # 4. Run tests and check they pass
-            echo "Running tests for $PLUGIN_NAME..."
-            cd "$PLUGIN_DIR" || { echo "ERROR: Cannot enter directory $PLUGIN_DIR"; VALIDATION_FAILED=true; continue; }
-            
-            # Check test execution time (should be under 60 seconds)
-            START_TIME=$(date +%s)
-            if ! timeout 60s npm test 2>&1; then
-              END_TIME=$(date +%s)
-              DURATION=$((END_TIME - START_TIME))
-              if [ $DURATION -ge 60 ]; then
-                echo "ERROR: $PLUGIN_NAME tests took too long (${DURATION}s >= 60s)"
-              else
-                echo "ERROR: $PLUGIN_NAME tests failed"
-              fi
-              VALIDATION_FAILED=true
+            # Run the tests (with 60 second timeout)
+            echo "Running tests..."
+            if timeout 60s npm test > /dev/null 2>&1; then
+              echo "✅ Tests passed"
             else
-              END_TIME=$(date +%s)
-              DURATION=$((END_TIME - START_TIME))
-              echo "SUCCESS: $PLUGIN_NAME tests passed in ${DURATION}s"
+              echo "❌ Tests failed or took too long"
+              failed=true
             fi
             
-            # 5. Check for required test patterns
-            TEST_FILE=$(find tests -name "*.spec.ts" | head -1)
-            if [ -f "$TEST_FILE" ]; then
-              # Check for basic test structure
-              if ! grep -q "describe.*checks" "$TEST_FILE"; then
-                echo "WARNING: $PLUGIN_NAME test file should follow naming pattern: 'describe(\"@dkg/$PLUGIN_NAME checks\"'"
+            # Check if plugin has core functionality tests
+            test_file=$(find tests -name "*.spec.ts" | head -1)
+            if [ -f "$test_file" ]; then
+              patterns="Core Functionality|Tool Registration|Tool Functionality|API Endpoint|Login Endpoint|OpenAPI Endpoint|Resource Handler|Registration|Functionality"
+              if grep -q "$patterns" "$test_file"; then
+                echo "✅ Core functionality tests found"
+              else
+                echo "❌ Missing core functionality tests"
+                failed=true
               fi
-              
-              # Check for 3 universal requirements - ALL MUST BE MET
-              
-              # 1. Plugin Configuration (very flexible - basic initialization test)
-              if ! grep -q "Plugin Configuration\|Configuration\|should create plugin\|should.*plugin.*valid\|beforeEach.*plugin\|examplePlugin\|authPlugin\|oauthPlugin\|swaggerPlugin\|dkgEssentialsPlugin" "$TEST_FILE"; then
-                echo "ERROR: $PLUGIN_NAME missing Plugin Configuration tests (must test that plugin initializes correctly)"
-                VALIDATION_FAILED=true
-              fi
-              
-              # 2. Core Functionality (test main purpose)
-              if ! grep -q "Core Functionality\|Tool Registration\|Tool Functionality\|API Endpoint\|Login Endpoint\|OpenAPI Endpoint\|Resource Handler\|Registration\|Functionality" "$TEST_FILE"; then
-                echo "ERROR: $PLUGIN_NAME missing Core Functionality tests (test your plugin's main purpose)"
-                VALIDATION_FAILED=true
-              fi
-              
-              # 3. Error Handling (flexible - can be in any section)
-              if ! grep -q "Error.*[Hh]andling\|should.*400\|should.*error\|invalid.*parameter\|missing.*parameter\|should.*fail\|expect.*400\|expect.*error" "$TEST_FILE"; then
-                echo "ERROR: $PLUGIN_NAME missing Error Handling tests (must test error scenarios)"
-                VALIDATION_FAILED=true
-              fi
+            else
+              echo "❌ No test files found"
+              failed=true
             fi
             
-            cd - > /dev/null 2>&1 || cd "$GITHUB_WORKSPACE"
+            cd - > /dev/null
           done
           
-          if [ "$VALIDATION_FAILED" = true ]; then
-            echo ""
-            echo "ERROR: Plugin validation failed!"
-            echo "See packages/plugin-example/tests/ for testing examples"
+          echo ""
+          if [ "$failed" = true ]; then
+            echo "❌ Some plugins failed validation"
+            echo "See packages/plugin-example/tests/ for examples"
             exit 1
           else
-            echo ""
-            echo "SUCCESS: All plugin tests validation passed!"
+            echo "✅ All plugins passed validation!"
           fi

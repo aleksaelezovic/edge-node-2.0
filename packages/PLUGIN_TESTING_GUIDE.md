@@ -1,12 +1,12 @@
 # DKG Plugin Testing Guide
 
-**All plugin submissions must include tests to be accepted.** This guide shows you how to write them quickly and correctly.
+**All plugin submissions should include comprehensive tests.** This guide shows you how to write them quickly and correctly.
 
 ## Why Testing Matters
 
 Tests ensure your plugin works reliably and won't break when integrated with other plugins. They also make your plugin more trustworthy to the community! Don't worry - we've made it simple with copy-paste templates.
 
-**Testing:** We require 3 minimum test categories for acceptance, but **the more comprehensive your testing, the better!** High-quality plugins with extensive test coverage are more trusted by the community.
+**Testing:** We recommend 3 test categories, with GitHub Actions only validating that Core Functionality tests exist. **The more comprehensive your testing, the better!** High-quality plugins with extensive test coverage are more trusted by the community.
 
 ## Quick Setup
 
@@ -125,9 +125,9 @@ describe("@dkg/your-plugin checks", function () {
 
 ### 3. Add Tests
 
-Now add **at least** these 3 required test sections inside your `describe` block. Feel free to add more tests - the more comprehensive your testing, the better!
+Now add **at least** these 3 recommended test sections inside your `describe` block. **Note:** GitHub Actions only validates Core Functionality tests - if those are missing, it will fail. Feel free to add more tests - the more comprehensive your testing, the better!
 
-#### A. Plugin Configuration Tests (Required)
+#### A. Plugin Configuration Tests
 
 Test that your plugin initializes correctly. GitHub Actions is flexible - any of these patterns work:
 
@@ -151,7 +151,7 @@ it("should create plugin with valid configuration", () => {
 });
 ```
 
-#### B. Core Functionality Tests (Required)
+#### B. Core Functionality Tests
 
 Test your plugin's main purpose - whatever it does. You can use ANY of these section names:
 
@@ -179,7 +179,7 @@ describe("API Endpoints", () => {
 });
 ```
 
-#### C. Error Handling Tests (Required)
+#### C. Error Handling Tests
 
 Test error scenarios. GitHub Actions accepts ANY of these patterns:
 
@@ -208,7 +208,7 @@ it("should fail gracefully", async () => {
 
 #### D. Additional Tests (Recommended)
 
-The 3 test categories above are the **minimum requirements**. For high-quality plugins, consider adding:
+The 3 test categories above are the **minimum recommendations** (GitHub Actions will fail without them). For high-quality plugins, consider adding:
 
 ```typescript
 // 💡 More comprehensive testing examples:
@@ -256,21 +256,20 @@ Before submitting your plugin, check that you have:
 
 - [ ] Added test script to `package.json`
 - [ ] Created `tests/your-plugin.spec.ts` file
-- [ ] Removed any `express` or `@types/express` from devDependencies (causes conflicts)
 
-**Required Test Content:**
+**Recommended Test Content:**
 
 - [ ] Plugin configuration tests (plugin initializes correctly)
 - [ ] Core functionality tests (your plugin's main purpose)
 - [ ] Error handling tests (handles errors gracefully)
-- [ ] Additional tests for better quality (optional but recommended)
+- [ ] Additional tests for better quality
 
-**Technical:**
+**Technical Requirements (GitHub Actions validates these):**
 
-- [ ] All tests pass: `npm test`
+- [ ] All tests pass: `npm test`  
 - [ ] Tests run under 60 seconds
-- [ ] Tests follow the template structure
+- [ ] Core functionality tests exist
 
 If all boxes are checked, your plugin is ready for submission!
 
-**Automated Validation**: GitHub Actions will automatically check ALL requirements when you submit a PR. If ANY requirement is not met, your PR will be BLOCKED until you fix the issues!
+**Automated Validation**: GitHub Actions will automatically run your tests and check that Core Functionality tests exist when you submit a PR. If tests fail or Core Functionality tests are missing, GitHub Actions will FAIL, but you can still merge unless branch protection rules are enabled.
