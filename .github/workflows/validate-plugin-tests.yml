@@ -33,8 +33,8 @@ jobs:
           echo "Required: Core Functionality + Error Handling test categories"
           echo "Note: Plugin Configuration tests are validated automatically by test execution"
           
-          # Find all plugin directories 
-          plugins=$(find packages/plugin-* -name "package.json" | xargs dirname)
+          # Find all plugin directories at the top level only
+          plugins=$(find packages -maxdepth 1 -name "plugin-*" -type d)
           
           if [ -z "$plugins" ]; then
             echo "No plugins found, nothing to check"
@@ -62,11 +62,10 @@ jobs:
             # Check for the 2 required test categories
             test_file=$(find tests -name "*.spec.ts" | head -1)
             if [ -f "$test_file" ]; then
-              echo "🔍 Checking required test categories..."
+              echo "Checking required test categories..."
               
               # 1. Core Functionality tests (required)
-              core_patterns="Core Functionality|Tool Registration|Tool Functionality|API Endpoint|Login Endpoint|OpenAPI Endpoint|Resource Handler|Registration|Functionality"
-              if grep -q "$core_patterns" "$test_file"; then
+              if grep -E "(Core Functionality|Tool Registration|Tool Functionality|API Endpoint|Login Endpoint|OpenAPI Endpoint|Resource Handler|Registration|Functionality)" "$test_file" > /dev/null; then
                 echo "✅ Core Functionality tests found"
               else
                 echo "❌ Missing Core Functionality tests (required category 1/2)"
@@ -74,8 +73,7 @@ jobs:
               fi
               
               # 2. Error Handling tests (required)
-              error_patterns="Error Handling|Error Cases|Invalid Parameters|Validation Errors|Exception Handling"
-              if grep -q "$error_patterns" "$test_file"; then
+              if grep -E "(Error Handling|Error Cases|Invalid Parameters|Validation Errors|Exception Handling)" "$test_file" > /dev/null; then
                 echo "✅ Error Handling tests found"
               else
                 echo "❌ Missing Error Handling tests (required category 2/2)"
@@ -103,7 +101,7 @@ jobs:
             echo "Read packages/PLUGIN_TESTING_GUIDE.md for detailed instructions"
             exit 1
           else
-            echo "✅ All plugins passed validation!"
+            echo "🎉 All plugins passed validation!"
             echo "✅ Core Functionality tests found"
             echo "✅ Error Handling tests found" 
             echo "✅ All tests passing"
