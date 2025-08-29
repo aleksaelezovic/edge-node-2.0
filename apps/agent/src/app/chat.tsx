@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { View, Platform, KeyboardAvoidingView } from "react-native";
 import { Image } from "expo-image";
-import * as SplashScreen from "expo-splash-screen";
 import * as Clipboard from "expo-clipboard";
 import { fetch } from "expo/fetch";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 //import AsyncStorage from "@react-native-async-storage/async-storage";
+import { parseSourceKAContent } from "@dkg/plugin-dkg-essentials/utils";
 
 import { useMcpClient } from "@/client";
 import useColors from "@/hooks/useColors";
@@ -14,6 +14,8 @@ import Page from "@/components/layout/Page";
 import Container from "@/components/layout/Container";
 import Header from "@/components/layout/Header";
 import Chat from "@/components/chat/Chat";
+import { SourceKAResolver } from "@/components/chat/ChatMessage/SourceKAs/SourceKAsCollapsibleItem";
+import { useAlerts } from "@/components/Alerts";
 
 import {
   type ChatMessage,
@@ -25,8 +27,6 @@ import {
   makeCompletionRequest,
   toContents,
 } from "@/shared/chat";
-import { SourceKAResolver } from "@/components/chat/ChatMessage/SourceKAs/SourceKAsCollapsibleItem";
-import { parseSourceKAContent } from "@dkg/plugin-dkg-essentials/utils";
 
 export default function ChatPage() {
   const colors = useColors();
@@ -41,9 +41,11 @@ export default function ChatPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const safeAreaInsets = useSafeAreaInsets();
 
+  const { showAlert } = useAlerts();
+
   useEffect(() => {
     if (!connected) return;
-    SplashScreen.hide();
+
     mcp
       .listTools()
       .then(({ tools }) => {
@@ -68,9 +70,13 @@ export default function ChatPage() {
         setToolsInfo(toolsInfo);
       })
       .catch((error) => {
-        console.log("Error listing MCP tools: ", error.message);
+        showAlert({
+          type: "error",
+          title: "Error listing MCP tools",
+          message: error.message,
+        });
       });
-  }, [connected, mcp]);
+  }, [connected, mcp, showAlert]);
 
   async function callTool(tc: ToolCall) {
     setToolCalls((p) => ({
@@ -155,63 +161,72 @@ export default function ChatPage() {
 
   const kaResolver = useCallback<SourceKAResolver>(
     async (ual) => {
-      const resource = await mcp.readResource({ uri: ual });
-      const content = resource.contents[0]?.text as string;
-      if (!content) throw new Error("Resource not found");
-
-      const parsedContent = JSON.parse(content);
-      const resolved = {
-        assertion: parsedContent.assertion,
-        lastUpdated: new Date(
-          parsedContent.metadata
-            .at(0)
-            ?.["https://ontology.origintrail.io/dkg/1.0#publishTime"]?.at(0)?.[
-            "@value"
-          ] ?? Date.now(),
-        ).getTime(),
-        txHash: parsedContent.metadata
-          .at(0)
-          ?.["https://ontology.origintrail.io/dkg/1.0#publishTx"]?.at(0)?.[
-          "@value"
-        ],
-        publisher: parsedContent.metadata
-          .at(0)
-          ?.["https://ontology.origintrail.io/dkg/1.0#publishedBy"]?.at(0)
-          ?.["@id"]?.split("/")
-          .at(1),
-      };
-
-      // hotfix, KC metadata not present in KA metadata
-      if (!resolved.txHash || !resolved.publisher) {
-        const splitUal = ual.split("/");
-        splitUal.pop();
-        const kcUal = splitUal.join("/");
-        const resource = await mcp.readResource({ uri: kcUal });
+      try {
+        const resource = await mcp.readResource({ uri: ual });
         const content = resource.contents[0]?.text as string;
-        if (!content) {
-          resolved.publisher = "unknown";
-          resolved.txHash = "unknown";
-          return resolved;
-        }
+        if (!content) throw new Error("Resource not found");
 
         const parsedContent = JSON.parse(content);
-        resolved.txHash =
-          parsedContent.metadata
+        const resolved = {
+          assertion: parsedContent.assertion,
+          lastUpdated: new Date(
+            parsedContent.metadata
+              .at(0)
+              ?.[
+                "https://ontology.origintrail.io/dkg/1.0#publishTime"
+              ]?.at(0)?.["@value"] ?? Date.now(),
+          ).getTime(),
+          txHash: parsedContent.metadata
             .at(0)
             ?.["https://ontology.origintrail.io/dkg/1.0#publishTx"]?.at(0)?.[
             "@value"
-          ] ?? "unknown";
-        resolved.publisher =
-          parsedContent.metadata
+          ],
+          publisher: parsedContent.metadata
             .at(0)
             ?.["https://ontology.origintrail.io/dkg/1.0#publishedBy"]?.at(0)
             ?.["@id"]?.split("/")
-            .at(1) ?? "unknown";
-      }
+            .at(1),
+        };
 
-      return resolved;
+        // hotfix, KC metadata not present in KA metadata
+        if (!resolved.txHash || !resolved.publisher) {
+          const splitUal = ual.split("/");
+          splitUal.pop();
+          const kcUal = splitUal.join("/");
+          const resource = await mcp.readResource({ uri: kcUal });
+          const content = resource.contents[0]?.text as string;
+          if (!content) {
+            resolved.publisher = "unknown";
+            resolved.txHash = "unknown";
+            return resolved;
+          }
+
+          const parsedContent = JSON.parse(content);
+          resolved.txHash =
+            parsedContent.metadata
+              .at(0)
+              ?.["https://ontology.origintrail.io/dkg/1.0#publishTx"]?.at(0)?.[
+              "@value"
+            ] ?? "unknown";
+          resolved.publisher =
+            parsedContent.metadata
+              .at(0)
+              ?.["https://ontology.origintrail.io/dkg/1.0#publishedBy"]?.at(0)
+              ?.["@id"]?.split("/")
+              .at(1) ?? "unknown";
+        }
+
+        return resolved;
+      } catch (error) {
+        showAlert({
+          type: "error",
+          title: "Failed to resolve Knowledge Asset",
+          message: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
+      }
     },
-    [mcp],
+    [mcp, showAlert],
   );
 
   const isLandingScreen = !messages.length && !isNativeMobile;
