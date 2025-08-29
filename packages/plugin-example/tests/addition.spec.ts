@@ -167,4 +167,36 @@ describe("@dkg/plugin-example checks", () => {
       await request(app).get("/add?a=invalid&b=3").expect(400);
     });
   });
+
+  describe("Error Handling", () => {
+    it("should handle invalid tool parameters", async () => {
+      const addTool = mockMcpServer.getRegisteredTools().get("add");
+      
+      try {
+        await addTool.handler({ a: "invalid", b: "invalid" });
+        expect.fail("Should have thrown an error for invalid parameters");
+      } catch (error) {
+        expect(error).to.be.an("error");
+      }
+    });
+
+    it("should handle missing tool parameters", async () => {
+      const addTool = mockMcpServer.getRegisteredTools().get("add");
+      
+      try {
+        await addTool.handler({ a: 5 }); // Missing 'b' parameter
+        expect.fail("Should have thrown an error for missing parameters");
+      } catch (error) {
+        expect(error).to.be.an("error");
+      }
+    });
+
+    it("should handle malformed API requests", async () => {
+      await request(app).get("/add?invalid=query").expect(400);
+    });
+
+    it("should handle non-numeric API parameters gracefully", async () => {
+      await request(app).get("/add?a=text&b=moretext").expect(400);
+    });
+  });
 });

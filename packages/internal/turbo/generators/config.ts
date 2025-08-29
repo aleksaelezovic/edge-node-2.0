@@ -66,6 +66,19 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
         pattern: /.*$/,
         templateFile: "templates/plugin.hbs",
       },
+      // Add test script to package.json
+      {
+        type: "append",
+        path: "../{{kebabCase name}}/package.json",
+        pattern: /"scripts": {(?<insertion>)/g,
+        template: `    "test": "mocha 'tests/**/*.spec.ts'",`,
+      },
+      // Create tests directory and test file
+      {
+        type: "add",
+        path: "../{{kebabCase name}}/tests/{{kebabCase name}}.spec.ts",
+        templateFile: "templates/plugin-test.hbs",
+      },
     ],
   });
 }

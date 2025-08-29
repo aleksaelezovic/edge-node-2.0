@@ -1,214 +1,95 @@
 # DKG Plugin Testing Guide
 
-**All plugin submissions should include comprehensive tests.** This guide shows you how to write them quickly and correctly.
+**All plugin submissions should include comprehensive tests.** This guide shows you how to customize the auto-generated test template for your plugin.
 
 ## Why Testing Matters
 
-Tests ensure your plugin works reliably and won't break when integrated with other plugins. They also make your plugin more trustworthy to the community! Don't worry - we've made it simple with copy-paste templates.
+Tests ensure your plugin works reliably and won't break when integrated with other plugins. They also make your plugin more trustworthy to the community! The good news: when you create a plugin with `turbo gen plugin`, all testing setup is done automatically.
 
-**Testing:** We recommend 3 test categories, with GitHub Actions only validating that Core Functionality tests exist. **The more comprehensive your testing, the better!** High-quality plugins with extensive test coverage are more trusted by the community.
+**Testing:** Your plugin needs 2 essential test categories to pass validation: **Core Functionality** and **Error Handling**. We automatically set up configuration tests and infrastructure. **The more comprehensive your testing, the better!** High-quality plugins with extensive test coverage are more trusted by the community.
 
-## Quick Setup
+## Auto-Generated Testing Setup
 
-### 1. Add Test Script
+When you create a plugin with `turbo gen plugin my-plugin`, you automatically get:
 
-Add the test script to your `package.json` (testing dependencies are already available in the monorepo):
+**Complete Test Infrastructure (Works Automatically):**
+- Test script in `package.json` - `npm test` ready to run  
+- Test file template - `tests/my-plugin.spec.ts` 
+- Mock setup - DKG context and MCP server mocks included
+- Plugin Configuration tests - Basic validation that works for any plugin
 
-```json
-{
-  "scripts": {
-    "test": "mocha 'tests/**/*.spec.ts'"
-  }
-}
+**Placeholder Tests (Must Be Customized):**
+- Core Functionality tests - Structure provided but content must be replaced
+- Error Handling tests - Structure provided but content must be replaced
+
+## What You Need To Customize
+
+**Important:** Run `npm test` after generation and you'll see failing tests with messages like:
+```
+Error: TODO: Replace placeholder test with your actual plugin functionality tests
 ```
 
-### 2. Create Test File
+This is intentional! You must replace the placeholder tests with real ones. Look for the `TODO` comments and replace them with actual tests for your plugin.
 
-Create `tests/your-plugin.spec.ts` and copy this template:
+**Note:** GitHub Actions validates Core Functionality and Error Handling tests - if either are missing, it will fail. 
 
+## Required Test Categories
+
+### 1. Core Functionality Tests (Replace the Placeholder!)
+
+**GitHub Actions validates this exists.** Replace the placeholder test with your actual plugin functionality:
+
+**For MCP Tools:**
 ```typescript
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// Note: The @typescript-eslint/no-unused-expressions rule is automatically 
-// disabled for all test files, so you don't need eslint-disable comments 
-// for Chai assertions like expect(something).to.exist
-
-// Import testing libraries
-import { describe, it, beforeEach, afterEach } from "mocha";
-import { expect } from "chai";
-import sinon from "sinon";
-import yourPlugin from "../src/index.js"; // ← Replace with your plugin
-import express from "express";
-import request from "supertest";
-
-// Copy this DKG mock (required for all plugins)
-const mockDkgContext = {
-  dkg: {
-    get: () => Promise.resolve({}),
-    query: () => Promise.resolve([]),
-    assertion: {
-      get: () => Promise.resolve({}),
-      create: () => Promise.resolve({}),
-    },
-    asset: {
-      get: () => Promise.resolve({}),
-      create: () => Promise.resolve({}),
-    },
-    blockchain: { get: () => Promise.resolve({}) },
-    node: { get: () => Promise.resolve({}) },
-    graph: { query: () => Promise.resolve([]) },
-    network: { get: () => Promise.resolve({}) },
-    storage: { get: () => Promise.resolve({}) },
-    paranet: { get: () => Promise.resolve({}) },
-  },
-};
-
-// Copy this MCP server mock (required for all plugins)
-function createMockMcpServer(): any {
-  const registeredTools = new Map();
-  const registeredResources = new Map();
-
-  return {
-    registerTool(
-      name: string,
-      config: Record<string, unknown>,
-      handler: (...args: any[]) => any,
-    ) {
-      registeredTools.set(name, { ...config, handler });
-      return this;
-    },
-    registerResource(
-      name: string,
-      template: any,
-      config: Record<string, unknown>,
-      handler: (...args: any[]) => any,
-    ) {
-      registeredResources.set(name, { template, config, handler });
-      return this;
-    },
-    getRegisteredTools() {
-      return registeredTools;
-    },
-    getRegisteredResources() {
-      return registeredResources;
-    },
-  };
-}
-
-// Your main test setup (customize the plugin name)
-describe("@dkg/your-plugin checks", function () {
-  let mockMcpServer: any;
-  let apiRouter: express.Router;
-  let app: express.Application;
-
-  this.timeout(5000);
-
-  beforeEach(() => {
-    // Setup test environment
-    mockMcpServer = createMockMcpServer();
-    apiRouter = express.Router();
-    app = express();
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
-
-    // Initialize YOUR plugin here (replace yourPlugin with your actual plugin)
-    yourPlugin(mockDkgContext, mockMcpServer, apiRouter);
-    app.use("/", apiRouter);
-  });
-
-  afterEach(() => {
-    sinon.restore(); // Cleanup after each test
-  });
-
-  // Add your test sections here (see below)
-});
-```
-
-### 3. Add Tests
-
-Now add **at least** these 3 recommended test sections inside your `describe` block. **Note:** GitHub Actions only validates Core Functionality tests - if those are missing, it will fail. Feel free to add more tests - the more comprehensive your testing, the better!
-
-#### A. Plugin Configuration Tests
-
-Test that your plugin initializes correctly. GitHub Actions is flexible - any of these patterns work:
-
-```typescript
-// Any of these work:
-describe("Plugin Configuration", () => {
-  it("should create plugin with valid configuration", () => {
-    const plugin = yourPlugin({ apiKey: "test-key" });
-    expect(plugin).to.be.a("function");
-  });
-});
-
-// Or just initialize your plugin in beforeEach:
-beforeEach(() => {
-  yourPlugin(mockDkgContext, mockMcpServer, apiRouter); // This counts!
-});
-
-// Or test plugin creation:
-it("should create plugin with valid configuration", () => {
-  expect(() => yourPlugin(config)).to.not.throw();
-});
-```
-
-#### B. Core Functionality Tests
-
-Test your plugin's main purpose - whatever it does. You can use ANY of these section names:
-
-```typescript
-// Any of these section names work:
-describe("MCP Tool Registration", () => { ... });
-describe("MCP Tool Functionality", () => { ... });
-describe("API Endpoints", () => { ... });
-describe("Login Endpoint", () => { ... });
-describe("Core Functionality", () => { ... });
-// Or any section with "Registration" or "Functionality" in the name
-
-describe("MCP Tool Registration", () => {
-  it("should register tools", () => {
+describe("Core Functionality", () => {
+  it("should register the correct tools", () => {
     const tools = mockMcpServer.getRegisteredTools();
-    expect(tools.has("your-tool-name")).to.equal(true);
+    expect(tools.has("my-tool-name")).to.equal(true);
+  });
+
+  it("should handle tool calls correctly", async () => {
+    const tool = mockMcpServer.getRegisteredTools().get("my-tool-name");
+    const result = await tool.handler({ input: "test" });
+    expect(result.content[0].text).to.include("expected output");
   });
 });
+```
 
-describe("API Endpoints", () => {
+**For API Endpoints:**
+```typescript
+describe("API Endpoint", () => {
   it("should respond correctly", async () => {
-    const response = await request(app).get("/your-endpoint").expect(200);
+    const response = await request(app).get("/my-endpoint").expect(200);
     expect(response.body).to.have.property("expectedField");
   });
 });
 ```
 
-#### C. Error Handling Tests
+### 2. Error Handling Tests (Replace the Placeholder!)
 
-Test error scenarios. GitHub Actions accepts ANY of these patterns:
+**GitHub Actions validates this exists.** Your generated test file includes a placeholder error handling test. Customize it for your plugin's specific error scenarios:
 
 ```typescript
-// Any of these work:
-describe("Error Handling", () => { ... });
+describe("Error Handling", () => {
+  it("should return 400 for missing parameters", async () => {
+    await request(app).get("/my-endpoint").expect(400);
+  });
 
-// Or tests that check for errors anywhere in your test file:
-it("should return 400 for missing parameters", async () => {
-  await request(app).get("/endpoint").expect(400);
-});
-
-it("should handle invalid parameters", async () => {
-  await request(app).get("/endpoint?invalid=data").expect(400);
-});
-
-it("should fail gracefully", async () => {
-  try {
-    await yourPlugin.someMethod("invalid-input");
-    expect.fail("Should have thrown error");
-  } catch (error) {
-    expect(error.message).to.include("expected error");
-  }
+  it("should handle invalid tool inputs", async () => {
+    const tool = mockMcpServer.getRegisteredTools().get("my-tool-name");
+    try {
+      await tool.handler({ invalid: "input" });
+      expect.fail("Should have thrown error");
+    } catch (error) {
+      expect(error.message).to.include("expected error");
+    }
+  });
 });
 ```
 
-#### D. Additional Tests (Recommended)
+## Optional Test Enhancements (Great Additions!)
 
-The 3 test categories above are the **minimum recommendations** (GitHub Actions will fail without them). For high-quality plugins, consider adding:
+Beyond the 2 required categories, consider adding more comprehensive tests to make your plugin even more trustworthy:
 
 ```typescript
 // 💡 More comprehensive testing examples:
@@ -248,28 +129,58 @@ describe("Security", () => {
 
 **See a complete working example at `packages/plugin-example/tests/addition.spec.ts`**
 
+## Manual Setup (Only if NOT using the generator)
+
+If you didn't use `turbo gen plugin` and need to set up testing manually:
+
+<details>
+<summary>Click to expand manual setup instructions</summary>
+
+### 1. Add Test Script
+Add to your `package.json`:
+```json
+{
+  "scripts": {
+    "test": "mocha 'tests/**/*.spec.ts'"
+  }
+}
+```
+
+### 2. Create Test File
+Create `tests/your-plugin.spec.ts` and copy the template from any existing plugin test file.
+
+</details>
+
 ## Quick Checklist
 
 Before submitting your plugin, check that you have:
 
-**Setup:**
+**Automatic Setup (if you used `turbo gen plugin`):**
 
-- [ ] Added test script to `package.json`
-- [ ] Created `tests/your-plugin.spec.ts` file
+- [ ] Test script exists in `package.json`
+- [ ] Test file exists in `tests/` directory
+- [ ] Plugin Configuration tests work automatically
+- [ ] Mock infrastructure is set up
 
-**Recommended Test Content:**
+**Required Customization (tests will fail until you do this!):**
 
-- [ ] Plugin configuration tests (plugin initializes correctly)
-- [ ] Core functionality tests (your plugin's main purpose)
-- [ ] Error handling tests (handles errors gracefully)
-- [ ] Additional tests for better quality
+- [ ] Replaced placeholder **Core Functionality** tests with real tests
+- [ ] Replaced placeholder **Error Handling** tests with real tests
+
+**Optional Enhancements (makes your plugin more trustworthy!):**
+
+- [ ] Added Edge Cases tests
+- [ ] Added Performance tests
+- [ ] Added Integration tests  
+- [ ] Added Security tests
 
 **Technical Requirements (GitHub Actions validates these):**
 
 - [ ] All tests pass: `npm test`  
 - [ ] Tests run under 60 seconds
 - [ ] Core functionality tests exist
+- [ ] Error handling tests exist
 
 If all boxes are checked, your plugin is ready for submission!
 
-**Automated Validation**: GitHub Actions will automatically run your tests and check that Core Functionality tests exist when you submit a PR. If tests fail or Core Functionality tests are missing, GitHub Actions will FAIL, but you can still merge unless branch protection rules are enabled.
+**Automated Validation**: GitHub Actions will automatically run your tests and check that Core Functionality and Error Handling tests exist when you submit a PR. If tests fail (including placeholder tests that weren't customized) or required tests are missing, GitHub Actions will FAIL, but you can still merge unless branch protection rules are enabled.
