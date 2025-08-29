@@ -5,7 +5,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import pluginTestingPlugin from "../src/index.js";
 import express from "express";
-// import request from "supertest"; // Uncomment when you add API endpoint tests
+import request from "supertest";
 
 // Mock DKG context
 const mockDkgContext = {
@@ -91,26 +91,92 @@ describe("@dkg/plugin-testing checks", function () {
   });
 
   describe("Core Functionality", () => {
-    it("should register tools or endpoints", () => {
-      // TODO: Replace this placeholder with your actual tests!
-      // Example for MCP tools:
-      // const tools = mockMcpServer.getRegisteredTools();
-      // expect(tools.has("your-tool-name")).to.equal(true);
-      
-      // Example for API endpoints:
-      // return request(app).get("/your-endpoint").expect(200);
-      
-      throw new Error("TODO: Replace placeholder test with your actual plugin functionality tests");
+    it("should register the add tool", () => {
+      const registeredTools = mockMcpServer.getRegisteredTools();
+      expect(registeredTools.size).to.equal(1);
+      expect(registeredTools.has("add")).to.equal(true);
+    });
+
+    it("should have correct tool configuration", () => {
+      const addTool = mockMcpServer.getRegisteredTools().get("add");
+      expect(addTool).to.not.equal(undefined);
+      expect(addTool.title).to.equal("Addition Tool");
+      expect(addTool.description).to.equal("Add two numbers");
+      expect(addTool.inputSchema).to.not.equal(undefined);
+    });
+
+    it("should correctly add positive numbers", async () => {
+      const addTool = mockMcpServer.getRegisteredTools().get("add");
+      const result = await addTool.handler({ a: 5, b: 3 });
+      expect(result.content).to.be.an("array");
+      expect(result.content[0].text).to.equal("8");
+    });
+
+    it("should correctly add decimal numbers", async () => {
+      const addTool = mockMcpServer.getRegisteredTools().get("add");
+      const result = await addTool.handler({ a: 10.5, b: 2.3 });
+      expect(result.content[0].text).to.equal("12.8");
+    });
+
+    it("should correctly add negative numbers", async () => {
+      const addTool = mockMcpServer.getRegisteredTools().get("add");
+      const result = await addTool.handler({ a: -5, b: 8 });
+      expect(result.content[0].text).to.equal("3");
+    });
+
+    it("should respond to GET /add with correct result", async () => {
+      const response = await request(app).get("/add?a=5&b=3").expect(200);
+      expect(response.body.result).to.equal(8);
+    });
+
+    it("should handle decimal numbers in API", async () => {
+      const response = await request(app).get("/add?a=10.5&b=2.3").expect(200);
+      expect(response.body.result).to.equal(12.8);
+    });
+
+    it("should handle negative numbers in API", async () => {
+      const response = await request(app).get("/add?a=-5&b=8").expect(200);
+      expect(response.body.result).to.equal(3);
     });
   });
 
   describe("Error Handling", () => {
-    it("should handle invalid parameters", async () => {
-      // TODO: Replace this placeholder with your actual error handling tests!
-      // Example:
-      // await request(app).get("/invalid-endpoint").expect(400);
+    it("should handle invalid tool parameters", async () => {
+      const addTool = mockMcpServer.getRegisteredTools().get("add");
       
-      throw new Error("TODO: Replace placeholder test with your actual error handling tests");
+      try {
+        await addTool.handler({ a: "invalid", b: "invalid" });
+        expect.fail("Should have thrown an error for invalid parameters");
+      } catch (error) {
+        expect(error).to.be.an("error");
+      }
+    });
+
+    it("should handle missing tool parameters", async () => {
+      const addTool = mockMcpServer.getRegisteredTools().get("add");
+      
+      try {
+        await addTool.handler({ a: 5 }); // Missing 'b' parameter
+        expect.fail("Should have thrown an error for missing parameters");
+      } catch (error) {
+        expect(error).to.be.an("error");
+      }
+    });
+
+    it("should return 400 for missing API parameters", async () => {
+      await request(app).get("/add").expect(400);
+    });
+
+    it("should return 400 for invalid API parameters", async () => {
+      await request(app).get("/add?a=invalid&b=3").expect(400);
+    });
+
+    it("should handle malformed API requests", async () => {
+      await request(app).get("/add?invalid=query").expect(400);
+    });
+
+    it("should handle non-numeric API parameters gracefully", async () => {
+      await request(app).get("/add?a=text&b=moretext").expect(400);
     });
   });
 });

@@ -119,11 +119,6 @@ jobs:
               echo "   4. See packages/plugin-example/tests/ for examples"
               echo ""
             fi
-            
-            echo "Requirements for all plugins:"
-            echo "  ✅ Core Functionality tests (describe what your plugin does)"
-            echo "  ✅ Error Handling tests (test invalid inputs/scenarios)" 
-            echo "  ❌ All tests must pass (no placeholder tests allowed)"
             echo ""
             echo "Read packages/PLUGIN_TESTING_GUIDE.md for detailed instructions"
             exit 1
