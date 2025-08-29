@@ -27,6 +27,12 @@ import {
   makeCompletionRequest,
   toContents,
 } from "@/shared/chat";
+import {
+  parseFilesFromContent,
+  serializeFiles,
+  uploadFiles,
+} from "@/shared/files";
+import { toError } from "@/shared/errors";
 
 export default function ChatPage() {
   const colors = useColors();
@@ -280,6 +286,24 @@ export default function ChatPage() {
                   return [[], -1];
                 })();
 
+                const [allFiles, filesIndex] = (() => {
+                  for (const [i, c] of content.entries()) {
+                    const files = parseFilesFromContent(c);
+                    if (!files.length) continue;
+
+                    return [files, i];
+                  }
+                  return [[], -1];
+                })();
+
+                const images = allFiles.filter((f) =>
+                  f.mimeType?.startsWith("image/"),
+                );
+
+                const files = allFiles.filter(
+                  (f) => !f.mimeType?.startsWith("image/"),
+                );
+
                 return (
                   <Chat.Message
                     key={i}
@@ -289,10 +313,21 @@ export default function ChatPage() {
                     {/* Source Knowledge Assets */}
                     <Chat.Message.SourceKAs kas={kas} resolver={kaResolver} />
 
+                    {/* Images */}
+                    {images.map((image, i) => (
+                      <Chat.Message.Content.Image key={i} url={image.uri} />
+                    ))}
+
+                    {/* Files */}
+                    {files.map((file, i) => (
+                      <Chat.Message.Content.File key={i} file={file} />
+                    ))}
+
                     {/* Message contnet (text/image) */}
                     {content.map(
                       (c, i) =>
-                        i !== kasIndex && (
+                        i !== kasIndex &&
+                        i !== filesIndex && (
                           <Chat.Message.Content key={i} content={c} />
                         ),
                     )}
@@ -385,6 +420,67 @@ export default function ChatPage() {
               )}
               <Chat.Input
                 onSendMessage={sendMessage}
+                onUploadFiles={(assets) =>
+                  uploadFiles(
+                    new URL(process.env.EXPO_PUBLIC_MCP_URL + "/upload"),
+                    assets,
+                    { fieldName: "file", uploadType: 1 },
+                  ).then((result) => {
+                    const successfulUploads = result
+                      .filter((f) => f.status === "fulfilled")
+                      .filter((f) => f.value.status < 300);
+
+                    if (successfulUploads.length !== result.length) {
+                      console.error("Some uploads failed");
+                      console.log(
+                        "Failed uploads:",
+                        result
+                          .filter((f) => f.status !== "fulfilled")
+                          .map((f) => f.reason),
+                      );
+                      showAlert({
+                        type: "error",
+                        title: "Upload error",
+                        message: "Some uploads failed!",
+                        timeout: 5000,
+                      });
+                    }
+
+                    return successfulUploads.map(({ value }) => {
+                      const body = JSON.parse(value.body);
+                      return {
+                        ...body,
+                        uri: new URL(
+                          process.env.EXPO_PUBLIC_MCP_URL + "/blob/" + body.id,
+                        ).toString(),
+                      };
+                    });
+                  })
+                }
+                onFileRemoved={(f) => {
+                  fetch(
+                    new URL(
+                      process.env.EXPO_PUBLIC_MCP_URL + "/blob/" + f.id,
+                    ).toString(),
+                    { method: "DELETE" },
+                  ).catch((error) => {
+                    showAlert({
+                      type: "error",
+                      title: "File removal error",
+                      message: toError(error).message,
+                      timeout: 5000,
+                    });
+                  });
+                }}
+                onUploadError={(err) =>
+                  showAlert({
+                    type: "error",
+                    title: "Upload error",
+                    message: err.message,
+                    timeout: 5000,
+                  })
+                }
+                onAttachFiles={serializeFiles}
                 disabled={isGenerating}
                 style={[{ maxWidth: 800 }, isWeb && { pointerEvents: "auto" }]}
               />

@@ -15,15 +15,15 @@ export type FileDefinition = {
 
 export const serializeFiles = (
   files: FileDefinition[],
-): ChatMessage["content"] => `Attached files: ${JSON.stringify(files)}`;
+): ChatMessage["content"] => `Uploaded files: ${JSON.stringify(files)}`;
 
-const parseFilesFromContent = (
+export const parseFilesFromContent = (
   content: MessageContentComplex,
 ): FileDefinition[] => {
   if (content.type !== "text") return [];
 
   const [matches] = String(content.text)
-    .matchAll(/Attached files: (.+)/g)
+    .matchAll(/Uploaded files: (.+)/g)
     .toArray();
   const match = matches?.at(1);
   if (!match) return [];
@@ -54,57 +54,56 @@ export const parseFiles = (
  * Uses expo-file-system under the hood for mobile platforms.
  *
  * @param {URL} location URL of upload route on a remote server
- * @param {string[]} uris Array of file URIs.
+ * @param {{uri: string; name: string; mimeType?: string;}[]} files Array of file URIs.
  * On mobile these should be local file uris and on web these should be base64 encoded data uris
  * @param {FileSystem.FileSystemUploadOptions} options Upload options
  * @returns {Promise<PromiseSettledResult<{body: string; status: number; }>[]>} Result of Promise.allSettled for every uri
  */
 export const uploadFiles = (
   location: URL,
-  uris: FileDefinition["uri"][],
+  files: {
+    uri: string;
+    name: string;
+    mimeType?: string;
+  }[],
   options: FileSystem.FileSystemUploadOptions,
 ): Promise<PromiseSettledResult<{ body: string; status: number }>[]> => {
   return Promise.allSettled(
-    uris.map((uri) =>
+    files.map(({ uri, name, mimeType }) =>
       Platform.OS === "web"
         ? fetch(uri) // fetch base64 of the file to get blob
             .then((r) => r.blob())
             .then((blob) =>
               fetch(location.toString(), {
-                method: options.httpMethod,
+                method: options.httpMethod ?? "POST",
                 body:
                   options.uploadType ===
                   FileSystem.FileSystemUploadType.MULTIPART
                     ? (() => {
                         const f = new FormData();
+                        const file = new File([blob], name, { type: mimeType });
                         f.append(
                           (options as FileSystem.UploadOptionsMultipart)
                             .fieldName ?? "file",
-                          blob,
+                          file,
                         );
                         return f;
                       })()
                     : blob,
-                headers: {
-                  ...options.headers,
-                  "Content-Type":
-                    options.uploadType ===
-                    FileSystem.FileSystemUploadType.MULTIPART
-                      ? "multipart/form-data"
-                      : "application/octet-stream",
-                },
+                headers: options.headers,
               }),
             )
             .then(async (r) => ({
               body: await r.text(),
               status: r.status,
             }))
-        : FileSystem.uploadAsync(location.toString(), uri, options).then(
-            (r) => ({
-              body: r.body,
-              status: r.status,
-            }),
-          ),
+        : FileSystem.uploadAsync(location.toString(), uri, {
+            ...options,
+            mimeType,
+          }).then((r) => ({
+            body: r.body,
+            status: r.status,
+          })),
     ),
   );
 };

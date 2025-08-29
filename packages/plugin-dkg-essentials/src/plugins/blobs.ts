@@ -1,4 +1,4 @@
-import { Readable } from "stream";
+import { Readable, Writable } from "stream";
 import consumers from "stream/consumers";
 import { defineDkgPlugin } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
@@ -76,7 +76,9 @@ export default defineDkgPlugin((ctx, mcp, api) => {
           mimeType: req.file.mimetype,
         },
       );
-      res.status(201).json({ id });
+      res
+        .status(201)
+        .json({ id, name: req.file.originalname, mimeType: req.file.mimetype });
     } catch (error) {
       console.error(error);
       res.status(500).send(`Failed to create blob: ${error}`);
@@ -94,7 +96,9 @@ export default defineDkgPlugin((ctx, mcp, api) => {
       "Content-Disposition",
       `attachment; filename="${obj.metadata.name}"`,
     );
-    res.status(200).send(obj.data);
+    res.status(200);
+
+    return obj.data.pipeTo(Writable.toWeb(res));
   });
 
   api.put("/blob/:id", upload.single("file"), async (req, res) => {
