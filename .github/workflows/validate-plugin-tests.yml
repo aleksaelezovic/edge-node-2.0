@@ -101,7 +101,7 @@ jobs:
             echo "Read packages/PLUGIN_TESTING_GUIDE.md for detailed instructions"
             exit 1
           else
-            echo "🎉 All plugins passed validation!"
+            echo "✅All plugins passed validation!"
             echo "✅ Core Functionality tests found"
             echo "✅ Error Handling tests found" 
             echo "✅ All tests passing"
