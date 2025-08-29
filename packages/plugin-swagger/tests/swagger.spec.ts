@@ -336,7 +336,7 @@ describe("@dkg/plugin-swagger checks", function () {
       const postUsersRoute = response.body.paths?.["/users"]?.post;
 
       // The /users POST route has body validation, so should automatically include 400 response
-      expect(postUsersRoute).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(postUsersRoute).to.exist;
       expect(postUsersRoute.responses).to.have.property("400");
     });
   });
@@ -588,7 +588,7 @@ describe("@dkg/plugin-swagger checks", function () {
         };
 
         const extractedSchema = getSchemaOfOpenAPIRoute(regularHandler);
-        expect(extractedSchema).to.be.null; // eslint-disable-line @typescript-eslint/no-unused-expressions
+        expect(extractedSchema).to.be.null;
       });
     });
 
@@ -684,7 +684,7 @@ describe("@dkg/plugin-swagger checks", function () {
         });
 
         // Global responses should be applied to routes
-        expect(document.paths).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+        expect(document.paths).to.exist;
       });
 
       it("should include security schemes", () => {
@@ -704,8 +704,8 @@ describe("@dkg/plugin-swagger checks", function () {
           openApiVersion: "3.1.0",
         });
 
-        expect(document.components?.securitySchemes).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
-        expect(document.components?.securitySchemes?.bearerAuth).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+        expect(document.components?.securitySchemes).to.exist;
+        expect(document.components?.securitySchemes?.bearerAuth).to.exist;
       });
 
       it("should handle multiple routers", () => {
@@ -723,7 +723,7 @@ describe("@dkg/plugin-swagger checks", function () {
           openApiVersion: "3.1.0",
         });
 
-        expect(document.paths).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+        expect(document.paths).to.exist;
       });
 
       it("should convert Express path parameters to OpenAPI format", () => {
@@ -776,7 +776,7 @@ describe("@dkg/plugin-swagger checks", function () {
         });
 
         const userRoute = document.paths?.["/users/{id}"]?.get;
-        expect(userRoute?.responses?.["404"]).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+        expect(userRoute?.responses?.["404"]).to.exist;
       });
 
       it("should use OpenAPI 3.0.0 when specified", () => {
@@ -806,7 +806,7 @@ describe("@dkg/plugin-swagger checks", function () {
         expect(routes.length).to.be.at.least(2);
 
         const testRoute = routes.find((r) => r.path === "/test");
-        expect(testRoute).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+        expect(testRoute).to.exist;
         expect(testRoute?.method).to.equal("get");
       });
 
@@ -830,10 +830,10 @@ describe("@dkg/plugin-swagger checks", function () {
 
         // Should not include root path
         const rootRoute = routes.find((r) => r.path === "/");
-        expect(rootRoute).to.be.undefined; // eslint-disable-line @typescript-eslint/no-unused-expressions
+        expect(rootRoute).to.be.undefined;
 
         const testRoute = routes.find((r) => r.path === "/test");
-        expect(testRoute).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+        expect(testRoute).to.exist;
       });
     });
   });
@@ -903,7 +903,7 @@ describe("@dkg/plugin-swagger checks", function () {
 
   describe("Zod Integration", () => {
     it("should export Zod with OpenAPI extensions", () => {
-      expect(z).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(z).to.exist;
       expect(z.object).to.be.a("function");
       expect(z.string).to.be.a("function");
       expect(z.number).to.be.a("function");
@@ -915,7 +915,7 @@ describe("@dkg/plugin-swagger checks", function () {
         age: z.number().openapi({ example: 30 }),
       });
 
-      expect(schema).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(schema).to.exist;
       // The OpenAPI extension should be available
       expect((z.string() as any).openapi).to.be.a("function");
     });
@@ -957,7 +957,7 @@ describe("@dkg/plugin-swagger checks", function () {
         ],
       });
 
-      expect(result.success).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(result.success).to.be.true;
     });
   });
 
@@ -1005,7 +1005,7 @@ describe("@dkg/plugin-swagger checks", function () {
       await request(testApp).get("/validate-response").expect(200);
 
       // Should warn about schema mismatch in development
-      expect(consoleWarnSpy.called).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(consoleWarnSpy.called).to.be.true;
       const warnMessage = consoleWarnSpy.firstCall.args[0];
       expect(warnMessage).to.include("Response JSON does not match schema");
 
@@ -1042,7 +1042,7 @@ describe("@dkg/plugin-swagger checks", function () {
       await request(testApp).get("/prod-response").expect(200);
 
       // Should NOT warn in production
-      expect(consoleWarnSpy.called).to.be.false; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(consoleWarnSpy.called).to.be.false;
 
       consoleWarnSpy.restore();
     });
@@ -1123,7 +1123,7 @@ describe("@dkg/plugin-swagger checks", function () {
 
       const routes = getRoutes([router]);
       const specialRoute = routes.find((r) => r.path.includes("special-chars"));
-      expect(specialRoute).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(specialRoute).to.exist;
     });
 
     it("should handle path parameter edge cases", () => {

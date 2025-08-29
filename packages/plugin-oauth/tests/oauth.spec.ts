@@ -244,7 +244,7 @@ describe("@dkg/plugin-oauth checks", function () {
       expect(result).to.have.property("openapiSecurityScheme");
       expect(result.oauthPlugin).to.be.a("function");
       expect(result.openapiSecurityScheme.type).to.equal("oauth2");
-      expect(result.openapiSecurityScheme.flows?.authorizationCode).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(result.openapiSecurityScheme.flows?.authorizationCode).to.exist;
     });
 
     it("should handle undefined scopesSupported gracefully", () => {
@@ -496,7 +496,7 @@ describe("@dkg/plugin-oauth checks", function () {
       const response = await request(app).post("/logout").expect(200);
 
       expect(response.status).to.equal(200);
-      expect(logoutSpy.calledWith("User logged out")).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(logoutSpy.calledWith("User logged out")).to.be.true;
 
       logoutSpy.restore();
     });
@@ -549,7 +549,7 @@ describe("@dkg/plugin-oauth checks", function () {
 
       const response = await request(app).get("/test-provider").expect(200);
 
-      expect(response.body.hasProvider).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(response.body.hasProvider).to.be.true;
     });
 
     it("should provide access to token endpoint", async () => {
@@ -734,7 +734,7 @@ describe("@dkg/plugin-oauth checks", function () {
 
       // Verify client was saved
       const retrievedClient = await storage.getClient("spy-test-client");
-      expect(retrievedClient).to.not.be.undefined; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(retrievedClient).to.not.be.undefined;
       expect(retrievedClient?.client_id).to.equal("spy-test-client");
 
       storageSpy.restore();
@@ -753,13 +753,13 @@ describe("@dkg/plugin-oauth checks", function () {
       await storage.saveToken(testToken, tokenData);
 
       const retrievedToken = await storage.getTokenData(testToken);
-      expect(retrievedToken).to.not.be.undefined; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(retrievedToken).to.not.be.undefined;
       expect(retrievedToken?.token).to.equal(testToken);
       expect(retrievedToken?.scopes).to.deep.equal(["read"]);
 
       await storage.deleteToken(testToken);
       const deletedToken = await storage.getTokenData(testToken);
-      expect(deletedToken).to.be.undefined; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(deletedToken).to.be.undefined;
     });
 
     it("should handle code confirmation operations", async () => {
@@ -795,7 +795,7 @@ describe("@dkg/plugin-oauth checks", function () {
       // Clean up
       await storage.deleteCode(testCode);
       const deletedData = await storage.getCodeData(testCode);
-      expect(deletedData).to.be.undefined; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(deletedData).to.be.undefined;
     });
   });
 

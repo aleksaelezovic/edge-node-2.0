@@ -10,16 +10,9 @@ Tests ensure your plugin works reliably and won't break when integrated with oth
 
 ## Quick Setup
 
-### 1. Add Test Dependencies
+### 1. Add Test Script
 
-Install testing packages:
-
-```bash
-npm install --save-dev mocha chai sinon supertest
-npm install --save-dev @types/chai @types/mocha @types/sinon @types/supertest
-```
-
-Then add the test script to your `package.json`:
+Add the test script to your `package.json` (testing dependencies are already available in the monorepo):
 
 ```json
 {
@@ -35,6 +28,9 @@ Create `tests/your-plugin.spec.ts` and copy this template:
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// Note: The @typescript-eslint/no-unused-expressions rule is automatically 
+// disabled for all test files, so you don't need eslint-disable comments 
+// for Chai assertions like expect(something).to.exist
 
 // Import testing libraries
 import { describe, it, beforeEach, afterEach } from "mocha";
@@ -258,10 +254,9 @@ Before submitting your plugin, check that you have:
 
 **Setup:**
 
-- [ ] Installed test dependencies (`npm install --save-dev mocha chai sinon supertest @types/chai @types/mocha @types/sinon @types/supertest`)
 - [ ] Added test script to `package.json`
 - [ ] Created `tests/your-plugin.spec.ts` file
-- [ ] Removed any `express` or `@types/express` from devDependencies
+- [ ] Removed any `express` or `@types/express` from devDependencies (causes conflicts)
 
 **Required Test Content:**
 
