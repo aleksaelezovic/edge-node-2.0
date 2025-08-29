@@ -734,7 +734,7 @@ describe("@dkg/plugin-oauth checks", function () {
 
       // Verify client was saved
       const retrievedClient = await storage.getClient("spy-test-client");
-      expect(retrievedClient).to.not.be.undefined;
+      expect(retrievedClient).to.not.be.undefined; // eslint-disable-line @typescript-eslint/no-unused-expressions
       expect(retrievedClient?.client_id).to.equal("spy-test-client");
 
       storageSpy.restore();
@@ -753,7 +753,7 @@ describe("@dkg/plugin-oauth checks", function () {
       await storage.saveToken(testToken, tokenData);
 
       const retrievedToken = await storage.getTokenData(testToken);
-      expect(retrievedToken).to.not.be.undefined;
+      expect(retrievedToken).to.not.be.undefined; // eslint-disable-line @typescript-eslint/no-unused-expressions
       expect(retrievedToken?.token).to.equal(testToken);
       expect(retrievedToken?.scopes).to.deep.equal(["read"]);
 

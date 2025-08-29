@@ -522,7 +522,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
         const result = parseSourceKAContent(content);
 
-        expect(result).to.not.be.null;
+        expect(result).to.not.be.null; // eslint-disable-line @typescript-eslint/no-unused-expressions
         expect(result).to.have.length(1);
         expect(result![0].title).to.equal("Test Asset");
         expect(result![0].issuer).to.equal("Test Issuer");

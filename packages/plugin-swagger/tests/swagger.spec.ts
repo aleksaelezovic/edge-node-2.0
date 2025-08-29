@@ -334,9 +334,9 @@ describe("@dkg/plugin-swagger checks", function () {
 
       expect(response.body).to.have.property("paths");
       const postUsersRoute = response.body.paths?.["/users"]?.post;
-      
+
       // The /users POST route has body validation, so should automatically include 400 response
-      expect(postUsersRoute).to.exist;
+      expect(postUsersRoute).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
       expect(postUsersRoute.responses).to.have.property("400");
     });
   });
@@ -957,7 +957,7 @@ describe("@dkg/plugin-swagger checks", function () {
         ],
       });
 
-      expect(result.success).to.be.true;
+      expect(result.success).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
     });
   });
 

@@ -49,8 +49,14 @@ const mockDkgContext = {
   dkg: {
     get: () => Promise.resolve({}),
     query: () => Promise.resolve([]),
-    assertion: { get: () => Promise.resolve({}), create: () => Promise.resolve({}) },
-    asset: { get: () => Promise.resolve({}), create: () => Promise.resolve({}) },
+    assertion: {
+      get: () => Promise.resolve({}),
+      create: () => Promise.resolve({}),
+    },
+    asset: {
+      get: () => Promise.resolve({}),
+      create: () => Promise.resolve({}),
+    },
     blockchain: { get: () => Promise.resolve({}) },
     node: { get: () => Promise.resolve({}) },
     graph: { query: () => Promise.resolve([]) },
@@ -66,16 +72,29 @@ function createMockMcpServer(): any {
   const registeredResources = new Map();
 
   return {
-    registerTool(name: string, config: Record<string, unknown>, handler: (...args: any[]) => any) {
+    registerTool(
+      name: string,
+      config: Record<string, unknown>,
+      handler: (...args: any[]) => any,
+    ) {
       registeredTools.set(name, { ...config, handler });
       return this;
     },
-    registerResource(name: string, template: any, config: Record<string, unknown>, handler: (...args: any[]) => any) {
+    registerResource(
+      name: string,
+      template: any,
+      config: Record<string, unknown>,
+      handler: (...args: any[]) => any,
+    ) {
       registeredResources.set(name, { template, config, handler });
       return this;
     },
-    getRegisteredTools() { return registeredTools; },
-    getRegisteredResources() { return registeredResources; },
+    getRegisteredTools() {
+      return registeredTools;
+    },
+    getRegisteredResources() {
+      return registeredResources;
+    },
   };
 }
 
@@ -202,7 +221,7 @@ describe("Edge Cases", () => {
   it("should handle very large inputs", async () => {
     // Test with large data sets
   });
-  
+
   it("should handle special characters", async () => {
     // Test with unusual characters
   });
@@ -238,22 +257,25 @@ describe("Security", () => {
 Before submitting your plugin, check that you have:
 
 **Setup:**
+
 - [ ] Installed test dependencies (`npm install --save-dev mocha chai sinon supertest @types/chai @types/mocha @types/sinon @types/supertest`)
 - [ ] Added test script to `package.json`
 - [ ] Created `tests/your-plugin.spec.ts` file
 - [ ] Removed any `express` or `@types/express` from devDependencies
 
 **Required Test Content:**
+
 - [ ] Plugin configuration tests (plugin initializes correctly)
 - [ ] Core functionality tests (your plugin's main purpose)
 - [ ] Error handling tests (handles errors gracefully)
 - [ ] Additional tests for better quality (optional but recommended)
 
 **Technical:**
+
 - [ ] All tests pass: `npm test`
 - [ ] Tests run under 60 seconds
 - [ ] Tests follow the template structure
 
 If all boxes are checked, your plugin is ready for submission!
 
- **Automated Validation**: GitHub Actions will automatically check ALL requirements when you submit a PR. If ANY requirement is not met, your PR will be BLOCKED until you fix the issues!
+**Automated Validation**: GitHub Actions will automatically check ALL requirements when you submit a PR. If ANY requirement is not met, your PR will be BLOCKED until you fix the issues!
