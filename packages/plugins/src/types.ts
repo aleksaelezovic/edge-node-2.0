@@ -1,5 +1,8 @@
+import type { ReadableStream } from "stream/web";
 import type express from "express";
 export type { express };
+
+export type BlobData = ReadableStream<Uint8Array>;
 
 export type BlobMetadata = {
   name: string;
@@ -12,14 +15,17 @@ export interface BlobStorage {
   generateId: (metadata: BlobMetadata) => Promise<string> | string;
   info: (id: string) => Promise<BlobMetadata | null>;
   exists: (id: string) => Promise<boolean>;
-  get: (id: string) => Promise<{ data: Blob; metadata: BlobMetadata } | null>;
+  get: (id: string) => Promise<{
+    data: BlobData;
+    metadata: BlobMetadata;
+  } | null>;
   create: (
-    data: Blob,
+    data: BlobData,
     metadata: Omit<BlobMetadata, "lastModified" | "size">,
   ) => Promise<{ id: string }>;
   put: (
     id: string,
-    data: Blob,
+    data: BlobData,
     metadata: Omit<BlobMetadata, "lastModified" | "size">,
   ) => Promise<void>;
   delete: (id: string) => Promise<void>;

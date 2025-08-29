@@ -1,6 +1,12 @@
+import { Readable } from "stream";
+import consumers from "stream/consumers";
 import { defineDkgPlugin } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
 import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
+import multer from "multer";
+import { Blob } from "buffer";
+
+const upload = multer();
 
 export default defineDkgPlugin((ctx, mcp, api) => {
   mcp.registerTool(
@@ -16,7 +22,14 @@ export default defineDkgPlugin((ctx, mcp, api) => {
       },
     },
     async ({ fileBase64, filename, mimeType }) => {
-      const id = await ctx.blob.create(new Blob([fileBase64]), {
+      const fileByteChars = atob(fileBase64);
+      const fileByteNumbers = new Array(fileByteChars.length);
+      for (let i = 0; i < fileByteChars.length; i++) {
+        fileByteNumbers[i] = fileByteChars.charCodeAt(i);
+      }
+      const fileBytes = new Uint8Array(fileByteNumbers);
+      const fileBlob = new Blob([fileBytes]);
+      const { id } = await ctx.blob.create(fileBlob.stream(), {
         name: filename,
         mimeType,
       });
@@ -44,7 +57,7 @@ export default defineDkgPlugin((ctx, mcp, api) => {
         uri.toString().substring("dkg-blob://".length),
       );
       if (!blob) throw new Error("Resource not found");
-      const text = await blob.data.text();
+      const text = await consumers.text(blob.data);
 
       return {
         contents: [{ uri: uri.toString(), text }],
@@ -52,7 +65,64 @@ export default defineDkgPlugin((ctx, mcp, api) => {
     },
   );
 
-  api.post("/upload", () => {});
+  api.post("/upload", upload.single("file"), async (req, res) => {
+    if (!req.file) return res.status(400).send("No file uploaded");
 
-  api.get("/blob/:id", () => {});
+    try {
+      const { id } = await ctx.blob.create(
+        Readable.toWeb(Readable.from(req.file.buffer)),
+        {
+          name: req.file.originalname,
+          mimeType: req.file.mimetype,
+        },
+      );
+      res.status(201).json({ id });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(`Failed to create blob: ${error}`);
+    }
+  });
+
+  api.get("/blob/:id", async (req, res) => {
+    const obj = await ctx.blob.get(req.params.id);
+    if (!obj) return res.status(404).send("Blob not found");
+
+    if (obj.metadata.mimeType) {
+      res.setHeader("Content-Type", obj.metadata.mimeType);
+    }
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${obj.metadata.name}"`,
+    );
+    res.status(200).send(obj.data);
+  });
+
+  api.put("/blob/:id", upload.single("file"), async (req, res) => {
+    if (!req.file) return res.status(400).send("No file uploaded");
+
+    try {
+      await ctx.blob.put(
+        req.params.id!,
+        Readable.toWeb(Readable.from(req.file.buffer)),
+        {
+          name: req.file.originalname,
+          mimeType: req.file.mimetype,
+        },
+      );
+      res.status(200).send();
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(`Failed to update blob: ${error}`);
+    }
+  });
+
+  api.delete("/blob/:id", async (req, res) => {
+    try {
+      await ctx.blob.delete(req.params.id);
+      res.status(200).send("Blob deleted successfully");
+    } catch (error) {
+      console.error(error);
+      res.status(500).send(`Failed to delete blob: ${error}`);
+    }
+  });
 });

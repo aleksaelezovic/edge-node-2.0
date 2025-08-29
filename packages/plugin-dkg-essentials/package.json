@@ -27,11 +27,13 @@
     "test": "mocha 'tests/**/*.spec.ts'"
   },
   "dependencies": {
-    "@dkg/plugins": "^0.0.2"
+    "@dkg/plugins": "^0.0.2",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
+    "@types/multer": "^2.0.0",
     "tsup": "^8.5.0"
   }
 }

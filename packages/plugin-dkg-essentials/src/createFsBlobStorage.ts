@@ -1,11 +1,18 @@
 // Works only in node.js!
 import fs from "fs";
 import path from "path";
+import { Readable, Writable } from "stream";
 import { BlobStorage } from "@dkg/plugins/types";
 import { createBlobStorage } from "@dkg/plugins/helpers";
 
-const createFsBlobStorage = (blobsDirectory: string): BlobStorage =>
-  createBlobStorage({
+const createFsBlobStorage = (blobsDirectory: string): BlobStorage => {
+  try {
+    fs.mkdirSync(blobsDirectory, { recursive: true });
+  } catch (error) {
+    console.log(error);
+  }
+
+  return createBlobStorage({
     info: (id) =>
       fs.promises
         .stat(path.join(blobsDirectory, id))
@@ -15,20 +22,15 @@ const createFsBlobStorage = (blobsDirectory: string): BlobStorage =>
         }))
         .catch(() => null),
     put: (id, content /* , _metadata */) => {
-      const blobPath = path.join(blobsDirectory, id);
-      const blobStream = fs.createWriteStream(blobPath);
-      blobStream.write(content);
-      blobStream.end();
-      return new Promise((resolve, reject) => {
-        blobStream.on("finish", resolve);
-        blobStream.on("error", reject);
-      });
+      const blobStream = Writable.toWeb(
+        fs.createWriteStream(path.join(blobsDirectory, id)),
+      );
+      return content.pipeTo(blobStream);
     },
-    get: async (id) => {
-      const content = await fs.promises.readFile(path.join(blobsDirectory, id));
-      return new Blob([content]);
-    },
+    get: async (id) =>
+      Readable.toWeb(fs.createReadStream(path.join(blobsDirectory, id))),
     delete: (id) => fs.promises.unlink(path.join(blobsDirectory, id)),
   });
+};
 
 export default createFsBlobStorage;
