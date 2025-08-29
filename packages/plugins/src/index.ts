@@ -4,12 +4,14 @@ import morgan from "morgan";
 import compression from "compression";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerMcp } from "./registerMcp";
+import { BlobStorage } from "./types";
 
 //@ts-ignore
 import type DKG from "dkg.js";
 
 export type DkgContext = {
   dkg: DKG;
+  blob: BlobStorage;
 };
 export type DkgPlugin = (
   ctx: DkgContext,

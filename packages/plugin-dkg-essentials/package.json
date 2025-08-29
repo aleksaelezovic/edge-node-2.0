@@ -12,6 +12,11 @@
       "types": "./dist/utils.d.ts",
       "import": "./dist/utils.mjs",
       "require": "./dist/utils.js"
+    },
+    "./createFsBlobStorage": {
+      "types": "./dist/createFsBlobStorage.d.ts",
+      "import": "./dist/createFsBlobStorage.mjs",
+      "require": "./dist/createFsBlobStorage.js"
     }
   },
   "scripts": {
