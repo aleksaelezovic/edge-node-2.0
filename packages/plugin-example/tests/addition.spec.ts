@@ -171,7 +171,7 @@ describe("@dkg/plugin-example checks", () => {
   describe("Error Handling", () => {
     it("should handle invalid tool parameters", async () => {
       const addTool = mockMcpServer.getRegisteredTools().get("add");
-      
+
       try {
         await addTool.handler({ a: "invalid", b: "invalid" });
         expect.fail("Should have thrown an error for invalid parameters");
@@ -182,7 +182,7 @@ describe("@dkg/plugin-example checks", () => {
 
     it("should handle missing tool parameters", async () => {
       const addTool = mockMcpServer.getRegisteredTools().get("add");
-      
+
       try {
         await addTool.handler({ a: 5 }); // Missing 'b' parameter
         expect.fail("Should have thrown an error for missing parameters");

@@ -17,25 +17,28 @@ Tests ensure your plugin works reliably and won't break when integrated with oth
 When you create a plugin with `turbo gen` (plugin option), you automatically get:
 
 **Complete Test Infrastructure (Works Automatically):**
-- Test script in `package.json` - `npm test` ready to run  
-- Test file template - `tests/my-plugin.spec.ts` 
+
+- Test script in `package.json` - `npm test` ready to run
+- Test file template - `tests/my-plugin.spec.ts`
 - Mock setup - DKG context and MCP server mocks included
 - Plugin Configuration tests - Basic validation that works for any plugin
 
 **Placeholder Tests (Must Be Customized):**
+
 - Core Functionality tests - Structure provided but content must be replaced
 - Error Handling tests - Structure provided but content must be replaced
 
 ## What You Need To Customize
 
 **Important:** Run `npm test` after generation and you'll see failing tests with messages like:
+
 ```
 Error: TODO: Replace placeholder test with your actual plugin functionality tests
 ```
 
 This is intentional! You must replace the placeholder tests with real ones. Look for the `TODO` comments and replace them with actual tests for your plugin.
 
-**Note:** GitHub Actions validates Core Functionality and Error Handling tests - if either are missing, it will fail. 
+**Note:** GitHub Actions validates Core Functionality and Error Handling tests - if either are missing, it will fail.
 
 ## Required Test Categories
 
@@ -44,6 +47,7 @@ This is intentional! You must replace the placeholder tests with real ones. Look
 **GitHub Actions validates this exists.** Replace the placeholder test with your actual plugin functionality:
 
 **For MCP Tools:**
+
 ```typescript
 describe("Core Functionality", () => {
   it("should register the correct tools", () => {
@@ -60,6 +64,7 @@ describe("Core Functionality", () => {
 ```
 
 **For API Endpoints:**
+
 ```typescript
 describe("API Endpoint", () => {
   it("should respond correctly", async () => {
@@ -141,7 +146,9 @@ If you didn't use `turbo gen` (plugin option) and need to set up testing manuall
 <summary>Click to expand manual setup instructions</summary>
 
 ### 1. Add Test Script
+
 Add to your `package.json`:
+
 ```json
 {
   "scripts": {
@@ -151,6 +158,7 @@ Add to your `package.json`:
 ```
 
 ### 2. Create Test File
+
 Create `tests/your-plugin.spec.ts` and copy the template from any existing plugin test file.
 
 </details>
@@ -161,7 +169,7 @@ Before submitting your plugin, check that you have:
 
 **Automatic Setup (if you used `turbo gen` plugin option):**
 
-- [ ] Ran `npm install` in root directory after plugin creation  
+- [ ] Ran `npm install` in root directory after plugin creation
 - [ ] Test script exists in `package.json`
 - [ ] Test file exists in `tests/` directory
 - [ ] Plugin Configuration tests work automatically
@@ -176,12 +184,12 @@ Before submitting your plugin, check that you have:
 
 - [ ] Added Edge Cases tests
 - [ ] Added Performance tests
-- [ ] Added Integration tests  
+- [ ] Added Integration tests
 - [ ] Added Security tests
 
 **Technical Requirements (GitHub Actions validates these):**
 
-- [ ] All tests pass: `npm test`  
+- [ ] All tests pass: `npm test`
 - [ ] Tests run under 60 seconds
 - [ ] Core functionality tests exist
 - [ ] Error handling tests exist
