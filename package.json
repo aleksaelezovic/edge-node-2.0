@@ -13,8 +13,8 @@
     "test": "turbo run test --force",
     "test:ui": "turbo run test --filter=@dkg/agent --force",
     "test:api": "turbo run test --filter='@dkg/plugin-*' --force",
-    "test-report:ui": "node report-UI-Tests-config.js",
-    "test-report:api": "node report-API-Tests-config.js"
+    "test:ui:report": "node report-UI-Tests-config.js",
+    "test:api:report": "node report-API-Tests-config.js"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",

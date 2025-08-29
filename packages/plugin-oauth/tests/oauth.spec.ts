@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 
 import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
@@ -245,7 +244,7 @@ describe("@dkg/plugin-oauth checks", function () {
       expect(result).to.have.property("openapiSecurityScheme");
       expect(result.oauthPlugin).to.be.a("function");
       expect(result.openapiSecurityScheme.type).to.equal("oauth2");
-      expect(result.openapiSecurityScheme.flows?.authorizationCode).to.exist;
+      expect(result.openapiSecurityScheme.flows?.authorizationCode).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
     });
 
     it("should handle undefined scopesSupported gracefully", () => {
@@ -497,7 +496,7 @@ describe("@dkg/plugin-oauth checks", function () {
       const response = await request(app).post("/logout").expect(200);
 
       expect(response.status).to.equal(200);
-      expect(logoutSpy.calledWith("User logged out")).to.be.true;
+      expect(logoutSpy.calledWith("User logged out")).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
 
       logoutSpy.restore();
     });
@@ -550,7 +549,7 @@ describe("@dkg/plugin-oauth checks", function () {
 
       const response = await request(app).get("/test-provider").expect(200);
 
-      expect(response.body.hasProvider).to.be.true;
+      expect(response.body.hasProvider).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
     });
 
     it("should provide access to token endpoint", async () => {
@@ -760,7 +759,7 @@ describe("@dkg/plugin-oauth checks", function () {
 
       await storage.deleteToken(testToken);
       const deletedToken = await storage.getTokenData(testToken);
-      expect(deletedToken).to.be.undefined;
+      expect(deletedToken).to.be.undefined; // eslint-disable-line @typescript-eslint/no-unused-expressions
     });
 
     it("should handle code confirmation operations", async () => {
@@ -796,7 +795,7 @@ describe("@dkg/plugin-oauth checks", function () {
       // Clean up
       await storage.deleteCode(testCode);
       const deletedData = await storage.getCodeData(testCode);
-      expect(deletedData).to.be.undefined;
+      expect(deletedData).to.be.undefined; // eslint-disable-line @typescript-eslint/no-unused-expressions
     });
   });
 

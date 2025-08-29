@@ -194,7 +194,6 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
     });
   });
 
-  /* eslint-disable @typescript-eslint/no-unused-expressions */
   describe("DKG Get Tool Functionality", () => {
     it("should retrieve knowledge asset by UAL", async () => {
       const dkgGetTool = mockMcpServer.getRegisteredTools().get("dkg-get");
@@ -209,8 +208,8 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
       // Verify the returned data is valid JSON
       const parsedResult = JSON.parse(result.content[0].text);
       expect(parsedResult).to.be.an("object");
-      expect(parsedResult.public).to.exist;
-      expect(parsedResult.metadata).to.exist;
+      expect(parsedResult.public).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
+      expect(parsedResult.metadata).to.exist; // eslint-disable-line @typescript-eslint/no-unused-expressions
     });
 
     it("should handle UAL parameter correctly", async () => {
@@ -538,7 +537,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
         const result = parseSourceKAContent(content);
 
-        expect(result).to.be.null;
+        expect(result).to.be.null; // eslint-disable-line @typescript-eslint/no-unused-expressions
       });
 
       it("should return null for text without knowledge assets", () => {
@@ -549,7 +548,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
         const result = parseSourceKAContent(content);
 
-        expect(result).to.be.null;
+        expect(result).to.be.null; // eslint-disable-line @typescript-eslint/no-unused-expressions
       });
     });
   });
@@ -565,7 +564,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
       await dkgCreateTool.handler({ jsonld: testJsonLd, privacy: "private" });
 
-      expect(spy.calledOnce).to.be.true;
+      expect(spy.calledOnce).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
       const [data, options] = spy.firstCall.args as unknown as [any, any];
 
       expect(data).to.deep.equal({ private: { "@type": "Thing" } });
@@ -606,7 +605,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
       await assetResource.handler(mockUal);
 
-      expect(spy.calledOnce).to.be.true;
+      expect(spy.calledOnce).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
       const [ual, options] = spy.firstCall.args as unknown as [string, any];
 
       expect(ual).to.equal("did:dkg:test:123"); // Should be lowercase
@@ -625,7 +624,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
       await collectionResource.handler(mockUal);
 
-      expect(spy.calledOnce).to.be.true;
+      expect(spy.calledOnce).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
       const [ual, options] = spy.firstCall.args as unknown as [string, any];
 
       expect(ual).to.equal("did:dkg:collection:456"); // Should be lowercase
@@ -657,7 +656,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
       await dkgCreateTool.handler({ jsonld: testJsonLd });
 
-      expect(consoleLogSpy.calledOnce).to.be.true;
+      expect(consoleLogSpy.calledOnce).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
       expect((consoleLogSpy.firstCall.args as any[])[0]).to.equal(
         "Formatted response:",
       );
@@ -681,7 +680,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
         await dkgCreateTool.handler({ jsonld: "{}" });
         expect.fail("Should have thrown an error");
       } catch {
-        expect(consoleErrorSpy.calledOnce).to.be.true;
+        expect(consoleErrorSpy.calledOnce).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
         expect((consoleErrorSpy.firstCall.args as any[])[0]).to.equal(
           "Error creating asset:",
         );
@@ -703,7 +702,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
         await dkgCreateTool.handler({ jsonld: "" });
         expect.fail("Should have thrown an error");
       } catch {
-        expect(consoleErrorSpy.calledOnce).to.be.true;
+        expect(consoleErrorSpy.calledOnce).to.be.true; // eslint-disable-line @typescript-eslint/no-unused-expressions
         expect((consoleErrorSpy.firstCall.args as any[])[0]).to.equal(
           "No JSON-LD content provided after file read.",
         );
