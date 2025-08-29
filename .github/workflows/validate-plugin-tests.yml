@@ -51,7 +51,7 @@ jobs:
             cd "$plugin"
             
             # Run the tests (with 60 second timeout)
-            echo "🔍 Running tests..."
+            echo "Running tests..."
             test_output=$(timeout 60s npm test 2>&1 || echo "TESTS_FAILED")
             if [[ "$test_output" != *"TESTS_FAILED"* ]]; then
               echo "✅ All tests passed (including Plugin Configuration)"
