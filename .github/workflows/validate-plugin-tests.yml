@@ -51,11 +51,24 @@ jobs:
             cd "$plugin"
             
             # Run the tests (with 60 second timeout)
-            echo "Running tests..."
-            if timeout 60s npm test > /dev/null 2>&1; then
+            echo "🔍 Running tests..."
+            test_output=$(timeout 60s npm test 2>&1 || echo "TESTS_FAILED")
+            if [[ "$test_output" != *"TESTS_FAILED"* ]]; then
               echo "✅ All tests passed (including Plugin Configuration)"
             else
               echo "❌ Tests failed or took too long"
+              
+              # Check for common failure reasons
+              if [[ "$test_output" == *"TODO: Replace placeholder"* ]]; then
+                echo "   → Reason: Placeholder tests detected (need customization)"
+              elif [[ "$test_output" == *"timeout"* ]]; then
+                echo "   → Reason: Tests took longer than 60 seconds"
+              elif [[ "$test_output" == *"npm ERR!"* ]]; then
+                echo "   → Reason: npm/dependency error"
+              else
+                echo "   → Reason: Unknown test failure"
+              fi
+              
               failed=true
             fi
             
@@ -92,12 +105,26 @@ jobs:
           if [ "$failed" = true ]; then
             echo "❌ Plugin validation failed!"
             echo ""
-            echo "Required for all plugins:"
-            echo "  1. Core Functionality tests (describe what your plugin does)"
-            echo "  2. Error Handling tests (test invalid inputs/scenarios)" 
-            echo "  3. All tests must pass (including auto-generated Plugin Configuration)"
+            
+            # Check what types of failures occurred and provide specific guidance
+            if echo "$test_output" | grep -q "TODO: Replace placeholder"; then
+              echo "ISSUE: Placeholder tests found"
+              echo "   You need to replace the auto-generated placeholder tests with real ones."
+              echo "   Look for 'TODO: Replace placeholder test' messages in your test files."
+              echo ""
+              echo "SOLUTION:"
+              echo "   1. Open your tests/[plugin-name].spec.ts file"
+              echo "   2. Replace placeholder tests in 'Core Functionality' section"
+              echo "   3. Replace placeholder tests in 'Error Handling' section"
+              echo "   4. See packages/plugin-example/tests/ for examples"
+              echo ""
+            fi
+            
+            echo "Requirements for all plugins:"
+            echo "  ✅ Core Functionality tests (describe what your plugin does)"
+            echo "  ✅ Error Handling tests (test invalid inputs/scenarios)" 
+            echo "  ❌ All tests must pass (no placeholder tests allowed)"
             echo ""
-            echo "See packages/plugin-example/tests/ for examples"
             echo "Read packages/PLUGIN_TESTING_GUIDE.md for detailed instructions"
             exit 1
           else

@@ -5,7 +5,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import pluginTestingPlugin from "../src/index.js";
 import express from "express";
-import request from "supertest";
+// import request from "supertest"; // Uncomment when you add API endpoint tests
 
 // Mock DKG context
 const mockDkgContext = {

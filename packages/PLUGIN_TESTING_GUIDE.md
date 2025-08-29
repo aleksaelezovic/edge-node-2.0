@@ -12,6 +12,8 @@ Tests ensure your plugin works reliably and won't break when integrated with oth
 
 **Note:** Tests are automatically created when using `turbo gen` → "plugin" option, but not for `turbo gen` → "package" option.
 
+**Important:** After creating your plugin, run `npm install` in the root directory to update package-lock.json.
+
 When you create a plugin with `turbo gen` (plugin option), you automatically get:
 
 **Complete Test Infrastructure (Works Automatically):**
@@ -159,6 +161,7 @@ Before submitting your plugin, check that you have:
 
 **Automatic Setup (if you used `turbo gen` plugin option):**
 
+- [ ] Ran `npm install` in root directory after plugin creation  
 - [ ] Test script exists in `package.json`
 - [ ] Test file exists in `tests/` directory
 - [ ] Plugin Configuration tests work automatically
