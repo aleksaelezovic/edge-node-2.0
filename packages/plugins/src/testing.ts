@@ -1,4 +1,7 @@
-import { createBlobStorage } from "./helpers";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { createBlobStorage, express } from "./helpers";
 import { BlobData, BlobMetadata } from "./types";
 
 export const createInMemoryBlobStorage = () => {
@@ -22,3 +25,59 @@ export const createInMemoryBlobStorage = () => {
     },
   });
 };
+
+export const createExpressApp = () => {
+  const app = express();
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  return app;
+};
+
+export const createMcpServerClientPair = async () => {
+  const server = new McpServer({ name: "Test DKG Server", version: "1.0.0" });
+  const client = new Client({ name: "Test DKG Client", version: "1.0.0" });
+  const [serverTransport, clientTransport] =
+    InMemoryTransport.createLinkedPair();
+
+  return {
+    server,
+    client,
+    connect: () =>
+      Promise.all([
+        server.connect(serverTransport),
+        client.connect(clientTransport),
+      ]),
+  };
+};
+
+export const createMockDkgClient = () => ({
+  // Mock DKG instance with all required properties
+  get: () => Promise.resolve({}),
+  query: () => Promise.resolve([]),
+  assertion: {
+    get: () => Promise.resolve({}),
+    create: () => Promise.resolve({}),
+  },
+  asset: {
+    get: () => Promise.resolve({}),
+    create: () => Promise.resolve({}),
+  },
+  blockchain: {
+    get: () => Promise.resolve({}),
+  },
+  node: {
+    get: () => Promise.resolve({}),
+  },
+  graph: {
+    query: () => Promise.resolve([]),
+  },
+  network: {
+    get: () => Promise.resolve({}),
+  },
+  storage: {
+    get: () => Promise.resolve({}),
+  },
+  paranet: {
+    get: () => Promise.resolve({}),
+  },
+});

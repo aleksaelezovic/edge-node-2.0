@@ -10,266 +10,245 @@ import {
   serializeSourceKAContent,
   parseSourceKAContent,
 } from "../src/utils.js";
+import {
+  createExpressApp,
+  createInMemoryBlobStorage,
+  createMcpServerClientPair,
+  createMockDkgClient,
+} from "@dkg/plugins/testing";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import express from "express";
-import { createInMemoryBlobStorage } from "@dkg/plugins/testing";
 import { Blob } from "buffer";
 
 // Mock DKG context
 const mockDkgContext = {
-  dkg: {
-    // Mock DKG instance with all required properties
-    get: () => Promise.resolve({}),
-    query: () => Promise.resolve([]),
-    assertion: {
-      get: () => Promise.resolve({}),
-      create: () => Promise.resolve({}),
-    },
-    asset: {
-      get: (ual: string) =>
-        Promise.resolve({
-          public: {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "Test Asset",
-            description: "Mock test asset data",
-          },
-          metadata: {
-            UAL: ual,
-            createdAt: "2024-01-01T00:00:00Z",
-          },
-        }),
-      create: () =>
-        Promise.resolve({
-          UAL: "did:dkg:otp:20430/0x123456/12345",
-        }),
-    },
-    blockchain: {
-      get: () => Promise.resolve({}),
-    },
-    node: {
-      get: () => Promise.resolve({}),
-    },
-    graph: {
-      query: () => Promise.resolve([]),
-    },
-    network: {
-      get: () => Promise.resolve({}),
-    },
-    storage: {
-      get: () => Promise.resolve({}),
-    },
-    paranet: {
-      get: () => Promise.resolve({}),
-    },
-  },
+  dkg: createMockDkgClient(),
   blob: createInMemoryBlobStorage(),
 };
 
-function createMockMcpServer(): any {
-  const registeredTools = new Map();
-  const registeredResources = new Map();
-
-  return {
-    registerTool(
-      name: string,
-      config: Record<string, unknown>,
-      handler: (...args: any[]) => any,
-    ) {
-      registeredTools.set(name, { ...config, handler });
-      return this;
-    },
-    registerResource(
-      name: string,
-      template: any,
-      config: Record<string, unknown>,
-      handler: (...args: any[]) => any,
-    ) {
-      registeredResources.set(name, { template, config, handler });
-      return this;
-    },
-    getRegisteredTools() {
-      return registeredTools;
-    },
-    getRegisteredResources() {
-      return registeredResources;
-    },
-  };
-}
+mockDkgContext.dkg.asset = {
+  // @ts-expect-error Mock definition differs from the original implementation
+  get: (ual: string) =>
+    Promise.resolve({
+      public: {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "Test Asset",
+        description: "Mock test asset data",
+      },
+      metadata: {
+        UAL: ual,
+        createdAt: "2024-01-01T00:00:00Z",
+      },
+    }),
+  create: () =>
+    Promise.resolve({
+      UAL: "did:dkg:otp:20430/0x123456/12345",
+    }),
+};
 
 describe("@dkg/plugin-dkg-essentials checks", () => {
-  let mockMcpServer: any;
+  let mockMcpServer: McpServer;
+  let mockMcpClient: Client;
   let apiRouter: express.Router;
   let app: express.Application;
 
-  beforeEach(() => {
-    mockMcpServer = createMockMcpServer();
+  beforeEach(async () => {
+    const { server, client, connect } = await createMcpServerClientPair();
+    mockMcpServer = server;
+    mockMcpClient = client;
     apiRouter = express.Router();
 
     // Setup Express app
-    app = express();
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
+    app = createExpressApp();
 
     // Initialize plugin
     dkgToolsPlugin(mockDkgContext, mockMcpServer, apiRouter);
+    await connect();
 
     // Mount the router
     app.use("/", apiRouter);
   });
 
   describe("MCP Tool Registration", () => {
-    it("should register the dkg-get tool", () => {
-      const registeredTools = mockMcpServer.getRegisteredTools();
-      expect(registeredTools.has("dkg-get")).to.equal(true);
+    it("should register the dkg-get tool", async () => {
+      const tools = await mockMcpClient.listTools().then((t) => t.tools);
+
+      expect(tools.some((t) => t.name === "dkg-get")).to.equal(true);
     });
 
-    it("should register the dkg-create tool", () => {
-      const registeredTools = mockMcpServer.getRegisteredTools();
-      expect(registeredTools.has("dkg-create")).to.equal(true);
+    it("should register the dkg-create tool", async () => {
+      const tools = await mockMcpClient.listTools().then((t) => t.tools);
+
+      expect(tools.some((t) => t.name === "dkg-create")).to.equal(true);
     });
 
-    it("should register exactly 2 tools", () => {
-      const registeredTools = mockMcpServer.getRegisteredTools();
-      expect(registeredTools.size).to.equal(2);
+    it("should register exactly 2 tools", async () => {
+      const tools = await mockMcpClient.listTools().then((t) => t.tools);
+
+      expect(tools.length).to.equal(2);
     });
 
-    it("should have correct dkg-get tool configuration", () => {
-      const dkgGetTool = mockMcpServer.getRegisteredTools().get("dkg-get");
+    it("should have correct dkg-get tool configuration", async () => {
+      const tools = await mockMcpClient.listTools().then((t) => t.tools);
+      const dkgGetTool = tools.find((t) => t.name === "dkg-get");
+
       expect(dkgGetTool).to.not.equal(undefined);
-      expect(dkgGetTool.title).to.equal("DKG Knowledge Asset get tool");
-      expect(dkgGetTool.description).to.include("GET operation");
-      expect(dkgGetTool.description).to.include("UAL");
-      expect(dkgGetTool.inputSchema).to.not.equal(undefined);
+      expect(dkgGetTool!.title).to.equal("DKG Knowledge Asset get tool");
+      expect(dkgGetTool!.description).to.include("GET operation");
+      expect(dkgGetTool!.description).to.include("UAL");
+      expect(dkgGetTool!.inputSchema).to.not.equal(undefined);
     });
 
-    it("should have correct dkg-create tool configuration", () => {
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
+    it("should have correct dkg-create tool configuration", async () => {
+      const tools = await mockMcpClient.listTools().then((t) => t.tools);
+      const dkgCreateTool = tools.find((t) => t.name === "dkg-create");
+
       expect(dkgCreateTool).to.not.equal(undefined);
-      expect(dkgCreateTool.title).to.equal("DKG Knowledge Asset create tool");
-      expect(dkgCreateTool.description).to.include("creating and publishing");
-      expect(dkgCreateTool.description).to.include("JSON-LD");
-      expect(dkgCreateTool.inputSchema).to.not.equal(undefined);
+      expect(dkgCreateTool!.title).to.equal("DKG Knowledge Asset create tool");
+      expect(dkgCreateTool!.description).to.include("creating and publishing");
+      expect(dkgCreateTool!.description).to.include("JSON-LD");
+      expect(dkgCreateTool!.inputSchema).to.not.equal(undefined);
     });
   });
 
   describe("MCP Resource Registration", () => {
-    it("should register the dkg-knowledge-asset resource", () => {
-      const registeredResources = mockMcpServer.getRegisteredResources();
-      expect(registeredResources.has("dkg-knowledge-asset")).to.equal(true);
-    });
+    it("should register the dkg-knowledge-asset resource", async () => {
+      const resources = await mockMcpClient
+        .listResourceTemplates()
+        .then((r) => r.resourceTemplates);
 
-    it("should register the dkg-knowledge-collection resource", () => {
-      const registeredResources = mockMcpServer.getRegisteredResources();
-      expect(registeredResources.has("dkg-knowledge-collection")).to.equal(
+      expect(resources.some((r) => r.name === "dkg-knowledge-asset")).to.equal(
         true,
       );
     });
 
-    it("should register exactly 2 resources", () => {
-      const registeredResources = mockMcpServer.getRegisteredResources();
-      expect(registeredResources.size).to.equal(2);
+    it("should register the dkg-knowledge-collection resource", async () => {
+      const resources = await mockMcpClient
+        .listResourceTemplates()
+        .then((r) => r.resourceTemplates);
+
+      expect(
+        resources.some((r) => r.name === "dkg-knowledge-collection"),
+      ).to.equal(true);
     });
 
-    it("should have correct dkg-knowledge-asset resource configuration", () => {
-      const assetResource = mockMcpServer
-        .getRegisteredResources()
-        .get("dkg-knowledge-asset");
-      expect(assetResource).to.not.equal(undefined);
-      expect(assetResource.config.title).to.equal("DKG Knowledge Asset");
-      expect(assetResource.config.description).to.include("Knowledge Assets");
-      expect(assetResource.template).to.not.equal(undefined);
+    it("should register exactly 2 resources", async () => {
+      const resources = await mockMcpClient
+        .listResourceTemplates()
+        .then((r) => r.resourceTemplates);
+
+      expect(resources.length).to.equal(2);
     });
 
-    it("should have correct dkg-knowledge-collection resource configuration", () => {
-      const collectionResource = mockMcpServer
-        .getRegisteredResources()
-        .get("dkg-knowledge-collection");
-      expect(collectionResource).to.not.equal(undefined);
-      expect(collectionResource.config.title).to.equal(
-        "DKG Knowledge Collection",
+    it("should have correct dkg-knowledge-asset resource configuration", async () => {
+      const resources = await mockMcpClient
+        .listResourceTemplates()
+        .then((r) => r.resourceTemplates);
+      const assetResource = resources.find(
+        (r) => r.name === "dkg-knowledge-asset",
       );
-      expect(collectionResource.config.description).to.include(
+
+      expect(assetResource).to.not.equal(undefined);
+      expect(assetResource!.title).to.equal("DKG Knowledge Asset");
+      expect(assetResource!.description).to.include("Knowledge Assets");
+      expect(assetResource!.uriTemplate).to.not.equal(undefined);
+    });
+
+    it("should have correct dkg-knowledge-collection resource configuration", async () => {
+      const resources = await mockMcpClient
+        .listResourceTemplates()
+        .then((r) => r.resourceTemplates);
+      const collectionResource = resources.find(
+        (r) => r.name === "dkg-knowledge-collection",
+      );
+
+      expect(collectionResource).to.not.equal(undefined);
+      expect(collectionResource!.title).to.equal("DKG Knowledge Collection");
+      expect(collectionResource!.description).to.include(
         "Knowledge Collections",
       );
-      expect(collectionResource.template).to.not.equal(undefined);
+      expect(collectionResource!.uriTemplate).to.not.equal(undefined);
     });
   });
 
   describe("DKG Get Tool Functionality", () => {
     it("should retrieve knowledge asset by UAL", async () => {
-      const dkgGetTool = mockMcpServer.getRegisteredTools().get("dkg-get");
       const testUal = "did:dkg:otp:20430/0x123456/12345";
-
-      const result = await dkgGetTool.handler({ ual: testUal });
+      const result = await mockMcpClient.callTool({
+        name: "dkg-get",
+        arguments: { ual: testUal },
+      });
 
       expect(result.content).to.be.an("array");
-      expect(result.content[0].type).to.equal("text");
-      expect(result.content[0].text).to.be.a("string");
+      expect((result.content as any[])[0].type).to.equal("text");
+      expect((result.content as any[])[0].text).to.be.a("string");
 
       // Verify the returned data is valid JSON
-      const parsedResult = JSON.parse(result.content[0].text);
+      const parsedResult = JSON.parse((result.content as any[])[0].text);
       expect(parsedResult).to.be.an("object");
       expect(parsedResult.public).to.exist;
       expect(parsedResult.metadata).to.exist;
     });
 
     it("should handle UAL parameter correctly", async () => {
-      const dkgGetTool = mockMcpServer.getRegisteredTools().get("dkg-get");
       const testUal = "did:dkg:otp:20430/0x987654/54321";
-
-      const result = await dkgGetTool.handler({ ual: testUal });
-      const parsedResult = JSON.parse(result.content[0].text);
+      const result = await mockMcpClient.callTool({
+        name: "dkg-get",
+        arguments: { ual: testUal },
+      });
+      const parsedResult = JSON.parse((result.content as any[])[0].text);
 
       expect(parsedResult.metadata.UAL).to.equal(testUal);
     });
 
     it("should format response as valid JSON", async () => {
-      const dkgGetTool = mockMcpServer.getRegisteredTools().get("dkg-get");
-      const result = await dkgGetTool.handler({ ual: "test-ual" });
+      const result = await mockMcpClient.callTool({
+        name: "dkg-get",
+        arguments: { ual: "test-ual" },
+      });
 
-      expect(() => JSON.parse(result.content[0].text)).to.not.throw();
+      expect(() =>
+        JSON.parse((result.content as any[])[0].text),
+      ).to.not.throw();
     });
   });
 
   describe("DKG Create Tool Functionality", () => {
     it("should create knowledge asset with valid JSON-LD", async () => {
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
       const testJsonLd = JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Organization",
         name: "Test Organization",
         description: "A test organization",
       });
-
-      const result = await dkgCreateTool.handler({
-        jsonld: testJsonLd,
-        privacy: "private",
+      const result = await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: {
+          jsonld: testJsonLd,
+          privacy: "private",
+        },
       });
 
       expect(result.content).to.be.an("array");
-      expect(result.content[0].type).to.equal("text");
-      expect(result.content[0].text).to.include(
+      expect((result.content as any[])[0].type).to.equal("text");
+      expect((result.content as any[])[0].text).to.include(
         "Knowledge Asset collection successfully created",
       );
-      expect(result.content[0].text).to.include("UAL:");
-      expect(result.content[0].text).to.include("DKG Explorer link:");
+      expect((result.content as any[])[0].text).to.include("UAL:");
+      expect((result.content as any[])[0].text).to.include(
+        "DKG Explorer link:",
+      );
     });
 
     it("should create knowledge asset with valid JSON-LD file id as input", async () => {
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
       const testJsonLd = JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Organization",
         name: "Test Organization",
         description: "A test organization",
       });
-
       const { id } = await mockDkgContext.blob.create(
         new Blob([testJsonLd]).stream(),
         {
@@ -277,76 +256,80 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
           mimeType: "application/json",
         },
       );
-
-      const result = await dkgCreateTool.handler({
-        jsonld: id,
-        privacy: "private",
+      const result = await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: {
+          jsonld: id,
+          privacy: "private",
+        },
       });
 
       expect(result.content).to.be.an("array");
-      expect(result.content[0].type).to.equal("text");
-      expect(result.content[0].text).to.include(
+      expect((result.content as any)[0].type).to.equal("text");
+      expect((result.content as any)[0].text).to.include(
         "Knowledge Asset collection successfully created",
       );
-      expect(result.content[0].text).to.include("UAL:");
-      expect(result.content[0].text).to.include("DKG Explorer link:");
+      expect((result.content as any)[0].text).to.include("UAL:");
+      expect((result.content as any)[0].text).to.include("DKG Explorer link:");
     });
 
     it("should default to private privacy when not specified", async () => {
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
       const testJsonLd = JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Person",
         name: "Test Person",
       });
+      const result = await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: {
+          jsonld: testJsonLd,
+        },
+      });
 
-      const result = await dkgCreateTool.handler({ jsonld: testJsonLd });
-
-      expect(result.content[0].text).to.include("successfully created");
+      expect((result.content as any[])[0].text).to.include(
+        "successfully created",
+      );
     });
 
     it("should handle public privacy setting", async () => {
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
       const testJsonLd = JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Event",
         name: "Test Event",
       });
-
-      const result = await dkgCreateTool.handler({
-        jsonld: testJsonLd,
-        privacy: "public",
+      const result = await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: {
+          jsonld: testJsonLd,
+          privacy: "public",
+        },
       });
 
-      expect(result.content[0].text).to.include("successfully created");
+      expect((result.content as any[])[0].text).to.include(
+        "successfully created",
+      );
     });
 
     it("should throw error when no JSON-LD content provided", async () => {
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
+      const result = await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: { jsonld: "" },
+      });
 
-      try {
-        await dkgCreateTool.handler({ jsonld: "" });
-        expect.fail("Should have thrown an error");
-      } catch (error) {
-        expect(error.message).to.include("No JSON-LD content provided");
-      }
+      expect(result.isError).to.be.true;
+      expect((result.content as any[])[0].text).to.include(
+        "No JSON-LD content provided",
+      );
     });
 
     it("should include UAL in response", async () => {
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
       const testJsonLd = JSON.stringify({ "@type": "Thing" });
+      const result = await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: { jsonld: testJsonLd },
+      });
 
-      const result = await dkgCreateTool.handler({ jsonld: testJsonLd });
-
-      expect(result.content[0].text).to.include(
+      expect((result.content as any[])[0].text).to.include(
         "did:dkg:otp:20430/0x123456/12345",
       );
     });
@@ -354,44 +337,32 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
   describe("Resource Handler Functionality", () => {
     it("should handle knowledge asset resource requests", async () => {
-      const assetResource = mockMcpServer
-        .getRegisteredResources()
-        .get("dkg-knowledge-asset");
-      const mockUal = { href: "did:dkg:otp:20430/0x123456/12345" };
-
-      const result = await assetResource.handler(mockUal);
+      const mockUal = "did:dkg:otp:20430/0x123456/12345/1";
+      const result = await mockMcpClient.readResource({ uri: mockUal });
 
       expect(result.contents).to.be.an("array");
-      expect(result.contents[0].uri).to.equal(mockUal.href);
+      expect(result.contents[0].uri).to.equal(mockUal);
       expect(result.contents[0].text).to.be.a("string");
 
       // Verify the returned data is valid JSON
-      const parsedResult = JSON.parse(result.contents[0].text);
+      const parsedResult = JSON.parse((result.contents as any[])[0].text);
       expect(parsedResult).to.be.an("object");
     });
 
     it("should handle knowledge collection resource requests", async () => {
-      const collectionResource = mockMcpServer
-        .getRegisteredResources()
-        .get("dkg-knowledge-collection");
-      const mockUal = { href: "did:dkg:otp:20430/0x123456/collection" };
-
-      const result = await collectionResource.handler(mockUal);
+      const mockUal = "did:dkg:otp:20430/0x123456/12345";
+      const result = await mockMcpClient.readResource({ uri: mockUal });
 
       expect(result.contents).to.be.an("array");
-      expect(result.contents[0].uri).to.equal(mockUal.href);
+      expect(result.contents[0].uri).to.equal(mockUal);
       expect(result.contents[0].text).to.be.a("string");
     });
 
     it("should convert UAL href to lowercase", async () => {
-      const assetResource = mockMcpServer
-        .getRegisteredResources()
-        .get("dkg-knowledge-asset");
-      const mockUal = { href: "DID:DKG:OTP:20430/0X123456/12345" };
+      const mockUal = "did:dkg:OTP:20430/0X123456/12345";
+      const result = await mockMcpClient.readResource({ uri: mockUal });
 
-      const result = await assetResource.handler(mockUal);
-
-      expect(result.contents[0].uri).to.equal(mockUal.href);
+      expect(result.contents[0].uri).to.equal(mockUal);
       // The handler should call ctx.dkg.asset.get with lowercase UAL
     });
   });
@@ -404,19 +375,18 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
         throw new Error("Invalid JSON-LD format");
       };
 
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
-
-      try {
-        await dkgCreateTool.handler({
+      const result = await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: {
           jsonld: '{ "invalid": "jsonld" }',
           privacy: "private",
-        });
-        expect.fail("Should have thrown an error");
-      } catch (error) {
-        expect(error.message).to.include("Failed to create asset");
-      }
+        },
+      });
+
+      expect(result.isError).to.be.true;
+      expect((result.content as any[])[0].text).to.include(
+        "Failed to create asset",
+      );
 
       // Restore original mock
       mockDkgContext.dkg.asset.create = originalCreate;
@@ -429,14 +399,15 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
         throw new Error("DKG service unavailable");
       };
 
-      const dkgGetTool = mockMcpServer.getRegisteredTools().get("dkg-get");
+      const result = await mockMcpClient.callTool({
+        name: "dkg-get",
+        arguments: { ual: "test-ual" },
+      });
 
-      try {
-        await dkgGetTool.handler({ ual: "test-ual" });
-        expect.fail("Should have thrown an error");
-      } catch (error) {
-        expect(error.message).to.include("DKG service unavailable");
-      }
+      expect(result.isError).to.be.true;
+      expect((result.content as any[])[0].text).to.include(
+        "DKG service unavailable",
+      );
 
       // Restore original mock
       mockDkgContext.dkg.asset.get = originalGet;
@@ -481,7 +452,6 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
             ual: "did:dkg:test/123",
           },
         ];
-
         const result = withSourceKnowledgeAssets(originalData, kas);
 
         expect(result.content).to.have.length(2);
@@ -502,7 +472,6 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
           { title: "Asset 1", issuer: "Issuer 1", ual: "did:dkg:test/1" },
           { title: "Asset 2", issuer: "Issuer 2", ual: "did:dkg:test/2" },
         ];
-
         const result = withSourceKnowledgeAssets(originalData, kas);
 
         expect(result.content[1].text).to.include("Asset 1");
@@ -516,7 +485,6 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
           content: [{ type: "text" as const, text: "Original content" }],
         };
         const kas: any[] = [];
-
         const result = withSourceKnowledgeAssets(originalData, kas);
 
         expect(result.content).to.have.length(2);
@@ -535,7 +503,6 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
             ual: "did:dkg:test/123",
           },
         ];
-
         const result = serializeSourceKAContent(kas);
 
         expect(result.type).to.equal("text");
@@ -555,7 +522,6 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
           type: "text" as const,
           text: "**Source Knowledge Assets:**\n- **Test Asset**: Test Issuer\n  [did:dkg:test/123](https://dkg-testnet.origintrail.io/explore?ual=did:dkg:test/123)",
         };
-
         const result = parseSourceKAContent(content);
 
         expect(result).to.not.be.null;
@@ -570,7 +536,6 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
           type: "image" as any,
           text: "some text",
         };
-
         const result = parseSourceKAContent(content);
 
         expect(result).to.be.null;
@@ -581,7 +546,6 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
           type: "text" as const,
           text: "Just some regular text without knowledge assets",
         };
-
         const result = parseSourceKAContent(content);
 
         expect(result).to.be.null;
@@ -593,16 +557,14 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
     it("should call asset.create with correct options", async () => {
       const spy = sinon.spy(mockDkgContext.dkg.asset, "create");
 
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
       const testJsonLd = JSON.stringify({ "@type": "Thing" });
-
-      await dkgCreateTool.handler({ jsonld: testJsonLd, privacy: "private" });
+      await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: { jsonld: testJsonLd, privacy: "private" },
+      });
 
       expect(spy.calledOnce).to.be.true;
       const [data, options] = spy.firstCall.args as unknown as [any, any];
-
       expect(data).to.deep.equal({ private: { "@type": "Thing" } });
       expect(options).to.deep.equal({
         epochsNum: 2,
@@ -616,12 +578,11 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
     it("should wrap data correctly for public privacy", async () => {
       const spy = sinon.spy(mockDkgContext.dkg.asset, "create");
 
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
       const testJsonLd = JSON.stringify({ "@type": "Thing" });
-
-      await dkgCreateTool.handler({ jsonld: testJsonLd, privacy: "public" });
+      await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: { jsonld: testJsonLd, privacy: "public" },
+      });
 
       const [data] = spy.firstCall.args as unknown as [any];
       expect(data).to.deep.equal({ public: { "@type": "Thing" } });
@@ -634,17 +595,12 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
     it("should call asset.get with includeMetadata for knowledge asset resource", async () => {
       const spy = sinon.spy(mockDkgContext.dkg.asset, "get");
 
-      const assetResource = mockMcpServer
-        .getRegisteredResources()
-        .get("dkg-knowledge-asset");
-      const mockUal = { href: "DID:DKG:TEST:123" };
-
-      await assetResource.handler(mockUal);
+      const mockUal = "did:dkg:BLK:1/0x123/123/1";
+      await mockMcpClient.readResource({ uri: mockUal });
 
       expect(spy.calledOnce).to.be.true;
       const [ual, options] = spy.firstCall.args as unknown as [string, any];
-
-      expect(ual).to.equal("did:dkg:test:123"); // Should be lowercase
+      expect(ual).to.equal(mockUal.toLowerCase()); // Should be lowercase
       expect(options).to.deep.equal({ includeMetadata: true });
 
       spy.restore();
@@ -653,17 +609,13 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
     it("should call asset.get with includeMetadata for knowledge collection resource", async () => {
       const spy = sinon.spy(mockDkgContext.dkg.asset, "get");
 
-      const collectionResource = mockMcpServer
-        .getRegisteredResources()
-        .get("dkg-knowledge-collection");
-      const mockUal = { href: "DID:DKG:COLLECTION:456" };
-
-      await collectionResource.handler(mockUal);
+      const mockUal = "did:dkg:BLK:1/0x123/123";
+      await mockMcpClient.readResource({ uri: mockUal });
 
       expect(spy.calledOnce).to.be.true;
       const [ual, options] = spy.firstCall.args as unknown as [string, any];
 
-      expect(ual).to.equal("did:dkg:collection:456"); // Should be lowercase
+      expect(ual).to.equal(mockUal.toLowerCase()); // Should be lowercase
       expect(options).to.deep.equal({ includeMetadata: true });
 
       spy.restore();
@@ -685,12 +637,11 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
     });
 
     it("should log formatted response on successful asset creation", async () => {
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
       const testJsonLd = JSON.stringify({ "@type": "Thing" });
-
-      await dkgCreateTool.handler({ jsonld: testJsonLd });
+      await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: { jsonld: testJsonLd },
+      });
 
       expect(consoleLogSpy.calledOnce).to.be.true;
       expect((consoleLogSpy.firstCall.args as any[])[0]).to.equal(
@@ -708,12 +659,12 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
         throw new Error("Test error");
       };
 
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
-
       try {
-        await dkgCreateTool.handler({ jsonld: "{}" });
+        await mockMcpClient.callTool({
+          name: "dkg-create",
+          arguments: { jsonld: "{}" },
+        });
+
         expect.fail("Should have thrown an error");
       } catch {
         expect(consoleErrorSpy.calledOnce).to.be.true;
@@ -730,12 +681,12 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
     });
 
     it("should log error when no JSON-LD content provided", async () => {
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
-
       try {
-        await dkgCreateTool.handler({ jsonld: "" });
+        await mockMcpClient.callTool({
+          name: "dkg-create",
+          arguments: { jsonld: "" },
+        });
+
         expect.fail("Should have thrown an error");
       } catch {
         expect(consoleErrorSpy.calledOnce).to.be.true;
@@ -748,16 +699,15 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
   describe("Edge Cases and Validation", () => {
     it("should handle malformed JSON in asset creation", async () => {
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
+      const result = await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: { jsonld: "{ invalid json }" },
+      });
 
-      try {
-        await dkgCreateTool.handler({ jsonld: "{ invalid json }" });
-        expect.fail("Should have thrown an error");
-      } catch (error) {
-        expect(error.message).to.include("Failed to create asset");
-      }
+      expect(result.isError).to.be.true;
+      expect((result.content as any[])[0].text).to.include(
+        "Failed to create asset",
+      );
     });
 
     it("should handle undefined UAL from asset creation", async () => {
@@ -765,18 +715,19 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
       const originalCreate = mockDkgContext.dkg.asset.create;
       mockDkgContext.dkg.asset.create = () => Promise.resolve({} as any);
 
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
-
-      const result = await dkgCreateTool.handler({ jsonld: "{}" });
+      const result = await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: { jsonld: "{}" },
+      });
 
       // Should still return a response but with null UAL
-      expect(result.content[0].text).to.include(
+      expect((result.content as any[])[0].text).to.include(
         "Knowledge Asset collection successfully created",
       );
-      expect(result.content[0].text).to.include("UAL: null");
-      expect(result.content[0].text).to.include("DKG Explorer link:");
+      expect((result.content as any[])[0].text).to.include("UAL: null");
+      expect((result.content as any[])[0].text).to.include(
+        "DKG Explorer link:",
+      );
 
       // Restore original mock
       mockDkgContext.dkg.asset.create = originalCreate;
@@ -784,23 +735,23 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
     it("should handle very long UAL strings", async () => {
       const longUal = "did:dkg:test/" + "a".repeat(1000);
-      const dkgGetTool = mockMcpServer.getRegisteredTools().get("dkg-get");
+      const result = await mockMcpClient.callTool({
+        name: "dkg-get",
+        arguments: { ual: longUal },
+      });
 
-      const result = await dkgGetTool.handler({ ual: longUal });
-
-      expect(result.content[0].text).to.be.a("string");
+      expect((result.content as any[])[0].text).to.be.a("string");
       // Should not throw any errors
     });
 
     it("should handle empty privacy string as private", async () => {
       const spy = sinon.spy(mockDkgContext.dkg.asset, "create");
 
-      const dkgCreateTool = mockMcpServer
-        .getRegisteredTools()
-        .get("dkg-create");
       const testJsonLd = JSON.stringify({ "@type": "Thing" });
-
-      await dkgCreateTool.handler({ jsonld: testJsonLd, privacy: undefined });
+      await mockMcpClient.callTool({
+        name: "dkg-create",
+        arguments: { jsonld: testJsonLd, privacy: undefined },
+      });
 
       const [data] = spy.firstCall.args as unknown as [any];
       expect(data).to.deep.equal({ private: { "@type": "Thing" } });

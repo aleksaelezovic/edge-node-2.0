@@ -11,82 +11,18 @@ import {
 } from "../src/openAPIRoute.js";
 import express from "express";
 import request from "supertest";
-import { createInMemoryBlobStorage } from "@dkg/plugins/testing";
+import {
+  createInMemoryBlobStorage,
+  createExpressApp,
+  createMockDkgClient,
+  createMcpServerClientPair,
+} from "@dkg/plugins/testing";
 
 // Mock DKG context
 const mockDkgContext = {
-  dkg: {
-    // Mock DKG instance with all required properties
-    get: () => Promise.resolve({}),
-    query: () => Promise.resolve([]),
-    assertion: {
-      get: () => Promise.resolve({}),
-      create: () => Promise.resolve({}),
-    },
-    asset: {
-      get: () => Promise.resolve({}),
-      create: () => Promise.resolve({}),
-    },
-    blockchain: {
-      get: () => Promise.resolve({}),
-    },
-    node: {
-      get: () => Promise.resolve({}),
-    },
-    graph: {
-      query: () => Promise.resolve([]),
-    },
-    network: {
-      get: () => Promise.resolve({}),
-    },
-    storage: {
-      get: () => Promise.resolve({}),
-    },
-    paranet: {
-      get: () => Promise.resolve({}),
-    },
-  },
+  dkg: createMockDkgClient(),
   blob: createInMemoryBlobStorage(),
 };
-
-function createMockMcpServer(): any {
-  const registeredTools = new Map();
-  const registeredResources = new Map();
-
-  return {
-    registerTool(
-      name: string,
-      config: Record<string, unknown>,
-      handler: (...args: any[]) => any,
-    ) {
-      registeredTools.set(name, { ...config, handler });
-      return this;
-    },
-    registerResource(
-      name: string,
-      template: any,
-      config: Record<string, unknown>,
-      handler: (...args: any[]) => any,
-    ) {
-      registeredResources.set(name, { template, config, handler });
-      return this;
-    },
-    getRegisteredTools() {
-      return registeredTools;
-    },
-    getRegisteredResources() {
-      return registeredResources;
-    },
-  };
-}
-
-// Test helper functions
-function createTestApp(): express.Application {
-  const testApp = express();
-  testApp.use(express.json());
-  testApp.use(express.urlencoded({ extended: true }));
-  return testApp;
-}
 
 function expectValidOpenAPISpec(spec: any): void {
   expect(spec).to.be.an("object");
@@ -105,13 +41,12 @@ describe("@dkg/plugin-swagger checks", function () {
   // Set timeout for all tests to prevent hanging
   this.timeout(5000);
 
-  beforeEach(() => {
-    mockMcpServer = createMockMcpServer();
+  beforeEach(async () => {
+    const { server } = await createMcpServerClientPair();
+    mockMcpServer = server;
 
     // Setup Express app with router property for swagger plugin
-    app = express();
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
+    app = createExpressApp();
 
     // Create router and mock the router property that swagger plugin expects
     router = express.Router();
@@ -395,7 +330,7 @@ describe("@dkg/plugin-swagger checks", function () {
       });
 
       it("should validate request body", async () => {
-        const testApp = createTestApp();
+        const testApp = createExpressApp();
 
         testApp.post(
           "/test",
@@ -444,7 +379,7 @@ describe("@dkg/plugin-swagger checks", function () {
       });
 
       it("should validate query parameters", async () => {
-        const testApp = createTestApp();
+        const testApp = createExpressApp();
 
         testApp.get(
           "/search",
