@@ -11,6 +11,7 @@ import {
 } from "../src/openAPIRoute.js";
 import express from "express";
 import request from "supertest";
+import { createInMemoryBlobStorage } from "@dkg/plugins/testing";
 
 // Mock DKG context
 const mockDkgContext = {
@@ -45,6 +46,7 @@ const mockDkgContext = {
       get: () => Promise.resolve({}),
     },
   },
+  blob: createInMemoryBlobStorage(),
 };
 
 function createMockMcpServer(): any {

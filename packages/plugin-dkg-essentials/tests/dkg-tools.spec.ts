@@ -11,7 +11,7 @@ import {
   parseSourceKAContent,
 } from "../src/utils.js";
 import express from "express";
-import { createBlobStorage } from "@dkg/plugins/helpers";
+import { createInMemoryBlobStorage } from "@dkg/plugins/testing";
 import { Blob } from "buffer";
 
 // Mock DKG context
@@ -62,26 +62,7 @@ const mockDkgContext = {
       get: () => Promise.resolve({}),
     },
   },
-  blob: createBlobStorage({
-    put: async (id, data, metadata) => {
-      if (!globalThis.blobStorage) {
-        globalThis.blobStorage = {};
-      }
-      globalThis.blobStorage[id] = { data, metadata };
-    },
-    delete: async (id) => {
-      if (!globalThis.blobStorage) return;
-      delete globalThis.blobStorage[id];
-    },
-    get: async (id) => {
-      if (!globalThis.blobStorage) return null;
-      return globalThis.blobStorage[id]?.data || null;
-    },
-    info: async (id) => {
-      if (!globalThis.blobStorage) return null;
-      return globalThis.blobStorage[id]?.metadata || null;
-    },
-  }),
+  blob: createInMemoryBlobStorage(),
 };
 
 function createMockMcpServer(): any {

@@ -6,6 +6,7 @@ import sinon from "sinon";
 import oauthPlugin, { authorized, createOAuthPlugin } from "../src/index.js";
 import DemoOAuthStorageProvider from "../src/storage/demo.js";
 import { z } from "@dkg/plugin-swagger";
+import { createInMemoryBlobStorage } from "@dkg/plugins/testing";
 import express from "express";
 import request from "supertest";
 
@@ -42,6 +43,7 @@ const mockDkgContext = {
       get: () => Promise.resolve({}),
     },
   },
+  blob: createInMemoryBlobStorage(),
 };
 
 function createMockMcpServer(): any {

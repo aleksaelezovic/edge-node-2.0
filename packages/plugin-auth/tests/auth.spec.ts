@@ -5,6 +5,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import authPlugin, { authorized } from "../src/index.js";
 import { z } from "@dkg/plugins/helpers";
+import { createInMemoryBlobStorage } from "@dkg/plugins/testing";
 import express from "express";
 import request from "supertest";
 import passport from "passport";
@@ -43,6 +44,7 @@ const mockDkgContext = {
       get: () => Promise.resolve({}),
     },
   },
+  blob: createInMemoryBlobStorage(),
 };
 
 function createMockMcpServer(): any {

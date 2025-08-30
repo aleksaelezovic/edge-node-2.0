@@ -9,7 +9,7 @@ export { z };
 
 export const createBlobStorage = (handlers: {
   delete: (id: string) => Promise<void>;
-  get: (id: string) => Promise<BlobData>;
+  get: (id: string) => Promise<BlobData | null>;
   put: BlobStorage["put"];
   info: (id: string) => Promise<Omit<BlobMetadata, "name"> | null>;
 }): BlobStorage => {
