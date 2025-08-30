@@ -3,10 +3,7 @@ import consumers from "stream/consumers";
 import { defineDkgPlugin } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
 import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import multer from "multer";
-import { Blob } from "buffer";
-
-const upload = multer();
+import busboy from "busboy";
 
 export default defineDkgPlugin((ctx, mcp, api) => {
   mcp.registerTool(
@@ -22,17 +19,14 @@ export default defineDkgPlugin((ctx, mcp, api) => {
       },
     },
     async ({ fileBase64, filename, mimeType }) => {
-      const fileByteChars = atob(fileBase64);
-      const fileByteNumbers = new Array(fileByteChars.length);
-      for (let i = 0; i < fileByteChars.length; i++) {
-        fileByteNumbers[i] = fileByteChars.charCodeAt(i);
-      }
-      const fileBytes = new Uint8Array(fileByteNumbers);
-      const fileBlob = new Blob([fileBytes]);
-      const { id } = await ctx.blob.create(fileBlob.stream(), {
-        name: filename,
-        mimeType,
-      });
+      const buffer = Buffer.from(fileBase64, "base64");
+      const { id } = await ctx.blob.create(
+        Readable.toWeb(Readable.from(buffer)),
+        {
+          name: filename,
+          mimeType,
+        },
+      );
 
       return {
         content: [
@@ -65,24 +59,25 @@ export default defineDkgPlugin((ctx, mcp, api) => {
     },
   );
 
-  api.post("/upload", upload.single("file"), async (req, res) => {
-    if (!req.file) return res.status(400).send("No file uploaded");
+  api.post("/upload", async (req, res) => {
+    const bb = busboy({ headers: req.headers });
+    bb.on("file", async (name, file, info) => {
+      if (name !== "file") return res.status(400).send("Invalid file name");
 
-    try {
-      const { id } = await ctx.blob.create(
-        Readable.toWeb(Readable.from(req.file.buffer)),
-        {
-          name: req.file.originalname,
-          mimeType: req.file.mimetype,
-        },
-      );
-      res
-        .status(201)
-        .json({ id, name: req.file.originalname, mimeType: req.file.mimetype });
-    } catch (error) {
-      console.error(error);
-      res.status(500).send(`Failed to create blob: ${error}`);
-    }
+      try {
+        const { id } = await ctx.blob.create(Readable.toWeb(file), {
+          name: info.filename,
+          mimeType: info.mimeType,
+        });
+        res
+          .status(201)
+          .json({ id, name: info.filename, mimeType: info.mimeType });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send(`Failed to create blob: ${error}`);
+      }
+    });
+    req.pipe(bb);
   });
 
   api.get("/blob/:id", async (req, res) => {
@@ -101,23 +96,23 @@ export default defineDkgPlugin((ctx, mcp, api) => {
     return obj.data.pipeTo(Writable.toWeb(res));
   });
 
-  api.put("/blob/:id", upload.single("file"), async (req, res) => {
-    if (!req.file) return res.status(400).send("No file uploaded");
+  api.put("/blob/:id", async (req, res) => {
+    const bb = busboy({ headers: req.headers });
+    bb.on("file", async (name, file, info) => {
+      if (name !== "file") return res.status(400).send("Invalid file name");
 
-    try {
-      await ctx.blob.put(
-        req.params.id!,
-        Readable.toWeb(Readable.from(req.file.buffer)),
-        {
-          name: req.file.originalname,
-          mimeType: req.file.mimetype,
-        },
-      );
-      res.status(200).send();
-    } catch (error) {
-      console.error(error);
-      res.status(500).send(`Failed to update blob: ${error}`);
-    }
+      try {
+        await ctx.blob.put(req.params.id, Readable.toWeb(file), {
+          name: info.filename,
+          mimeType: info.mimeType,
+        });
+        res.status(200).send();
+      } catch (error) {
+        console.error(error);
+        res.status(500).send(`Failed to update blob: ${error}`);
+      }
+    });
+    req.pipe(bb);
   });
 
   api.delete("/blob/:id", async (req, res) => {

@@ -28,12 +28,12 @@
   },
   "dependencies": {
     "@dkg/plugins": "^0.0.2",
-    "multer": "^2.0.2"
+    "busboy": "^1.6.0"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
-    "@types/multer": "^2.0.0",
+    "@types/busboy": "^1.5.4",
     "tsup": "^8.5.0"
   }
 }
