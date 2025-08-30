@@ -1,3 +1,4 @@
+import consumers from "stream/consumers";
 import { defineDkgPlugin } from "@dkg/plugins";
 import { z } from "@dkg/plugins/helpers";
 import {
@@ -137,9 +138,13 @@ export default defineDkgPlugin((ctx, mcp) => {
     {
       title: "DKG Knowledge Asset create tool",
       description:
-        "A tool for creating and publishing Knowledge Assets on OriginTrail Decentralized Knowledge Graph (DKG), taking either a single JSON-LD string or a single file path as input. Optionally, you can specify privacy as 'private' or 'public' (default: 'private').",
+        "A tool for creating and publishing Knowledge Assets on OriginTrail Decentralized Knowledge Graph (DKG), " +
+        "taking either a single JSON-LD string or a single file id as input. " +
+        "Optionally, you can specify privacy as 'private' or 'public' (default: 'private').",
       inputSchema: {
-        jsonld: z.string(),
+        jsonld: z
+          .string()
+          .describe("JSON-LD content or ID of an uploaded file"),
         privacy: z.enum(["private", "public"]).optional().default("private"),
       },
     },
@@ -149,7 +154,18 @@ export default defineDkgPlugin((ctx, mcp) => {
         throw new Error("No JSON-LD content provided.");
       }
       const privacy = input.privacy || "private";
-      const { ual, error } = await publishJsonLdAsset(input.jsonld, privacy);
+      const content =
+        input.jsonld.startsWith("{") || input.jsonld.startsWith("[")
+          ? input.jsonld
+          : await ctx.blob.get(input.jsonld).then((r) => {
+              if (!r) {
+                console.error(`File with id ${input.jsonld} not found`);
+                throw new Error(`File with id ${input.jsonld} not found`);
+              }
+              return consumers.text(r.data);
+            });
+
+      const { ual, error } = await publishJsonLdAsset(content, privacy);
       if (error) {
         console.error("Error creating asset:", error);
         throw new Error("Failed to create asset: " + error);
