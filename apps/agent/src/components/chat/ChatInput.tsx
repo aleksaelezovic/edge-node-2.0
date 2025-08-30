@@ -61,7 +61,7 @@ export default function ChatInput({
     onSendMessage({
       role: "user",
       content: [
-        ...toContents(onAttachFiles(selectedFiles)),
+        ...toContents(selectedFiles.length ? onAttachFiles(selectedFiles) : []),
         { type: "text", text: message.trim() },
       ],
     });
