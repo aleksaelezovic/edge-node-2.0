@@ -1,82 +1,42 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
 import {{camelCase name}}Plugin from "../src/index.js";
+import {
+  createExpressApp,
+  createInMemoryBlobStorage,
+  createMcpServerClientPair,
+  createMockDkgClient,
+} from "@dkg/plugins/testing";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import express from "express";
-// import request from "supertest"; // Uncomment when you add API endpoint tests
+// import request from "supertest";
 
 // Mock DKG context
 const mockDkgContext = {
-  dkg: {
-    get: () => Promise.resolve({}),
-    query: () => Promise.resolve([]),
-    assertion: {
-      get: () => Promise.resolve({}),
-      create: () => Promise.resolve({}),
-    },
-    asset: {
-      get: () => Promise.resolve({}),
-      create: () => Promise.resolve({}),
-    },
-    blockchain: { get: () => Promise.resolve({}) },
-    node: { get: () => Promise.resolve({}) },
-    graph: { query: () => Promise.resolve([]) },
-    network: { get: () => Promise.resolve({}) },
-    storage: { get: () => Promise.resolve({}) },
-    paranet: { get: () => Promise.resolve({}) },
-  },
+  dkg: createMockDkgClient(),
+  blob: createInMemoryBlobStorage(),
 };
 
-// Mock MCP server
-function createMockMcpServer(): any {
-  const registeredTools = new Map();
-  const registeredResources = new Map();
-
-  return {
-    registerTool(
-      name: string,
-      config: Record<string, unknown>,
-      handler: (...args: any[]) => any,
-    ) {
-      registeredTools.set(name, { ...config, handler });
-      return this;
-    },
-    registerResource(
-      name: string,
-      template: any,
-      config: Record<string, unknown>,
-      handler: (...args: any[]) => any,
-    ) {
-      registeredResources.set(name, { template, config, handler });
-      return this;
-    },
-    getRegisteredTools() {
-      return registeredTools;
-    },
-    getRegisteredResources() {
-      return registeredResources;
-    },
-  };
-}
-
 describe("@dkg/{{kebabCase name}} checks", function () {
-  let mockMcpServer: any;
+  let mockMcpServer: McpServer;
+  let mockMcpClient: Client;
   let apiRouter: express.Router;
   let app: express.Application;
 
   this.timeout(5000);
 
-  beforeEach(() => {
-    mockMcpServer = createMockMcpServer();
+  beforeEach(async () => {
+    const { server, client, connect } = await createMcpServerClientPair();
+    mockMcpServer = server;
+    mockMcpClient = client;
     apiRouter = express.Router();
-    app = express();
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
+    app = createExpressApp();
 
     // Initialize plugin
     {{camelCase name}}Plugin(mockDkgContext, mockMcpServer, apiRouter);
+    await connect();
     app.use("/", apiRouter);
   });
 
@@ -91,16 +51,18 @@ describe("@dkg/{{kebabCase name}} checks", function () {
   });
 
   describe("Core Functionality", () => {
-    it("should register tools or endpoints", () => {
+    it("should register tools or endpoints", async () => {
       // TODO: Replace this placeholder with your actual tests!
       // Example for MCP tools:
-      // const tools = mockMcpServer.getRegisteredTools();
-      // expect(tools.has("your-tool-name")).to.equal(true);
-      
+      // const tools = await mockMcpClient.listTools().then((r) => r.tools);
+      // expect(tools.some((t) => t.name === "your-tool-name")).to.equal(true);
+
       // Example for API endpoints:
-      // return request(app).get("/your-endpoint").expect(200);
-      
-      throw new Error("TODO: Replace placeholder test with your actual plugin functionality tests");
+      // request(app).get("/your-endpoint").expect(200);
+
+      throw new Error(
+        "TODO: Replace placeholder test with your actual plugin functionality tests",
+      );
     });
   });
 
@@ -109,8 +71,10 @@ describe("@dkg/{{kebabCase name}} checks", function () {
       // TODO: Replace this placeholder with your actual error handling tests!
       // Example:
       // await request(app).get("/invalid-endpoint").expect(400);
-      
-      throw new Error("TODO: Replace placeholder test with your actual error handling tests");
+
+      throw new Error(
+        "TODO: Replace placeholder test with your actual error handling tests",
+      );
     });
   });
 });

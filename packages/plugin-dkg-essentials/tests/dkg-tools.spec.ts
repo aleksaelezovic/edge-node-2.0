@@ -16,8 +16,8 @@ import {
   createMcpServerClientPair,
   createMockDkgClient,
 } from "@dkg/plugins/testing";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import express from "express";
 import { Blob } from "buffer";
 
