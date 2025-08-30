@@ -4,12 +4,14 @@ export type { express };
 
 export type BlobData = ReadableStream<Uint8Array>;
 
-export type BlobMetadata = {
+type DefaultMetadata = {
   name: string;
   mimeType?: string;
   lastModified?: Date;
   size?: number;
 };
+
+export type BlobMetadata = Record<string, any> & DefaultMetadata;
 
 export interface BlobStorage {
   generateId: (metadata: BlobMetadata) => Promise<string> | string;

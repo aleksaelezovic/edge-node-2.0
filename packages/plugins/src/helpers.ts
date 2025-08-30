@@ -1,6 +1,7 @@
 import express from "express";
 import { z } from "zod";
 import { v4 as uuid_v4 } from "uuid";
+import mime from "mime-types";
 import type { BlobData, BlobMetadata, BlobStorage } from "./types";
 
 export { express };
@@ -18,7 +19,13 @@ export const createBlobStorage = (handlers: {
   const info = async (id: string) => {
     const metadata = await handlers.info(id);
     if (!metadata) return null;
-    return { ...metadata, name: getName(id) };
+
+    const name = getName(id);
+    return {
+      mimeType: mime.lookup(name) || undefined,
+      ...metadata,
+      name,
+    };
   };
 
   return {
