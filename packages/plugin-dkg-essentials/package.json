@@ -27,6 +27,7 @@
     "test": "mocha 'tests/**/*.spec.ts'"
   },
   "dependencies": {
+    "@dkg/plugin-swagger": "^0.0.2",
     "@dkg/plugins": "^0.0.2",
     "busboy": "^1.6.0"
   },

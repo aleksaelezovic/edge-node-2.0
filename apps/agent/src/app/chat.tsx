@@ -422,7 +422,7 @@ export default function ChatPage() {
                 onSendMessage={sendMessage}
                 onUploadFiles={(assets) =>
                   uploadFiles(
-                    new URL(process.env.EXPO_PUBLIC_MCP_URL + "/upload"),
+                    new URL(process.env.EXPO_PUBLIC_MCP_URL + "/blob"),
                     assets,
                     { fieldName: "file", uploadType: 1 },
                   ).then((result) => {
