@@ -3,7 +3,7 @@
 import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
-import dkgEssentialsPlugin from "../src/index.js";
+import { dkgToolsPlugin } from "../src/index.js";
 import {
   getExplorerUrl,
   withSourceKnowledgeAssets,
@@ -11,6 +11,8 @@ import {
   parseSourceKAContent,
 } from "../src/utils.js";
 import express from "express";
+import { createBlobStorage } from "@dkg/plugins/helpers";
+import { Blob } from "buffer";
 
 // Mock DKG context
 const mockDkgContext = {
@@ -60,6 +62,26 @@ const mockDkgContext = {
       get: () => Promise.resolve({}),
     },
   },
+  blob: createBlobStorage({
+    put: async (id, data, metadata) => {
+      if (!globalThis.blobStorage) {
+        globalThis.blobStorage = {};
+      }
+      globalThis.blobStorage[id] = { data, metadata };
+    },
+    delete: async (id) => {
+      if (!globalThis.blobStorage) return;
+      delete globalThis.blobStorage[id];
+    },
+    get: async (id) => {
+      if (!globalThis.blobStorage) return null;
+      return globalThis.blobStorage[id]?.data || null;
+    },
+    info: async (id) => {
+      if (!globalThis.blobStorage) return null;
+      return globalThis.blobStorage[id]?.metadata || null;
+    },
+  }),
 };
 
 function createMockMcpServer(): any {
@@ -108,7 +130,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
     app.use(express.urlencoded({ extended: true }));
 
     // Initialize plugin
-    dkgEssentialsPlugin(mockDkgContext, mockMcpServer, apiRouter);
+    dkgToolsPlugin(mockDkgContext, mockMcpServer, apiRouter);
 
     // Mount the router
     app.use("/", apiRouter);
@@ -256,6 +278,39 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
       expect(result.content[0].text).to.include("DKG Explorer link:");
     });
 
+    it("should create knowledge asset with valid JSON-LD file id as input", async () => {
+      const dkgCreateTool = mockMcpServer
+        .getRegisteredTools()
+        .get("dkg-create");
+      const testJsonLd = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: "Test Organization",
+        description: "A test organization",
+      });
+
+      const { id } = await mockDkgContext.blob.create(
+        new Blob([testJsonLd]).stream(),
+        {
+          name: "test-jsonld.json",
+          mimeType: "application/json",
+        },
+      );
+
+      const result = await dkgCreateTool.handler({
+        jsonld: id,
+        privacy: "private",
+      });
+
+      expect(result.content).to.be.an("array");
+      expect(result.content[0].type).to.equal("text");
+      expect(result.content[0].text).to.include(
+        "Knowledge Asset collection successfully created",
+      );
+      expect(result.content[0].text).to.include("UAL:");
+      expect(result.content[0].text).to.include("DKG Explorer link:");
+    });
+
     it("should default to private privacy when not specified", async () => {
       const dkgCreateTool = mockMcpServer
         .getRegisteredTools()
@@ -374,7 +429,7 @@ describe("@dkg/plugin-dkg-essentials checks", () => {
 
       try {
         await dkgCreateTool.handler({
-          jsonld: "invalid json",
+          jsonld: '{ "invalid": "jsonld" }',
           privacy: "private",
         });
         expect.fail("Should have thrown an error");

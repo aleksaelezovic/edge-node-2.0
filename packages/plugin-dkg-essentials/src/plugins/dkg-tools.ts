@@ -159,8 +159,8 @@ export default defineDkgPlugin((ctx, mcp) => {
           ? input.jsonld
           : await ctx.blob.get(input.jsonld).then((r) => {
               if (!r) {
-                console.error(`File with id ${input.jsonld} not found`);
-                throw new Error(`File with id ${input.jsonld} not found`);
+                console.error(`File with id "${input.jsonld}" not found`);
+                throw new Error(`File with id "${input.jsonld}" not found`);
               }
               return consumers.text(r.data);
             });
