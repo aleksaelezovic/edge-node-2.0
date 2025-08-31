@@ -10,8 +10,15 @@ function TextContent(props: { text: string }) {
   return <Markdown>{props.text}</Markdown>;
 }
 
-function ImageContent(props: { url: string }) {
-  const image = useImage(props.url);
+function ImageContent(props: { url: string; authToken?: string }) {
+  const image = useImage(
+    props.authToken
+      ? {
+          uri: props.url,
+          headers: { Authorization: `Bearer ${props.authToken}` },
+        }
+      : props.url,
+  );
 
   return (
     <Image

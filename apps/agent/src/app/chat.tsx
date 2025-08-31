@@ -38,7 +38,7 @@ export default function ChatPage() {
   const colors = useColors();
   const { isNativeMobile, isWeb, width } = usePlatform();
 
-  const { connected, mcp, getToken } = useMcpClient();
+  const { connected, mcp, token } = useMcpClient();
   const [tools, setTools] = useState<ToolDefinition[]>([]);
   const [toolsInfo, setToolsInfo] = useState<ToolsInfoMap>({});
   const [toolCalls, setToolCalls] = useState<ToolCallsMap>({});
@@ -139,7 +139,6 @@ export default function ChatPage() {
   async function sendMessage(newMessage: ChatMessage) {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
 
-    const token = await getToken();
     if (!token) throw new Error("Unauthorized");
 
     setIsGenerating(true);
@@ -315,7 +314,11 @@ export default function ChatPage() {
 
                     {/* Images */}
                     {images.map((image, i) => (
-                      <Chat.Message.Content.Image key={i} url={image.uri} />
+                      <Chat.Message.Content.Image
+                        key={i}
+                        url={image.uri}
+                        authToken={token}
+                      />
                     ))}
 
                     {/* Files */}
