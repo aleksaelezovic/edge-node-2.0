@@ -39,6 +39,7 @@ export default function ChatInput({
       },
     })),
   onFileRemoved,
+  authToken,
   disabled,
   style,
 }: {
@@ -49,6 +50,8 @@ export default function ChatInput({
   onUploadError?: (error: Error) => void;
   onAttachFiles?: (files: FileDefinition[]) => ChatMessage["content"];
   onFileRemoved?: (file: FileDefinition) => void;
+  /* Required for previewing uploaded images */
+  authToken?: string;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -74,6 +77,7 @@ export default function ChatInput({
       {!!selectedFiles.length && (
         <FilesSelected
           selectedFiles={selectedFiles}
+          authToken={authToken}
           onRemove={(removedFile) => {
             setSelectedFiles((files) =>
               files.filter((f) => f.id !== removedFile.id),

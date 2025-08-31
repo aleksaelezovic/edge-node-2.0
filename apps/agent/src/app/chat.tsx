@@ -493,6 +493,7 @@ export default function ChatPage() {
                   })
                 }
                 onAttachFiles={serializeFiles}
+                authToken={token}
                 disabled={isGenerating}
                 style={[{ maxWidth: 800 }, isWeb && { pointerEvents: "auto" }]}
               />

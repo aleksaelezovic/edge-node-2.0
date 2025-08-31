@@ -7,10 +7,12 @@ import { FileDefinition } from "@/shared/files";
 
 export default function AttachmentChip({
   file: { mimeType, name, uri },
+  authToken,
   onPress,
   onRemove,
 }: {
   file: FileDefinition;
+  authToken?: string;
   onPress?: () => void;
   onRemove?: () => void;
 }) {
@@ -57,7 +59,11 @@ export default function AttachmentChip({
     >
       {isImage ? (
         <Image
-          source={{ uri }}
+          source={
+            authToken
+              ? { uri, headers: { Authorization: `Bearer ${authToken}` } }
+              : { uri }
+          }
           style={{ width: 40, height: 40 }}
           contentFit="cover"
         />

@@ -6,9 +6,11 @@ import { FileDefinition } from "@/shared/files";
 export default function FilesSelected({
   selectedFiles,
   onRemove,
+  authToken,
 }: {
   selectedFiles: FileDefinition[];
   onRemove: (file: FileDefinition) => void;
+  authToken?: string;
 }) {
   return (
     <ScrollView
@@ -26,6 +28,7 @@ export default function FilesSelected({
           key={file.id}
           file={file}
           onRemove={() => onRemove(file)}
+          authToken={authToken}
         />
       ))}
     </ScrollView>
