@@ -63,7 +63,7 @@ const McpProvider = ({ children }: PropsWithChildren) => {
       authorizationCode={!isLogin && params.code ? params.code : null}
       onConnectedChange={onConnectedChange}
       onError={onError}
-      autoconnect={!isLogin}
+      autoconnect={!isLogin || (isLogin && !params.code)}
     >
       {children}
     </McpContextProvider>
