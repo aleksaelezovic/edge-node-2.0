@@ -427,7 +427,11 @@ export default function ChatPage() {
                   uploadFiles(
                     new URL(process.env.EXPO_PUBLIC_MCP_URL + "/blob"),
                     assets,
-                    { fieldName: "file", uploadType: 1 },
+                    {
+                      fieldName: "file",
+                      uploadType: 1,
+                      headers: { Authorization: `Bearer ${token}` },
+                    },
                   ).then((result) => {
                     const successfulUploads = result
                       .filter((f) => f.status === "fulfilled")
@@ -465,7 +469,12 @@ export default function ChatPage() {
                     new URL(
                       process.env.EXPO_PUBLIC_MCP_URL + "/blob/" + f.id,
                     ).toString(),
-                    { method: "DELETE" },
+                    {
+                      method: "DELETE",
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    },
                   ).catch((error) => {
                     showAlert({
                       type: "error",
