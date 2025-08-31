@@ -24,7 +24,7 @@ const version = "1.0.0";
 const { oauthPlugin, openapiSecurityScheme } = createOAuthPlugin({
   storage: new SqliteOAuthStorageProvider(db),
   issuerUrl: new URL(process.env.EXPO_PUBLIC_MCP_URL),
-  scopesSupported: ["mcp", "llm", "scope123"],
+  scopesSupported: ["mcp", "llm", "scope123", "blob"],
   loginPageUrl: new URL(process.env.EXPO_PUBLIC_APP_URL + "/login"),
   schema: userCredentialsSchema,
   async login(credentials) {
@@ -67,11 +67,12 @@ const app = createPluginServer({
   plugins: [
     defaultPlugin,
     oauthPlugin,
-    dkgEssentialsPlugin,
     (_, __, api) => {
       api.use("/mcp", authorized(["mcp"]));
       api.use("/llm", authorized(["llm"]));
+      api.use("/blob", authorized(["blob"]));
     },
+    dkgEssentialsPlugin,
     examplePlugin.withNamespace("protected", {
       middlewares: [authorized(["scope123"])], // Allow only users with the "scope123" scope
     }),
