@@ -3,12 +3,12 @@ name: Validate Plugin Tests
 on:
   pull_request:
     paths:
-      - 'packages/plugin-*/**'
+      - "packages/plugin-*/**"
 
 jobs:
   validate-plugin-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,8 +16,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "20"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -32,17 +32,17 @@ jobs:
           echo "Validating plugin tests..."
           echo "Required: Core Functionality + Error Handling test categories"
           echo "Note: Plugin Configuration tests are validated automatically by test execution"
-          
+
           # Find all plugin directories at the top level only
           plugins=$(find packages -maxdepth 1 -name "plugin-*" -type d)
-          
+
           if [ -z "$plugins" ]; then
             echo "No plugins found, nothing to check"
             exit 0
           fi
-          
+
           failed=false
-          
+
           for plugin in $plugins; do
             name=$(basename "$plugin")
             echo ""
@@ -99,7 +99,7 @@ jobs:
             
             cd - > /dev/null
           done
-          
+
           echo ""
           echo "=== VALIDATION SUMMARY ==="
           if [ "$failed" = true ]; then

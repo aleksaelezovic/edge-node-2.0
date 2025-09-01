@@ -8,7 +8,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '0 0 * * 3'  # Wednesdays at midnight check all node js versions
+    - cron: "0 0 * * 3" # Wednesdays at midnight check all node js versions
 
   workflow_dispatch:
 
