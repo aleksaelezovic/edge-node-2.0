@@ -15,7 +15,6 @@ import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import express from "express";
 import request from "supertest";
 
-
 // Mock DKG context
 const mockDkgContext = {
   dkg: createMockDkgClient(),
@@ -64,7 +63,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
       expect(uploadTool).to.not.equal(undefined);
       expect(uploadTool!.title).to.equal("Upload File");
-      expect(uploadTool!.description).to.include("Upload a file to the MCP server");
+      expect(uploadTool!.description).to.include(
+        "Upload a file to the MCP server",
+      );
       expect(uploadTool!.inputSchema).to.not.equal(undefined);
     });
   });
@@ -103,7 +104,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
     it("should upload file with base64 content", async () => {
       const testContent = "Hello, World!";
       const base64Content = Buffer.from(testContent).toString("base64");
-      
+
       const result = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -115,13 +116,15 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
       expect(result.content).to.be.an("array");
       expect((result.content as any[])[0].type).to.equal("text");
-      expect((result.content as any[])[0].text).to.include("File was successfully uploaded with ID:");
+      expect((result.content as any[])[0].text).to.include(
+        "File was successfully uploaded with ID:",
+      );
     });
 
     it("should upload file without mimeType", async () => {
       const testContent = "Test content";
       const base64Content = Buffer.from(testContent).toString("base64");
-      
+
       const result = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -131,13 +134,17 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
       expect(result.content).to.be.an("array");
-      expect((result.content as any[])[0].text).to.include("successfully uploaded");
+      expect((result.content as any[])[0].text).to.include(
+        "successfully uploaded",
+      );
     });
 
     it("should handle binary file upload", async () => {
-      const testContent = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]); // PNG header
+      const testContent = Buffer.from([
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+      ]); // PNG header
       const base64Content = testContent.toString("base64");
-      
+
       const result = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -148,13 +155,15 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
       expect(result.content).to.be.an("array");
-      expect((result.content as any[])[0].text).to.include("successfully uploaded");
+      expect((result.content as any[])[0].text).to.include(
+        "successfully uploaded",
+      );
     });
 
     it("should generate unique IDs for different uploads", async () => {
       const testContent = "Test content";
       const base64Content = Buffer.from(testContent).toString("base64");
-      
+
       const result1 = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -185,7 +194,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       // First upload a file
       const testContent = "Resource test content";
       const base64Content = Buffer.from(testContent).toString("base64");
-      
+
       const uploadResult = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -194,7 +203,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         },
       });
 
-      const blobId = (uploadResult.content as any[])[0].text.match(/ID: (.+)$/)?.[1];
+      const blobId = (uploadResult.content as any[])[0].text.match(
+        /ID: (.+)$/,
+      )?.[1];
       expect(blobId).to.not.be.undefined;
 
       // Then retrieve it via resource
@@ -208,7 +219,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
     it("should handle non-existent blob resource", async () => {
       const nonExistentUri = "dkg-blob://non-existent-id";
-      
+
       try {
         await mockMcpClient.readResource({ uri: nonExistentUri });
         expect.fail("Should have thrown an error");
@@ -219,12 +230,14 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
     it("should handle malformed blob URI", async () => {
       const malformedUri = "dkg-blob://";
-      
+
       try {
         await mockMcpClient.readResource({ uri: malformedUri });
         expect.fail("Should have thrown an error");
       } catch (error) {
-        expect((error as Error).message).to.include(`Resource ${malformedUri} not found`);
+        expect((error as Error).message).to.include(
+          `Resource ${malformedUri} not found`,
+        );
       }
     });
   });
@@ -259,14 +272,12 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         expect(response.body).to.have.property("mimeType");
       });
 
-    it("should handle missing file field", async () => {
-      await request(app)
-        .post("/blob")
-        .expect(500); // Returns 500 due to missing Content-Type header
+      it("should handle missing file field", async () => {
+        await request(app).post("/blob").expect(500); // Returns 500 due to missing Content-Type header
 
-      // When busboy throws due to missing Content-Type, the error response is empty
-      // This is because the error happens before the proper error handler can format it
-    });
+        // When busboy throws due to missing Content-Type, the error response is empty
+        // This is because the error happens before the proper error handler can format it
+      });
 
       it("should handle blob storage errors", async () => {
         // Mock blob storage to throw error
@@ -295,7 +306,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         // First create a blob
         const originalContent = "Original content";
         const originalBuffer = Buffer.from(originalContent);
-        
+
         const createResponse = await request(app)
           .post("/blob")
           .attach("file", originalBuffer, "update-test.txt")
@@ -374,7 +385,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         // First create a blob
         const testContent = "Delete test content";
         const buffer = Buffer.from(testContent);
-        
+
         const createResponse = await request(app)
           .post("/blob")
           .attach("file", buffer, "delete-test.txt")
@@ -387,9 +398,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         await mockMcpClient.readResource({ uri: resourceUri });
 
         // Delete it
-        await request(app)
-          .delete(`/blob/${blobId}`)
-          .expect(200);
+        await request(app).delete(`/blob/${blobId}`).expect(200);
 
         // Verify it's deleted
         try {
@@ -400,14 +409,12 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         }
       });
 
-    it("should handle deletion of non-existent blob", async () => {
-      await request(app)
-        .delete("/blob/non-existent-id")
-        .expect(200); // Current implementation doesn't check if blob exists, just succeeds
+      it("should handle deletion of non-existent blob", async () => {
+        await request(app).delete("/blob/non-existent-id").expect(200); // Current implementation doesn't check if blob exists, just succeeds
 
-      // Note: Current implementation doesn't validate if blob exists before deletion
-      // This could be improved to return 404 for non-existent blobs
-    });
+        // Note: Current implementation doesn't validate if blob exists before deletion
+        // This could be improved to return 404 for non-existent blobs
+      });
 
       it("should handle blob storage errors on deletion", async () => {
         // Mock blob storage to throw error
@@ -416,9 +423,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
           throw new Error("Delete error");
         };
 
-        const response = await request(app)
-          .delete("/blob/test-id")
-          .expect(500);
+        const response = await request(app).delete("/blob/test-id").expect(500);
 
         expect(response.body).to.have.property("error");
         expect(response.body.error).to.include("Failed to delete blob");
@@ -442,13 +447,15 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       // Current implementation doesn't validate base64, it just processes it
       // The buffer creation succeeds even with invalid base64
       expect(result.content).to.be.an("array");
-      expect((result.content as any[])[0].text).to.include("successfully uploaded");
+      expect((result.content as any[])[0].text).to.include(
+        "successfully uploaded",
+      );
     });
 
     it("should handle empty filename in upload tool", async () => {
       const testContent = "Test content";
       const base64Content = Buffer.from(testContent).toString("base64");
-      
+
       const result = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -458,7 +465,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
       expect(result.content).to.be.an("array");
-      expect((result.content as any[])[0].text).to.include("successfully uploaded");
+      expect((result.content as any[])[0].text).to.include(
+        "successfully uploaded",
+      );
     });
 
     it("should handle blob storage errors in upload tool", async () => {
@@ -470,7 +479,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
       const testContent = "Error test";
       const base64Content = Buffer.from(testContent).toString("base64");
-      
+
       const result = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -480,7 +489,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
       expect(result.isError).to.be.true;
-      expect((result.content as any[])[0].text).to.include("Storage creation error");
+      expect((result.content as any[])[0].text).to.include(
+        "Storage creation error",
+      );
 
       // Restore original mock
       mockDkgContext.blob.create = originalCreate;
@@ -515,8 +526,12 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
       expect(consoleErrorSpy.calledOnce).to.be.true;
       // The actual logged value is an Error object, not a string
-      expect((consoleErrorSpy.firstCall.args as any[])[0]).to.be.instanceOf(Error);
-      expect((consoleErrorSpy.firstCall.args as any[])[0].message).to.equal("Test update error");
+      expect((consoleErrorSpy.firstCall.args as any[])[0]).to.be.instanceOf(
+        Error,
+      );
+      expect((consoleErrorSpy.firstCall.args as any[])[0].message).to.equal(
+        "Test update error",
+      );
 
       // Restore original mock
       mockDkgContext.blob.put = originalPut;
@@ -529,14 +544,16 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         throw new Error("Test delete error");
       };
 
-      await request(app)
-        .delete("/blob/test-id")
-        .expect(500);
+      await request(app).delete("/blob/test-id").expect(500);
 
       expect(consoleErrorSpy.calledOnce).to.be.true;
       // The actual logged value is an Error object, not a string
-      expect((consoleErrorSpy.firstCall.args as any[])[0]).to.be.instanceOf(Error);
-      expect((consoleErrorSpy.firstCall.args as any[])[0].message).to.equal("Test delete error");
+      expect((consoleErrorSpy.firstCall.args as any[])[0]).to.be.instanceOf(
+        Error,
+      );
+      expect((consoleErrorSpy.firstCall.args as any[])[0].message).to.equal(
+        "Test delete error",
+      );
 
       // Restore original mock
       mockDkgContext.blob.delete = originalDelete;
@@ -547,11 +564,11 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
     it("should handle very large file upload", async () => {
       // Ensure mock is clean (previous tests may have modified it)
       mockDkgContext.blob = createInMemoryBlobStorage();
-      
+
       // Create a large content (1MB)
       const largeContent = "A".repeat(1024 * 1024);
       const base64Content = Buffer.from(largeContent).toString("base64");
-      
+
       const result = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -561,13 +578,15 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
       expect(result.content).to.be.an("array");
-      expect((result.content as any[])[0].text).to.include("successfully uploaded");
+      expect((result.content as any[])[0].text).to.include(
+        "successfully uploaded",
+      );
     });
 
     it("should handle special characters in filename", async () => {
       const testContent = "Special chars test";
       const base64Content = Buffer.from(testContent).toString("base64");
-      
+
       const result = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -577,13 +596,17 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
       expect(result.content).to.be.an("array");
-      expect((result.content as any[])[0].text).to.include("successfully uploaded");
+      expect((result.content as any[])[0].text).to.include(
+        "successfully uploaded",
+      );
     });
 
     it("should handle unicode content", async () => {
       const unicodeContent = "Hello 世界 🌍 测试";
-      const base64Content = Buffer.from(unicodeContent, "utf8").toString("base64");
-      
+      const base64Content = Buffer.from(unicodeContent, "utf8").toString(
+        "base64",
+      );
+
       const result = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -593,19 +616,23 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
       expect(result.content).to.be.an("array");
-      expect((result.content as any[])[0].text).to.include("successfully uploaded");
+      expect((result.content as any[])[0].text).to.include(
+        "successfully uploaded",
+      );
 
       // Verify content can be retrieved correctly
       const blobId = (result.content as any[])[0].text.match(/ID: (.+)$/)?.[1];
       const resourceUri = `dkg-blob://${blobId}`;
-      const retrieveResult = await mockMcpClient.readResource({ uri: resourceUri });
+      const retrieveResult = await mockMcpClient.readResource({
+        uri: resourceUri,
+      });
       expect(retrieveResult.contents[0].text).to.equal(unicodeContent);
     });
 
     it("should handle empty file content", async () => {
       const emptyContent = "";
       const base64Content = Buffer.from(emptyContent).toString("base64");
-      
+
       const result = await mockMcpClient.callTool({
         name: "upload",
         arguments: {
@@ -615,12 +642,16 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
       expect(result.content).to.be.an("array");
-      expect((result.content as any[])[0].text).to.include("successfully uploaded");
+      expect((result.content as any[])[0].text).to.include(
+        "successfully uploaded",
+      );
 
       // Verify empty content can be retrieved
       const blobId = (result.content as any[])[0].text.match(/ID: (.+)$/)?.[1];
       const resourceUri = `dkg-blob://${blobId}`;
-      const retrieveResult = await mockMcpClient.readResource({ uri: resourceUri });
+      const retrieveResult = await mockMcpClient.readResource({
+        uri: resourceUri,
+      });
       expect(retrieveResult.contents[0].text).to.equal("");
     });
 
@@ -637,7 +668,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       for (const mimeType of mimeTypes) {
         const testContent = `Content for ${mimeType}`;
         const base64Content = Buffer.from(testContent).toString("base64");
-        
+
         const result = await mockMcpClient.callTool({
           name: "upload",
           arguments: {
@@ -648,7 +679,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         });
 
         expect(result.content).to.be.an("array");
-        expect((result.content as any[])[0].text).to.include("successfully uploaded");
+        expect((result.content as any[])[0].text).to.include(
+          "successfully uploaded",
+        );
       }
     });
   });
@@ -657,7 +690,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
     it("should support complete file lifecycle", async () => {
       const testContent = "Lifecycle test content";
       const base64Content = Buffer.from(testContent).toString("base64");
-      
+
       // 1. Upload via MCP tool
       const uploadResult = await mockMcpClient.callTool({
         name: "upload",
@@ -667,31 +700,35 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         },
       });
 
-      const blobId = (uploadResult.content as any[])[0].text.match(/ID: (.+)$/)?.[1];
+      const blobId = (uploadResult.content as any[])[0].text.match(
+        /ID: (.+)$/,
+      )?.[1];
       expect(blobId).to.not.be.undefined;
 
       // 2. Retrieve via MCP resource
       const resourceUri = `dkg-blob://${blobId}`;
-      const retrieveResult = await mockMcpClient.readResource({ uri: resourceUri });
+      const retrieveResult = await mockMcpClient.readResource({
+        uri: resourceUri,
+      });
       expect(retrieveResult.contents[0].text).to.equal(testContent);
 
       // 3. Update via HTTP PUT
       const updatedContent = "Updated lifecycle content";
       const updatedBuffer = Buffer.from(updatedContent);
-      
+
       await request(app)
         .put(`/blob/${blobId}`)
         .attach("file", updatedBuffer, "updated-lifecycle.txt")
         .expect(200);
 
       // 4. Verify update via MCP resource
-      const updatedRetrieveResult = await mockMcpClient.readResource({ uri: resourceUri });
+      const updatedRetrieveResult = await mockMcpClient.readResource({
+        uri: resourceUri,
+      });
       expect(updatedRetrieveResult.contents[0].text).to.equal(updatedContent);
 
       // 5. Delete via HTTP DELETE
-      await request(app)
-        .delete(`/blob/${blobId}`)
-        .expect(200);
+      await request(app).delete(`/blob/${blobId}`).expect(200);
 
       // 6. Verify deletion
       try {
@@ -706,7 +743,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       const uploadPromises = Array.from({ length: 5 }, (_, i) => {
         const content = `Concurrent upload ${i}`;
         const base64Content = Buffer.from(content).toString("base64");
-        
+
         return mockMcpClient.callTool({
           name: "upload",
           arguments: {
@@ -717,16 +754,20 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
       const results = await Promise.all(uploadPromises);
-      
+
       expect(results).to.have.length(5);
       results.forEach((result) => {
         expect(result.content).to.be.an("array");
-        expect((result.content as any[])[0].text).to.include("successfully uploaded");
+        expect((result.content as any[])[0].text).to.include(
+          "successfully uploaded",
+        );
       });
 
       // Verify all files can be retrieved
       const retrievePromises = results.map((result) => {
-        const blobId = (result.content as any[])[0].text.match(/ID: (.+)$/)?.[1];
+        const blobId = (result.content as any[])[0].text.match(
+          /ID: (.+)$/,
+        )?.[1];
         return mockMcpClient.readResource({ uri: `dkg-blob://${blobId}` });
       });
 
@@ -752,9 +793,13 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
         for (const maliciousId of maliciousIds) {
           try {
-            await mockMcpClient.readResource({ uri: `dkg-blob://${maliciousId}` });
+            await mockMcpClient.readResource({
+              uri: `dkg-blob://${maliciousId}`,
+            });
             // If we reach here, the test should fail because it should have thrown
-            expect.fail(`Path traversal attempt should have been blocked: ${maliciousId}`);
+            expect.fail(
+              `Path traversal attempt should have been blocked: ${maliciousId}`,
+            );
           } catch (error) {
             // This is expected - the system should reject malicious IDs
             // The actual error message may vary, but it should be some form of error
@@ -783,7 +828,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
           // Should succeed but filename should be sanitized
           expect(result.content).to.be.an("array");
-          expect((result.content as any[])[0].text).to.include("successfully uploaded");
+          expect((result.content as any[])[0].text).to.include(
+            "successfully uploaded",
+          );
         }
       });
     });
@@ -810,7 +857,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
           });
 
           expect(result.content).to.be.an("array");
-          expect((result.content as any[])[0].text).to.include("successfully uploaded");
+          expect((result.content as any[])[0].text).to.include(
+            "successfully uploaded",
+          );
         }
       });
 
@@ -829,15 +878,27 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
         // Current implementation allows this, but in production this should be limited
         expect(result.content).to.be.an("array");
-        expect((result.content as any[])[0].text).to.include("successfully uploaded");
+        expect((result.content as any[])[0].text).to.include(
+          "successfully uploaded",
+        );
       });
     });
 
     describe("Malicious Content Protection", () => {
       it("should handle potentially dangerous file extensions", async () => {
         const dangerousExtensions = [
-          ".exe", ".bat", ".com", ".cmd", ".scr", ".pif",
-          ".js", ".vbs", ".jar", ".ps1", ".sh", ".php"
+          ".exe",
+          ".bat",
+          ".com",
+          ".cmd",
+          ".scr",
+          ".pif",
+          ".js",
+          ".vbs",
+          ".jar",
+          ".ps1",
+          ".sh",
+          ".php",
         ];
 
         for (const ext of dangerousExtensions) {
@@ -845,7 +906,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
             name: "upload",
             arguments: {
               filename: `malicious${ext}`,
-              fileBase64: Buffer.from("potentially malicious content").toString("base64"),
+              fileBase64: Buffer.from("potentially malicious content").toString(
+                "base64",
+              ),
             },
           });
 
@@ -877,7 +940,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
           // Current implementation allows this
           expect(result.content).to.be.an("array");
-          expect((result.content as any[])[0].text).to.include("successfully uploaded");
+          expect((result.content as any[])[0].text).to.include(
+            "successfully uploaded",
+          );
         }
       });
 
@@ -925,7 +990,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
           });
 
           expect(result.content).to.be.an("array");
-          expect((result.content as any[])[0].text).to.include("successfully uploaded");
+          expect((result.content as any[])[0].text).to.include(
+            "successfully uploaded",
+          );
         }
       });
 
@@ -950,13 +1017,15 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
           });
 
           expect(result.content).to.be.an("array");
-          expect((result.content as any[])[0].text).to.include("successfully uploaded");
+          expect((result.content as any[])[0].text).to.include(
+            "successfully uploaded",
+          );
         }
       });
 
       it("should handle extremely long filenames", async () => {
         const longFilename = "a".repeat(1000) + ".txt";
-        
+
         const result = await mockMcpClient.callTool({
           name: "upload",
           arguments: {
@@ -966,15 +1035,18 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         });
 
         expect(result.content).to.be.an("array");
-        expect((result.content as any[])[0].text).to.include("successfully uploaded");
+        expect((result.content as any[])[0].text).to.include(
+          "successfully uploaded",
+        );
       });
     });
 
     describe("HTTP Header Injection", () => {
       it("should safely handle malicious filenames in HTTP responses", async () => {
         // Upload a file with a potentially dangerous filename
-        const maliciousFilename = 'test"\r\nX-Injected-Header: malicious\r\nContent-Type: text/html\r\n\r\n<script>alert("xss")</script>.txt';
-        
+        const maliciousFilename =
+          'test"\r\nX-Injected-Header: malicious\r\nContent-Type: text/html\r\n\r\n<script>alert("xss")</script>.txt';
+
         const uploadResponse = await request(app)
           .post("/blob")
           .attach("file", Buffer.from("test content"), maliciousFilename)
@@ -988,12 +1060,13 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
           .expect(200);
 
         // Verify that malicious headers were not injected
-        expect(downloadResponse.headers['x-injected-header']).to.be.undefined;
-        
+        expect(downloadResponse.headers["x-injected-header"]).to.be.undefined;
+
         // Verify Content-Disposition header is properly escaped
-        const contentDisposition = downloadResponse.headers['content-disposition'];
-        expect(contentDisposition).to.not.include('\r\n');
-        expect(contentDisposition).to.not.include('<script>');
+        const contentDisposition =
+          downloadResponse.headers["content-disposition"];
+        expect(contentDisposition).to.not.include("\r\n");
+        expect(contentDisposition).to.not.include("<script>");
       });
     });
 
@@ -1006,14 +1079,16 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
               filename: `rapid-${i}.txt`,
               fileBase64: Buffer.from(`Content ${i}`).toString("base64"),
             },
-          })
+          }),
         );
 
         const results = await Promise.all(rapidUploads);
-        
+
         results.forEach((result) => {
           expect(result.content).to.be.an("array");
-          expect((result.content as any[])[0].text).to.include("successfully uploaded");
+          expect((result.content as any[])[0].text).to.include(
+            "successfully uploaded",
+          );
         });
       });
 
@@ -1021,11 +1096,15 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         const simultaneousUploads = Array.from({ length: 10 }, (_, i) =>
           request(app)
             .post("/blob")
-            .attach("file", Buffer.from(`Simultaneous content ${i}`), `simultaneous-${i}.txt`)
+            .attach(
+              "file",
+              Buffer.from(`Simultaneous content ${i}`),
+              `simultaneous-${i}.txt`,
+            ),
         );
 
         const results = await Promise.all(simultaneousUploads);
-        
+
         results.forEach((result) => {
           expect(result.status).to.equal(201);
           expect(result.body).to.have.property("id");
@@ -1037,7 +1116,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       it("should preserve binary data integrity for text-safe binary data", async () => {
         // Use text-safe binary data (printable ASCII characters) for this test
         // since MCP resource retrieval converts to text
-        const textSafeBinaryData = Buffer.from("This is a test of binary data integrity with special chars: !@#$%^&*()");
+        const textSafeBinaryData = Buffer.from(
+          "This is a test of binary data integrity with special chars: !@#$%^&*()",
+        );
         const base64Data = textSafeBinaryData.toString("base64");
 
         const result = await mockMcpClient.callTool({
@@ -1050,20 +1131,28 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         });
 
         expect(result.content).to.be.an("array");
-        const blobId = (result.content as any[])[0].text.match(/ID: (.+)$/)?.[1];
+        const blobId = (result.content as any[])[0].text.match(
+          /ID: (.+)$/,
+        )?.[1];
         expect(blobId).to.not.be.undefined;
 
         // Retrieve and verify data integrity
         const resourceUri = `dkg-blob://${blobId}`;
-        const retrieveResult = await mockMcpClient.readResource({ uri: resourceUri });
-        
+        const retrieveResult = await mockMcpClient.readResource({
+          uri: resourceUri,
+        });
+
         // For text-safe data, we can compare the string content directly
-        expect(retrieveResult.contents[0].text).to.equal(textSafeBinaryData.toString('utf8'));
+        expect(retrieveResult.contents[0].text).to.equal(
+          textSafeBinaryData.toString("utf8"),
+        );
       });
 
       it("should preserve true binary data integrity via HTTP endpoints", async () => {
         // Test true binary data with all byte values via HTTP upload/download
-        const binaryData = Buffer.from(Array.from({ length: 256 }, (_, i) => i));
+        const binaryData = Buffer.from(
+          Array.from({ length: 256 }, (_, i) => i),
+        );
 
         // Upload binary data via HTTP
         const uploadResponse = await request(app)
@@ -1103,10 +1192,14 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
           });
 
           expect(result.content).to.be.an("array");
-          const blobId = (result.content as any[])[0].text.match(/ID: (.+)$/)?.[1];
-          
+          const blobId = (result.content as any[])[0].text.match(
+            /ID: (.+)$/,
+          )?.[1];
+
           const resourceUri = `dkg-blob://${blobId}`;
-          const retrieveResult = await mockMcpClient.readResource({ uri: resourceUri });
+          const retrieveResult = await mockMcpClient.readResource({
+            uri: resourceUri,
+          });
           expect(retrieveResult.contents[0].text).to.equal(content);
         }
       });
@@ -1117,14 +1210,16 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
     describe("Load Testing", () => {
       it("should handle high volume of small files", async () => {
         const fileCount = 50;
-        const uploads = Array.from({ length: fileCount }, (_, i) => 
+        const uploads = Array.from({ length: fileCount }, (_, i) =>
           mockMcpClient.callTool({
             name: "upload",
             arguments: {
               filename: `load-test-${i}.txt`,
-              fileBase64: Buffer.from(`Load test content ${i}`).toString("base64"),
+              fileBase64: Buffer.from(`Load test content ${i}`).toString(
+                "base64",
+              ),
             },
-          })
+          }),
         );
 
         const startTime = Date.now();
@@ -1137,21 +1232,25 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         expect(results).to.have.length(fileCount);
         results.forEach((result) => {
           expect(result.content).to.be.an("array");
-          expect((result.content as any[])[0].text).to.include("successfully uploaded");
+          expect((result.content as any[])[0].text).to.include(
+            "successfully uploaded",
+          );
         });
 
-        console.log(`Performance: ${fileCount} files uploaded in ${duration}ms (${throughput.toFixed(2)} files/sec)`);
+        console.log(
+          `Performance: ${fileCount} files uploaded in ${duration}ms (${throughput.toFixed(2)} files/sec)`,
+        );
       });
 
       it("should handle stress test with mixed file sizes", async () => {
         const testFiles = [
-          { size: 100, count: 20 },      // 20 small files
-          { size: 10000, count: 10 },    // 10 medium files  
-          { size: 100000, count: 5 },    // 5 large files
+          { size: 100, count: 20 }, // 20 small files
+          { size: 10000, count: 10 }, // 10 medium files
+          { size: 100000, count: 5 }, // 5 large files
         ];
 
         const uploads: Promise<any>[] = [];
-        
+
         testFiles.forEach(({ size, count }) => {
           for (let i = 0; i < count; i++) {
             uploads.push(
@@ -1161,7 +1260,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
                   filename: `stress-${size}-${i}.txt`,
                   fileBase64: Buffer.from("x".repeat(size)).toString("base64"),
                 },
-              })
+              }),
             );
           }
         });
@@ -1176,7 +1275,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         expect(results).to.have.length(totalFiles);
         results.forEach((result) => {
           expect(result.content).to.be.an("array");
-          expect((result.content as any[])[0].text).to.include("successfully uploaded");
+          expect((result.content as any[])[0].text).to.include(
+            "successfully uploaded",
+          );
         });
 
         console.log(`Stress test: ${totalFiles} mixed files in ${duration}ms`);
@@ -1201,7 +1302,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
           });
 
           expect(result.content).to.be.an("array");
-          expect((result.content as any[])[0].text).to.include("successfully uploaded");
+          expect((result.content as any[])[0].text).to.include(
+            "successfully uploaded",
+          );
         }
       });
     });
@@ -1213,7 +1316,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         // Simulate a network error by making the blob storage fail mid-operation
         const originalCreate = mockDkgContext.blob.create;
         let callCount = 0;
-        
+
         mockDkgContext.blob.create = async (...args) => {
           callCount++;
           if (callCount === 1) {
@@ -1241,7 +1344,9 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
           },
         });
         expect(result2.content).to.be.an("array");
-        expect((result2.content as any[])[0].text).to.include("successfully uploaded");
+        expect((result2.content as any[])[0].text).to.include(
+          "successfully uploaded",
+        );
 
         // Restore original
         mockDkgContext.blob.create = originalCreate;
@@ -1270,7 +1375,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
         // Restore and verify system still works
         mockDkgContext.blob.create = originalCreate;
-        
+
         const result = await mockMcpClient.callTool({
           name: "upload",
           arguments: {
@@ -1278,9 +1383,11 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
             fileBase64: Buffer.from("verification content").toString("base64"),
           },
         });
-        
+
         expect(result.content).to.be.an("array");
-        expect((result.content as any[])[0].text).to.include("successfully uploaded");
+        expect((result.content as any[])[0].text).to.include(
+          "successfully uploaded",
+        );
       });
     });
   });

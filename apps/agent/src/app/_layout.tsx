@@ -61,6 +61,7 @@ const McpProvider = ({ children }: PropsWithChildren) => {
   const errorCode = params.error;
   useEffect(() => {
     if (!errorCode) return;
+    SplashScreen.hide();
 
     showAlert({
       type: "error",
