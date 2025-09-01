@@ -1,13 +1,13 @@
 // @ts-check
-const { defineConfig, devices } = require('@playwright/test');
+const { defineConfig, devices } = require("@playwright/test");
 
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
 module.exports = defineConfig({
-  testDir: './tests',
-  testMatch: '**/*.spec.js',
-  retries : 1,
+  testDir: "./tests",
+  testMatch: "**/*.spec.js",
+  retries: 1,
   workers: 1,
   timeout: 100 * 2000,
   globalTimeout: process.env.CI ? 180000 : 0, // 3 minutes in CI, no limit locally
@@ -23,15 +23,27 @@ module.exports = defineConfig({
   /* Opt out of parallel tests on CI. */
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
-    ['list'], 
-    ['html', { outputFolder: process.env.PLAYWRIGHT_HTML_REPORT || 'playwright-report', open: 'never' }], 
-    ['junit', { outputFile: process.env.PLAYWRIGHT_JUNIT_OUTPUT_NAME || 'DKG_Node_UI_Tests.xml' }]
+    ["list"],
+    [
+      "html",
+      {
+        outputFolder: process.env.PLAYWRIGHT_HTML_REPORT || "playwright-report",
+        open: "never",
+      },
+    ],
+    [
+      "junit",
+      {
+        outputFile:
+          process.env.PLAYWRIGHT_JUNIT_OUTPUT_NAME || "DKG_Node_UI_Tests.xml",
+      },
+    ],
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:8081',
-    browserName: 'chromium',
+    baseURL: "http://localhost:8081",
+    browserName: "chromium",
     headless: true,
     launchOptions: {
       slowMo: 800,
@@ -39,20 +51,20 @@ module.exports = defineConfig({
     //args: ['--window-size=1920,1080'],
     //viewport: { width: 1920, height: 1080 },
     video: {
-      mode: 'retain-on-failure', // or "on", "off", "retain-on-failure"
+      mode: "retain-on-failure", // or "on", "off", "retain-on-failure"
       size: { width: 1920, height: 1080 }, // Specify the video size
     },
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
   },
 
-    /* Configure projects for major browsers */
+  /* Configure projects for major browsers */
   projects: [
     {
-      name: 'chromium',
-      use: { 
-        ...devices['Desktop Chrome'],
-        args: ['--window-size=1920,1080'], 
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        args: ["--window-size=1920,1080"],
         viewport: { width: 1920, height: 1080 },
       },
     },
@@ -67,7 +79,7 @@ module.exports = defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
     */
-    // Test against mobile viewports. 
+    // Test against mobile viewports.
     /*
     {
       name: 'Android Mobile Chrome',
@@ -91,12 +103,12 @@ module.exports = defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'turbo dev:app dev:server',
-    url: 'http://localhost:8081',
+    command: "turbo dev:app dev:server",
+    url: "http://localhost:8081",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000, // 2 minutes timeout for server startup
     ignoreHTTPSErrors: true,
-    stderr: 'pipe',
-    stdout: 'pipe',
+    stderr: "pipe",
+    stdout: "pipe",
   },
-})
+});

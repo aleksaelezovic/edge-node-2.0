@@ -12,7 +12,13 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 export type { ToolDefinition };
 export type ToolsInfoMap = Record<
   string,
-  { title: string; description?: string; mcpServer?: string }
+  {
+    name: string;
+    title?: string;
+    description?: string;
+    mcpServer?: string;
+    active?: boolean;
+  }
 >;
 export type ToolCallsMap = Record<
   string,
