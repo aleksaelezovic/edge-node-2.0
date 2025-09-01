@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
@@ -47,9 +47,9 @@ jobs:
             name=$(basename "$plugin")
             echo ""
             echo "Checking $name..."
-            
+
             cd "$plugin"
-            
+
             # Run the tests (with 60 second timeout)
             echo "Running tests..."
             test_output=$(timeout 60s npm test 2>&1 || echo "TESTS_FAILED")
@@ -57,7 +57,7 @@ jobs:
               echo "✅ All tests passed (including Plugin Configuration)"
             else
               echo "❌ Tests failed or took too long"
-              
+
               # Check for common failure reasons
               if [[ "$test_output" == *"TODO: Replace placeholder"* ]]; then
                 echo "   → Reason: Placeholder tests detected (need customization)"
@@ -68,15 +68,15 @@ jobs:
               else
                 echo "   → Reason: Unknown test failure"
               fi
-              
+
               failed=true
             fi
-            
+
             # Check for the 2 required test categories
             test_file=$(find tests -name "*.spec.ts" | head -1)
             if [ -f "$test_file" ]; then
               echo "Checking required test categories..."
-              
+
               # 1. Core Functionality tests (required)
               if grep -E "(Core Functionality|Tool Registration|Tool Functionality|API Endpoint|Login Endpoint|OpenAPI Endpoint|Resource Handler|Registration|Functionality)" "$test_file" > /dev/null; then
                 echo "✅ Core Functionality tests found"
@@ -84,7 +84,7 @@ jobs:
                 echo "❌ Missing Core Functionality tests (required category 1/2)"
                 failed=true
               fi
-              
+
               # 2. Error Handling tests (required)
               if grep -E "(Error Handling|Error Cases|Invalid Parameters|Validation Errors|Exception Handling)" "$test_file" > /dev/null; then
                 echo "✅ Error Handling tests found"
@@ -96,7 +96,7 @@ jobs:
               echo "❌ No test files found"
               failed=true
             fi
-            
+
             cd - > /dev/null
           done
 
@@ -105,7 +105,7 @@ jobs:
           if [ "$failed" = true ]; then
             echo "❌ Plugin validation failed!"
             echo ""
-            
+
             # Check what types of failures occurred and provide specific guidance
             if echo "$test_output" | grep -q "TODO: Replace placeholder"; then
               echo "ISSUE: Placeholder tests found"
@@ -125,6 +125,6 @@ jobs:
           else
             echo "✅All plugins passed validation!"
             echo "✅ Core Functionality tests found"
-            echo "✅ Error Handling tests found" 
+            echo "✅ Error Handling tests found"
             echo "✅ All tests passing"
           fi

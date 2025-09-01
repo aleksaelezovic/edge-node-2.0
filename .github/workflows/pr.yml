@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         # The fromJSON() function converts the JSON string into an actual array
-        node-version: ${{ fromJSON((github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && '[22]' || '[18, 20, 22, 24]') }}
+        node-version: ${{ fromJSON((github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && '[22]' || '[22, 24]') }}
       fail-fast: false
 
     steps:

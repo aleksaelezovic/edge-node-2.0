@@ -14,7 +14,7 @@ This project consists of:
 
 ## 📋 Requirements
 
-- **Node.js** >= 18
+- **Node.js** >= 22
 - **npm** package manager
 - **Turbo** CLI (install globally)
 
