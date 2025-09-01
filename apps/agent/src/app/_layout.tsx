@@ -1,5 +1,5 @@
 import "../polyfills";
-import { PropsWithChildren, useCallback } from "react";
+import { PropsWithChildren, useCallback, useEffect } from "react";
 import { View } from "react-native";
 import {
   DarkTheme,
@@ -32,7 +32,7 @@ import Container from "@/components/layout/Container";
 SplashScreen.preventAutoHideAsync();
 
 const McpProvider = ({ children }: PropsWithChildren) => {
-  const params = useGlobalSearchParams<{ code?: string }>();
+  const params = useGlobalSearchParams<{ code?: string; error?: string }>();
   const isLogin = usePathname() === "/login";
 
   const { showAlert } = useAlerts();
@@ -58,12 +58,26 @@ const McpProvider = ({ children }: PropsWithChildren) => {
     [showAlert],
   );
 
+  const errorCode = params.error;
+  useEffect(() => {
+    if (!errorCode) return;
+
+    showAlert({
+      type: "error",
+      title: "MCP Error",
+      message:
+        `Connection to the MCP Server failed with error code: "${errorCode}"\n` +
+        "Try cleaning localStorage and going to the login page.",
+      timeout: 5000,
+    });
+  }, [errorCode, showAlert]);
+
   return (
     <McpContextProvider
       authorizationCode={!isLogin && params.code ? params.code : null}
       onConnectedChange={onConnectedChange}
       onError={onError}
-      autoconnect={!isLogin || (isLogin && !params.code)}
+      autoconnect={!errorCode && (!isLogin || (isLogin && !params.code))}
     >
       {children}
     </McpContextProvider>
