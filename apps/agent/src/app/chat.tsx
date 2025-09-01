@@ -6,6 +6,7 @@ import { fetch } from "expo/fetch";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 //import AsyncStorage from "@react-native-async-storage/async-storage";
 import { parseSourceKAContent } from "@dkg/plugin-dkg-essentials/utils";
+import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
 
 import { useMcpClient } from "@/client";
 import useColors from "@/hooks/useColors";
@@ -46,43 +47,51 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const safeAreaInsets = useSafeAreaInsets();
+  const activeTools = tools.filter((t) => toolsInfo[t.function.name]?.active);
 
   const { showAlert } = useAlerts();
+
+  const fetchTools = useCallback(async () => {
+    try {
+      const { tools } = await mcp.listTools();
+      const toolFns: ToolDefinition[] = [];
+      const toolsInfo: ToolsInfoMap = {};
+      for (const tool of tools) {
+        toolFns.push({
+          type: "function",
+          function: {
+            name: tool.name,
+            description: tool.description,
+            parameters: tool.inputSchema,
+          },
+        });
+        toolsInfo[tool.name] = {
+          name: tool.name,
+          title: tool.title,
+          description: tool.description,
+          mcpServer: "dkg-agent-2.0",
+          active: true,
+        };
+      }
+      setTools(toolFns);
+      setToolsInfo(toolsInfo);
+    } catch (error) {
+      showAlert({
+        type: "error",
+        title: "Error listing MCP tools",
+        message: toError(error).message,
+      });
+    }
+  }, [mcp, showAlert]);
 
   useEffect(() => {
     if (!connected) return;
 
-    mcp
-      .listTools()
-      .then(({ tools }) => {
-        const toolFns: ToolDefinition[] = [];
-        const toolsInfo: ToolsInfoMap = {};
-        for (const tool of tools) {
-          toolFns.push({
-            type: "function",
-            function: {
-              name: tool.name,
-              description: tool.description,
-              parameters: tool.inputSchema,
-            },
-          });
-          toolsInfo[tool.name] = {
-            title: tool.name,
-            description: tool.description,
-            mcpServer: "dkg-agent-2.0",
-          };
-        }
-        setTools(toolFns);
-        setToolsInfo(toolsInfo);
-      })
-      .catch((error) => {
-        showAlert({
-          type: "error",
-          title: "Error listing MCP tools",
-          message: error.message,
-        });
-      });
-  }, [connected, mcp, showAlert]);
+    fetchTools();
+    mcp.setNotificationHandler(ToolListChangedNotificationSchema, () => {
+      fetchTools();
+    });
+  }, [mcp, connected, fetchTools]);
 
   async function callTool(tc: ToolCall) {
     setToolCalls((p) => ({
@@ -143,7 +152,10 @@ export default function ChatPage() {
 
     setIsGenerating(true);
     const completion = await makeCompletionRequest(
-      { messages: [...messages, newMessage], tools },
+      {
+        messages: [...messages, newMessage],
+        tools: activeTools,
+      },
       {
         fetch: (url, opts) => fetch(url.toString(), opts as any),
         bearerToken: token,
@@ -235,7 +247,8 @@ export default function ChatPage() {
   );
 
   const isLandingScreen = !messages.length && !isNativeMobile;
-  console.log(messages);
+  console.debug("Messages:", messages);
+  console.debug("Tools (active):", activeTools);
 
   return (
     <Page style={{ flex: 1, position: "relative", marginBottom: 0 }}>
@@ -340,7 +353,7 @@ export default function ChatPage() {
                       if (!tc.id) tc.id = i.toString();
                       const toolInfo = toolsInfo[tc.name];
                       const toolTitle = toolInfo
-                        ? `${toolInfo.title} - ${toolInfo.mcpServer} (MCP Server)`
+                        ? `${toolInfo.name} - ${toolInfo.mcpServer} (MCP Server)`
                         : tc.name;
                       const toolAllowed = toolsAllowed.includes(tc.name);
 
@@ -494,6 +507,8 @@ export default function ChatPage() {
                 }
                 onAttachFiles={serializeFiles}
                 authToken={token}
+                toolsInfo={toolsInfo}
+                setToolsInfo={setToolsInfo}
                 disabled={isGenerating}
                 style={[{ maxWidth: 800 }, isWeb && { pointerEvents: "auto" }]}
               />
