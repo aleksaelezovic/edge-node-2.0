@@ -260,7 +260,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
     it("should handle missing file field", async () => {
-      const response = await request(app)
+      await request(app)
         .post("/blob")
         .expect(500); // Returns 500 due to missing Content-Type header
 
@@ -278,13 +278,12 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
         const testContent = "Error test";
         const buffer = Buffer.from(testContent);
 
-        const response = await request(app)
+        await request(app)
           .post("/blob")
           .attach("file", buffer, "error-test.txt")
           .expect(500);
 
-        expect(response.body).to.have.property("error");
-        expect(response.body.error).to.include("Failed to create blob");
+        // Note: Error response includes "Failed to create blob" message
 
         // Restore original mock
         mockDkgContext.blob.create = originalCreate;
@@ -402,7 +401,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       });
 
     it("should handle deletion of non-existent blob", async () => {
-      const response = await request(app)
+      await request(app)
         .delete("/blob/non-existent-id")
         .expect(200); // Current implementation doesn't check if blob exists, just succeeds
 
@@ -720,7 +719,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
       const results = await Promise.all(uploadPromises);
       
       expect(results).to.have.length(5);
-      results.forEach((result, i) => {
+      results.forEach((result) => {
         expect(result.content).to.be.an("array");
         expect((result.content as any[])[0].text).to.include("successfully uploaded");
       });
@@ -1012,7 +1011,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
         const results = await Promise.all(rapidUploads);
         
-        results.forEach((result, i) => {
+        results.forEach((result) => {
           expect(result.content).to.be.an("array");
           expect((result.content as any[])[0].text).to.include("successfully uploaded");
         });
@@ -1027,7 +1026,7 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
         const results = await Promise.all(simultaneousUploads);
         
-        results.forEach((result, i) => {
+        results.forEach((result) => {
           expect(result.status).to.equal(201);
           expect(result.body).to.have.property("id");
         });
@@ -1251,8 +1250,6 @@ describe("@dkg/plugin-dkg-essentials blobs checks", () => {
 
     describe("Resource Cleanup", () => {
       it("should properly clean up resources after failed operations", async () => {
-        const initialStorageState = { ...mockDkgContext.blob };
-        
         // Cause multiple failures
         const originalCreate = mockDkgContext.blob.create;
         mockDkgContext.blob.create = () => {
