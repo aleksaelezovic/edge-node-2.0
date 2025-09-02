@@ -100,7 +100,7 @@ export default function ChatPage() {
     }));
 
     return mcp
-      .callTool({ name: tc.name, arguments: tc.args })
+      .callTool({ name: tc.name, arguments: tc.args }, undefined, {timeout: 300000, maxTotalTimeout: 300000})
       .then((result) => {
         setToolCalls((p) => ({
           ...p,
