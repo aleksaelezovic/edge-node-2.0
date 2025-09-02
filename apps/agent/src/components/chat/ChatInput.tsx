@@ -1,12 +1,10 @@
-import { useCallback, useState } from "react";
+import { ComponentProps, useCallback, useState } from "react";
 import {
   View,
   TextInput,
   StyleProp,
   ViewStyle,
   StyleSheet,
-  Text,
-  ScrollView,
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 
@@ -21,7 +19,7 @@ import { toError } from "@/shared/errors";
 import { FileDefinition } from "@/shared/files";
 
 import FilesSelected from "./ChatInput/FilesSelected";
-import Checkbox from "../Checkbox";
+import ToolsSelector from "./ChatInput/ToolsSelector";
 import Popover from "../Popover";
 
 export default function ChatInput({
@@ -59,15 +57,9 @@ export default function ChatInput({
   onFileRemoved?: (file: FileDefinition) => void;
   /* Required for previewing uploaded images */
   authToken?: string;
-  tools?: Record<
-    string,
-    { name: string; description?: string; enabled?: boolean }[]
-  >;
-  onToolTick?: (mcpServer: string, toolName: string, value: boolean) => void;
-  onToolServerTick?: (mcpServer: string, value: boolean) => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
-}) {
+} & ComponentProps<typeof ToolsSelector>) {
   const colors = useColors();
   const [message, setMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<FileDefinition[]>([]);
@@ -112,7 +104,7 @@ export default function ChatInput({
           value={message}
           multiline={false}
           onKeyPress={({ nativeEvent }) => {
-            if (nativeEvent.key === 'Enter') {
+            if (nativeEvent.key === "Enter") {
               // Submit on Enter key press
               if (message.trim() && !disabled) {
                 onSubmit();
@@ -180,60 +172,11 @@ export default function ChatInput({
             />
           )}
         >
-          <View
-            style={{
-              maxWidth: 530,
-              maxHeight: 220,
-              backgroundColor: colors.card,
-              borderRadius: 16,
-              padding: 8,
-            }}
-          >
-            {!Object.keys(tools).length && (
-              <Text style={[{ color: colors.placeholder, padding: 8 }]}>
-                No tools provided.
-              </Text>
-            )}
-            <ScrollView>
-              {Object.keys(tools).map((mcpServer) => (
-                <View key={mcpServer}>
-                  <Checkbox
-                    value={tools[mcpServer]!.some((t) => t.enabled)}
-                    onValueChange={(val) => {
-                      onToolServerTick?.(mcpServer, val);
-                    }}
-                  >
-                    <Text style={[styles.toolTitle, { color: colors.text }]}>
-                      MCP Server: {mcpServer}
-                    </Text>
-                  </Checkbox>
-                  {tools[mcpServer]!.map((tool) => (
-                    <Checkbox
-                      key={tool.name}
-                      value={tool.enabled}
-                      onValueChange={(val) => {
-                        onToolTick?.(mcpServer, tool.name, val);
-                      }}
-                      style={{ paddingLeft: 16 }}
-                    >
-                      <Text
-                        numberOfLines={1}
-                        style={[styles.toolDesc, { color: colors.placeholder }]}
-                      >
-                        <Text
-                          style={[styles.toolTitle, { color: colors.text }]}
-                        >
-                          {tool.name}
-                          {tool.description && ":"}
-                        </Text>
-                        {tool.description}
-                      </Text>
-                    </Checkbox>
-                  ))}
-                </View>
-              ))}
-            </ScrollView>
-          </View>
+          <ToolsSelector
+            tools={tools}
+            onToolTick={onToolTick}
+            onToolServerTick={onToolServerTick}
+          />
         </Popover>
       </View>
     </View>
@@ -276,16 +219,5 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginVertical: 8,
     paddingHorizontal: 8,
-  },
-  toolTitle: {
-    fontFamily: "Manrope_500Medium",
-    fontSize: 14,
-    lineHeight: 21,
-    paddingRight: 4,
-  },
-  toolDesc: {
-    fontFamily: "Manrope_400Regular",
-    fontSize: 14,
-    lineHeight: 21,
   },
 });
