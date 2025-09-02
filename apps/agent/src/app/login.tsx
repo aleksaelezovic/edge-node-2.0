@@ -1,11 +1,11 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Text, View, TextInput, StyleSheet } from "react-native";
 import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
 
-import { clientUri } from "@/client";
+import { clientUri, useMcpContext } from "@/client";
 import { AuthError, login } from "@/shared/auth";
 import useColors from "@/hooks/useColors";
 import Checkbox from "@/components/Checkbox";
@@ -22,6 +22,11 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+
+  const colors = useColors();
+
+  const { connected } = useMcpContext();
+  if (connected) return <Redirect href="/" />;
 
   function submit() {
     setError("");
@@ -61,8 +66,6 @@ export default function Login() {
         }
       });
   }
-
-  const colors = useColors();
 
   return (
     <Page>

@@ -23,7 +23,7 @@ const createTransport = (mcpUrl: string) => {
       client_name: "DKG Agent",
       client_uri: clientUri,
       logo_uri: process.env.EXPO_PUBLIC_APP_URL + "/logo.png",
-      scope: "mcp llm",
+      scope: "mcp llm blob",
     },
     async (url) => {
       if (Platform.OS !== "web") {

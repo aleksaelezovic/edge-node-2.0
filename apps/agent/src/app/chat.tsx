@@ -6,6 +6,7 @@ import { fetch } from "expo/fetch";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 //import AsyncStorage from "@react-native-async-storage/async-storage";
 import { parseSourceKAContent } from "@dkg/plugin-dkg-essentials/utils";
+import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
 
 import { useMcpClient } from "@/client";
 import useColors from "@/hooks/useColors";
@@ -27,12 +28,18 @@ import {
   makeCompletionRequest,
   toContents,
 } from "@/shared/chat";
+import {
+  parseFilesFromContent,
+  serializeFiles,
+  uploadFiles,
+} from "@/shared/files";
+import { toError } from "@/shared/errors";
 
 export default function ChatPage() {
   const colors = useColors();
   const { isNativeMobile, isWeb, width } = usePlatform();
 
-  const { connected, mcp, getToken } = useMcpClient();
+  const { connected, mcp, token } = useMcpClient();
   const [tools, setTools] = useState<ToolDefinition[]>([]);
   const [toolsInfo, setToolsInfo] = useState<ToolsInfoMap>({});
   const [toolCalls, setToolCalls] = useState<ToolCallsMap>({});
@@ -40,43 +47,51 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const safeAreaInsets = useSafeAreaInsets();
+  const activeTools = tools.filter((t) => toolsInfo[t.function.name]?.active);
 
   const { showAlert } = useAlerts();
+
+  const fetchTools = useCallback(async () => {
+    try {
+      const { tools } = await mcp.listTools();
+      const toolFns: ToolDefinition[] = [];
+      const toolsInfo: ToolsInfoMap = {};
+      for (const tool of tools) {
+        toolFns.push({
+          type: "function",
+          function: {
+            name: tool.name,
+            description: tool.description,
+            parameters: tool.inputSchema,
+          },
+        });
+        toolsInfo[tool.name] = {
+          name: tool.name,
+          title: tool.title,
+          description: tool.description,
+          mcpServer: "dkg-agent-2.0",
+          active: true,
+        };
+      }
+      setTools(toolFns);
+      setToolsInfo(toolsInfo);
+    } catch (error) {
+      showAlert({
+        type: "error",
+        title: "Error listing MCP tools",
+        message: toError(error).message,
+      });
+    }
+  }, [mcp, showAlert]);
 
   useEffect(() => {
     if (!connected) return;
 
-    mcp
-      .listTools()
-      .then(({ tools }) => {
-        const toolFns: ToolDefinition[] = [];
-        const toolsInfo: ToolsInfoMap = {};
-        for (const tool of tools) {
-          toolFns.push({
-            type: "function",
-            function: {
-              name: tool.name,
-              description: tool.description,
-              parameters: tool.inputSchema,
-            },
-          });
-          toolsInfo[tool.name] = {
-            title: tool.name,
-            description: tool.description,
-            mcpServer: "dkg-agent-2.0",
-          };
-        }
-        setTools(toolFns);
-        setToolsInfo(toolsInfo);
-      })
-      .catch((error) => {
-        showAlert({
-          type: "error",
-          title: "Error listing MCP tools",
-          message: error.message,
-        });
-      });
-  }, [connected, mcp, showAlert]);
+    fetchTools();
+    mcp.setNotificationHandler(ToolListChangedNotificationSchema, () => {
+      fetchTools();
+    });
+  }, [mcp, connected, fetchTools]);
 
   async function callTool(tc: ToolCall) {
     setToolCalls((p) => ({
@@ -85,7 +100,7 @@ export default function ChatPage() {
     }));
 
     return mcp
-      .callTool({ name: tc.name, arguments: tc.args })
+      .callTool({ name: tc.name, arguments: tc.args }, undefined, {timeout: 300000, maxTotalTimeout: 300000})
       .then((result) => {
         setToolCalls((p) => ({
           ...p,
@@ -133,12 +148,14 @@ export default function ChatPage() {
   async function sendMessage(newMessage: ChatMessage) {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
 
-    const token = await getToken();
     if (!token) throw new Error("Unauthorized");
 
     setIsGenerating(true);
     const completion = await makeCompletionRequest(
-      { messages: [...messages, newMessage], tools },
+      {
+        messages: [...messages, newMessage],
+        tools: activeTools,
+      },
       {
         fetch: (url, opts) => fetch(url.toString(), opts as any),
         bearerToken: token,
@@ -230,7 +247,8 @@ export default function ChatPage() {
   );
 
   const isLandingScreen = !messages.length && !isNativeMobile;
-  console.log(messages);
+  console.debug("Messages:", messages);
+  console.debug("Tools (active):", activeTools);
 
   return (
     <Page style={{ flex: 1, position: "relative", marginBottom: 0 }}>
@@ -280,6 +298,24 @@ export default function ChatPage() {
                   return [[], -1];
                 })();
 
+                const [allFiles, filesIndex] = (() => {
+                  for (const [i, c] of content.entries()) {
+                    const files = parseFilesFromContent(c);
+                    if (!files.length) continue;
+
+                    return [files, i];
+                  }
+                  return [[], -1];
+                })();
+
+                const images = allFiles.filter((f) =>
+                  f.mimeType?.startsWith("image/"),
+                );
+
+                const files = allFiles.filter(
+                  (f) => !f.mimeType?.startsWith("image/"),
+                );
+
                 return (
                   <Chat.Message
                     key={i}
@@ -289,10 +325,25 @@ export default function ChatPage() {
                     {/* Source Knowledge Assets */}
                     <Chat.Message.SourceKAs kas={kas} resolver={kaResolver} />
 
+                    {/* Images */}
+                    {images.map((image, i) => (
+                      <Chat.Message.Content.Image
+                        key={i}
+                        url={image.uri}
+                        authToken={token}
+                      />
+                    ))}
+
+                    {/* Files */}
+                    {files.map((file, i) => (
+                      <Chat.Message.Content.File key={i} file={file} />
+                    ))}
+
                     {/* Message contnet (text/image) */}
                     {content.map(
                       (c, i) =>
-                        i !== kasIndex && (
+                        i !== kasIndex &&
+                        i !== filesIndex && (
                           <Chat.Message.Content key={i} content={c} />
                         ),
                     )}
@@ -302,7 +353,7 @@ export default function ChatPage() {
                       if (!tc.id) tc.id = i.toString();
                       const toolInfo = toolsInfo[tc.name];
                       const toolTitle = toolInfo
-                        ? `${toolInfo.title} - ${toolInfo.mcpServer} (MCP Server)`
+                        ? `${toolInfo.name} - ${toolInfo.mcpServer} (MCP Server)`
                         : tc.name;
                       const toolAllowed = toolsAllowed.includes(tc.name);
 
@@ -385,6 +436,79 @@ export default function ChatPage() {
               )}
               <Chat.Input
                 onSendMessage={sendMessage}
+                onUploadFiles={(assets) =>
+                  uploadFiles(
+                    new URL(process.env.EXPO_PUBLIC_MCP_URL + "/blob"),
+                    assets,
+                    {
+                      fieldName: "file",
+                      uploadType: 1,
+                      headers: { Authorization: `Bearer ${token}` },
+                    },
+                  ).then((result) => {
+                    const successfulUploads = result
+                      .filter((f) => f.status === "fulfilled")
+                      .filter((f) => f.value.status < 300);
+
+                    if (successfulUploads.length !== result.length) {
+                      console.error("Some uploads failed");
+                      console.log(
+                        "Failed uploads:",
+                        result
+                          .filter((f) => f.status !== "fulfilled")
+                          .map((f) => f.reason),
+                      );
+                      showAlert({
+                        type: "error",
+                        title: "Upload error",
+                        message: "Some uploads failed!",
+                        timeout: 5000,
+                      });
+                    }
+
+                    return successfulUploads.map(({ value }) => {
+                      const body = JSON.parse(value.body);
+                      return {
+                        ...body,
+                        uri: new URL(
+                          process.env.EXPO_PUBLIC_MCP_URL + "/blob/" + body.id,
+                        ).toString(),
+                      };
+                    });
+                  })
+                }
+                onFileRemoved={(f) => {
+                  fetch(
+                    new URL(
+                      process.env.EXPO_PUBLIC_MCP_URL + "/blob/" + f.id,
+                    ).toString(),
+                    {
+                      method: "DELETE",
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    },
+                  ).catch((error) => {
+                    showAlert({
+                      type: "error",
+                      title: "File removal error",
+                      message: toError(error).message,
+                      timeout: 5000,
+                    });
+                  });
+                }}
+                onUploadError={(err) =>
+                  showAlert({
+                    type: "error",
+                    title: "Upload error",
+                    message: err.message,
+                    timeout: 5000,
+                  })
+                }
+                onAttachFiles={serializeFiles}
+                authToken={token}
+                toolsInfo={toolsInfo}
+                setToolsInfo={setToolsInfo}
                 disabled={isGenerating}
                 style={[{ maxWidth: 800 }, isWeb && { pointerEvents: "auto" }]}
               />

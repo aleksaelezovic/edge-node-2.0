@@ -12,6 +12,11 @@
       "types": "./dist/utils.d.ts",
       "import": "./dist/utils.mjs",
       "require": "./dist/utils.js"
+    },
+    "./createFsBlobStorage": {
+      "types": "./dist/createFsBlobStorage.d.ts",
+      "import": "./dist/createFsBlobStorage.mjs",
+      "require": "./dist/createFsBlobStorage.js"
     }
   },
   "scripts": {
@@ -22,11 +27,14 @@
     "test": "mocha 'tests/**/*.spec.ts'"
   },
   "dependencies": {
-    "@dkg/plugins": "^0.0.2"
+    "@dkg/plugin-swagger": "^0.0.2",
+    "@dkg/plugins": "^0.0.2",
+    "busboy": "^1.6.0"
   },
   "devDependencies": {
     "@dkg/eslint-config": "*",
     "@dkg/typescript-config": "*",
+    "@types/busboy": "^1.5.4",
     "tsup": "^8.5.0"
   }
 }

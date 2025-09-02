@@ -2,22 +2,25 @@ import {
   createContext,
   useContext,
   PropsWithChildren,
+  useState,
   useEffect,
   useCallback,
   useRef,
 } from "react";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 
+import { toError } from "@/shared/errors";
+
 import useMcpClientConnection from "./useMcpClientConnection";
 
 const McpContext = createContext<{
   mcp: Client;
   connected: boolean;
-  getToken: () => Promise<string | undefined>;
+  token: string | undefined;
 }>({
   mcp: new Client({ name: "dkg-agent", version: "1.0.0" }),
   connected: false,
-  getToken: async () => undefined,
+  token: undefined,
 });
 
 export const useMcpContext = () => useContext(McpContext);
@@ -34,6 +37,7 @@ export default function McpContextProvider({
   onConnectedChange?: (connected: boolean) => void;
   onError?: (error: Error) => void;
 }>) {
+  const [token, setToken] = useState<string | undefined>();
   const { mcp, connect, connected, authorize, getToken } =
     useMcpClientConnection(process.env.EXPO_PUBLIC_MCP_URL + "/mcp");
 
@@ -43,9 +47,7 @@ export default function McpContextProvider({
       if (authorizationCode) await authorize(authorizationCode);
       if (autoconnect) await connect();
     } catch (error) {
-      onError?.(
-        error instanceof Error ? error : new Error(`Unknown: ${error}`),
-      );
+      onError?.(toError(error));
     }
   }, [autoconnect, connected, connect, authorizationCode, authorize, onError]);
 
@@ -55,7 +57,8 @@ export default function McpContextProvider({
 
   useEffect(() => {
     onConnectedChange?.(connected);
-  }, [connected, onConnectedChange]);
+    getToken().then(setToken);
+  }, [connected, onConnectedChange, getToken]);
 
   const intervalRef = useRef<number | null>(null);
   useEffect(() => {
@@ -73,7 +76,7 @@ export default function McpContextProvider({
   }, [connected, mcp]);
 
   return (
-    <McpContext.Provider value={{ mcp, getToken, connected }}>
+    <McpContext.Provider value={{ mcp, token, connected }}>
       {children}
     </McpContext.Provider>
   );

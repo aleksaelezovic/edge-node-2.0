@@ -5,6 +5,13 @@ import { expect } from "chai";
 import sinon from "sinon";
 import authPlugin, { authorized } from "../src/index.js";
 import { z } from "@dkg/plugins/helpers";
+import {
+  createExpressApp,
+  createInMemoryBlobStorage,
+  createMcpServerClientPair,
+  createMockDkgClient,
+} from "@dkg/plugins/testing";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import express from "express";
 import request from "supertest";
 import passport from "passport";
@@ -12,69 +19,9 @@ import { sign, verify } from "jsonwebtoken";
 
 // Mock DKG context
 const mockDkgContext = {
-  dkg: {
-    // Mock DKG instance with all required properties
-    get: () => Promise.resolve({}),
-    query: () => Promise.resolve([]),
-    assertion: {
-      get: () => Promise.resolve({}),
-      create: () => Promise.resolve({}),
-    },
-    asset: {
-      get: () => Promise.resolve({}),
-      create: () => Promise.resolve({}),
-    },
-    blockchain: {
-      get: () => Promise.resolve({}),
-    },
-    node: {
-      get: () => Promise.resolve({}),
-    },
-    graph: {
-      query: () => Promise.resolve([]),
-    },
-    network: {
-      get: () => Promise.resolve({}),
-    },
-    storage: {
-      get: () => Promise.resolve({}),
-    },
-    paranet: {
-      get: () => Promise.resolve({}),
-    },
-  },
+  dkg: createMockDkgClient(),
+  blob: createInMemoryBlobStorage(),
 };
-
-function createMockMcpServer(): any {
-  const registeredTools = new Map();
-  const registeredResources = new Map();
-
-  return {
-    registerTool(
-      name: string,
-      config: Record<string, unknown>,
-      handler: (...args: any[]) => any,
-    ) {
-      registeredTools.set(name, { ...config, handler });
-      return this;
-    },
-    registerResource(
-      name: string,
-      template: any,
-      config: Record<string, unknown>,
-      handler: (...args: any[]) => any,
-    ) {
-      registeredResources.set(name, { template, config, handler });
-      return this;
-    },
-    getRegisteredTools() {
-      return registeredTools;
-    },
-    getRegisteredResources() {
-      return registeredResources;
-    },
-  };
-}
 
 // Test credentials schema
 const testCredentialsSchema = z.object({
@@ -101,21 +48,20 @@ const mockLogin = async (credentials: TestCredentials): Promise<string[]> => {
 const TEST_SECRET = "test-secret-key-for-jwt";
 
 describe("@dkg/plugin-auth checks", function () {
-  let mockMcpServer: any;
+  let mockMcpServer: McpServer;
   let apiRouter: express.Router;
   let app: express.Application;
 
   // Set timeout for all tests to prevent hanging
   this.timeout(5000);
 
-  beforeEach(() => {
-    mockMcpServer = createMockMcpServer();
+  beforeEach(async () => {
+    const { server } = await createMcpServerClientPair();
+    mockMcpServer = server;
     apiRouter = express.Router();
 
     // Setup Express app
-    app = express();
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
+    app = createExpressApp();
 
     // Initialize passport middleware
     app.use(passport.initialize());

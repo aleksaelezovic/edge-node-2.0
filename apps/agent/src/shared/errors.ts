@@ -6,3 +6,8 @@ export class ErrorWithCode<Code extends string = string> extends Error {
     super(message);
   }
 }
+
+export const toError = (error: unknown): Error => {
+  if (error instanceof Error) return error;
+  return new Error(`Unknown error: ${error}`);
+};

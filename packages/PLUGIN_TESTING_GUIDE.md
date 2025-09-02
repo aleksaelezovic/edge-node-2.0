@@ -28,6 +28,8 @@ When you create a plugin with `turbo gen` (plugin option), you automatically get
 - Core Functionality tests - Structure provided but content must be replaced
 - Error Handling tests - Structure provided but content must be replaced
 
+**Important:** Modern DKG plugins use the new `@dkg/plugins/testing` package that provides standardized testing utilities. When you create a plugin with `turbo gen`, these are automatically imported and configured.
+
 ## What You Need To Customize
 
 **Important:** Run `npm test` after generation and you'll see failing tests with messages like:
@@ -50,14 +52,16 @@ This is intentional! You must replace the placeholder tests with real ones. Look
 
 ```typescript
 describe("Core Functionality", () => {
-  it("should register the correct tools", () => {
-    const tools = mockMcpServer.getRegisteredTools();
-    expect(tools.has("my-tool-name")).to.equal(true);
+  it("should register the correct tools", async () => {
+    const tools = await mockMcpClient.listTools().then((t) => t.tools);
+    expect(tools.some((tool) => tool.name === "my-tool-name")).to.equal(true);
   });
 
   it("should handle tool calls correctly", async () => {
-    const tool = mockMcpServer.getRegisteredTools().get("my-tool-name");
-    const result = await tool.handler({ input: "test" });
+    const result = await mockMcpClient.callTool({
+      name: "my-tool-name",
+      arguments: { input: "test" },
+    });
     expect(result.content[0].text).to.include("expected output");
   });
 });
@@ -85,9 +89,11 @@ describe("Error Handling", () => {
   });
 
   it("should handle invalid tool inputs", async () => {
-    const tool = mockMcpServer.getRegisteredTools().get("my-tool-name");
     try {
-      await tool.handler({ invalid: "input" });
+      await mockMcpClient.callTool({
+        name: "my-tool-name",
+        arguments: { invalid: "input" },
+      });
       expect.fail("Should have thrown error");
     } catch (error) {
       expect(error.message).to.include("expected error");
@@ -96,7 +102,7 @@ describe("Error Handling", () => {
 });
 ```
 
-## Optional Test Enhancements (Great Additions!)
+## Optional Test Enhancements
 
 Beyond the 2 required categories, consider adding more comprehensive tests to make your plugin even more trustworthy:
 
@@ -130,6 +136,21 @@ describe("Security", () => {
     // Test input sanitization
   });
 });
+
+describe("Blob Storage", () => {
+  it("should handle file uploads correctly", async () => {
+    // Test blob storage functionality if your plugin uses it
+    const blobId = "test-blob-id";
+    const testData = Buffer.from("test data");
+    await mockDkgContext.blob.put(blobId, testData, { 
+      filename: "test.txt", 
+      mimeType: "text/plain" 
+    });
+    
+    const retrievedData = await mockDkgContext.blob.get(blobId);
+    expect(retrievedData).to.not.be.null;
+  });
+});
 ```
 
 **The more tests you write, the more trustworthy your plugin becomes!**
@@ -137,6 +158,13 @@ describe("Security", () => {
 ## Real Example
 
 **See a complete working example at `packages/plugin-example/tests/addition.spec.ts`**
+
+This example demonstrates:
+- Using `@dkg/plugins/testing` helpers
+- Proper MCP server/client testing with real SDK components
+- Mock DKG context with blob storage
+- Comprehensive tool registration and functionality testing
+- Error handling for both MCP tools and API endpoints
 
 ## Manual Setup (Only if NOT using the generator)
 
@@ -161,6 +189,28 @@ Add to your `package.json`:
 
 Create `tests/your-plugin.spec.ts` and copy the template from any existing plugin test file.
 
+### 3. Install Testing Dependencies
+
+Add the testing helpers to your plugin's dependencies:
+
+```json
+{
+  "devDependencies": {
+    "@dkg/plugins": "*"
+  }
+}
+```
+
+**Import testing helpers:**
+```typescript
+import {
+  createExpressApp,
+  createInMemoryBlobStorage,
+  createMcpServerClientPair,
+  createMockDkgClient,
+} from "@dkg/plugins/testing";
+```
+
 </details>
 
 ## Quick Checklist
@@ -173,7 +223,9 @@ Before submitting your plugin, check that you have:
 - [ ] Test script exists in `package.json`
 - [ ] Test file exists in `tests/` directory
 - [ ] Plugin Configuration tests work automatically
-- [ ] Mock infrastructure is set up
+- [ ] Mock infrastructure is set up with new `@dkg/plugins/testing` helpers
+- [ ] MCP server/client pair is properly configured with in-memory transport
+- [ ] Mock DKG context includes blob storage support
 
 **Required Customization:**
 
@@ -186,6 +238,7 @@ Before submitting your plugin, check that you have:
 - [ ] Added Performance tests
 - [ ] Added Integration tests
 - [ ] Added Security tests
+- [ ] Added Blob Storage tests (if your plugin handles file uploads/downloads)
 
 **Technical Requirements (GitHub Actions validates these):**
 

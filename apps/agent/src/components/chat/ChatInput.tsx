@@ -5,6 +5,8 @@ import {
   StyleProp,
   ViewStyle,
   StyleSheet,
+  Text,
+  ScrollView,
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 
@@ -14,56 +16,91 @@ import MicrophoneIcon from "@/components/icons/MicrophoneIcon";
 import AttachFileIcon from "@/components/icons/AttachFileIcon";
 import ToolsIcon from "@/components/icons/ToolsIcon";
 import useColors from "@/hooks/useColors";
-import { ChatMessage } from "@/shared/chat";
-import usePlatform from "@/hooks/usePlatform";
+import { ChatMessage, toContents, ToolsInfoMap } from "@/shared/chat";
+import { toError } from "@/shared/errors";
+import { FileDefinition } from "@/shared/files";
 
 import FilesSelected from "./ChatInput/FilesSelected";
-
-export type FileDefinition = {
-  uri?: string;
-  name?: string;
-  mimeType?: string;
-  base64: string;
-};
+import Checkbox from "../Checkbox";
+import Popover from "../Popover";
 
 export default function ChatInput({
   onSendMessage,
+  onUploadFiles = (assets) =>
+    assets.map((a) => ({
+      id: a.uri,
+      uri: a.uri,
+      name: a.name,
+      mimeType: a.mimeType,
+    })),
+  onUploadError,
+  onAttachFiles = (files) =>
+    files.map((f) => ({
+      type: "file",
+      file: {
+        filename: f.name,
+        file_data: f.uri,
+      },
+    })),
+  onFileRemoved,
+  authToken,
+  toolsInfo = {},
+  setToolsInfo,
   disabled,
   style,
 }: {
   onSendMessage: (message: ChatMessage) => void;
+  onUploadFiles?: (
+    files: DocumentPicker.DocumentPickerAsset[],
+  ) => FileDefinition[] | Promise<FileDefinition[]>;
+  onUploadError?: (error: Error) => void;
+  onAttachFiles?: (files: FileDefinition[]) => ChatMessage["content"];
+  onFileRemoved?: (file: FileDefinition) => void;
+  /* Required for previewing uploaded images */
+  authToken?: string;
+  toolsInfo?: ToolsInfoMap;
+  setToolsInfo?: (toolsInfo: ToolsInfoMap) => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = useColors();
-  const { isWeb } = usePlatform();
   const [message, setMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<FileDefinition[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const onSubmit = useCallback(() => {
     onSendMessage({
       role: "user",
       content: [
-        ...selectedFiles.map((f) => ({
-          type: "file",
-          file: {
-            filename: f.name,
-            file_data: f.base64,
-          },
-        })),
+        ...toContents(selectedFiles.length ? onAttachFiles(selectedFiles) : []),
         { type: "text", text: message.trim() },
       ],
     });
     setMessage("");
     setSelectedFiles([]);
-  }, [message, selectedFiles, onSendMessage]);
+  }, [message, selectedFiles, onSendMessage, onAttachFiles]);
+
+  const toolsInfoByServer = Object.values(toolsInfo).reduce<
+    Record<string, ToolsInfoMap[string][]>
+  >((acc, tool) => {
+    const mcpServer = tool.mcpServer || "unknown";
+    if (!acc[mcpServer]) acc[mcpServer] = [];
+    acc[mcpServer].push(tool);
+    return acc;
+  }, {});
 
   return (
     <View style={[{ width: "100%", position: "relative" }, style]}>
       {!!selectedFiles.length && (
         <FilesSelected
           selectedFiles={selectedFiles}
-          onClear={() => setSelectedFiles([])}
+          authToken={authToken}
+          onRemove={(removedFile) => {
+            setSelectedFiles((files) =>
+              files.filter((f) => f.id !== removedFile.id),
+            );
+            onFileRemoved?.(removedFile);
+          }}
         />
       )}
 
@@ -77,7 +114,15 @@ export default function ChatInput({
           placeholderTextColor={colors.placeholder}
           onChangeText={setMessage}
           value={message}
-          multiline
+          multiline={false}
+          onKeyPress={({ nativeEvent }) => {
+            if (nativeEvent.key === 'Enter') {
+              // Submit on Enter key press
+              if (message.trim() && !disabled) {
+                onSubmit();
+              }
+            }
+          }}
         />
         <View style={styles.inputButtons}>
           <Button
@@ -86,49 +131,141 @@ export default function ChatInput({
             icon={MicrophoneIcon}
             iconMode="fill"
             style={styles.inputButton}
+            disabled={disabled}
           />
           <Button
             color="primary"
             icon={ArrowUpIcon}
             style={styles.inputButton}
-            disabled={!message.trim() || disabled}
+            disabled={!message.trim() || disabled || isUploading}
             onPress={onSubmit}
           />
         </View>
       </View>
       <View style={styles.inputTools}>
         <Button
+          disabled={disabled || isUploading}
           color="secondary"
           flat
           icon={AttachFileIcon}
           text="Attach file(s)"
           style={{ height: "100%" }}
           onPress={() => {
-            if (isWeb)
-              DocumentPicker.getDocumentAsync({
-                base64: true,
-                multiple: true,
-                type: "application/pdf",
-              }).then((r) => {
-                if (!r.assets) return;
-                setSelectedFiles((oldFiles) => {
-                  const newFiles: FileDefinition[] = r.assets.map((a) => ({
-                    name: a.name,
-                    size: a.size,
-                    mimeType: a.mimeType,
-                    base64: a.uri,
-                  }));
-                  return [...new Set([...oldFiles, ...newFiles])];
-                });
-              });
+            setIsUploading(true);
+            DocumentPicker.getDocumentAsync({
+              base64: true,
+              multiple: true,
+            })
+              .then((r) => {
+                if (!r.assets) return [];
+                return onUploadFiles(r.assets);
+              })
+              .then((newFiles) =>
+                setSelectedFiles((oldFiles) => [
+                  ...new Set([...oldFiles, ...newFiles]),
+                ]),
+              )
+              .catch((error) => onUploadError?.(toError(error)))
+              .finally(() => setIsUploading(false));
           }}
         />
-        <Button
-          color="secondary"
-          flat
-          icon={ToolsIcon}
-          style={{ height: "100%", aspectRatio: 1 }}
-        />
+        <Popover
+          from={(isOpen, setIsOpen) => (
+            <Button
+              color="secondary"
+              flat
+              icon={ToolsIcon}
+              style={{
+                height: "100%",
+                aspectRatio: 1,
+                backgroundColor: isOpen ? colors.card : "transparent",
+              }}
+              onPress={() => setIsOpen((o) => !o)}
+            />
+          )}
+        >
+          <View
+            style={{
+              maxWidth: 530,
+              maxHeight: 220,
+              backgroundColor: colors.card,
+              borderRadius: 16,
+              padding: 8,
+            }}
+          >
+            {!Object.keys(toolsInfo).length && (
+              <Text style={[{ color: colors.placeholder, padding: 8 }]}>
+                No tools provided.
+              </Text>
+            )}
+            <ScrollView>
+              {Object.keys(toolsInfoByServer).map((mcpServer) => (
+                <View key={mcpServer}>
+                  <Checkbox
+                    value={toolsInfoByServer[mcpServer]!.some((t) => t.active)}
+                    onValueChange={(val) => {
+                      setToolsInfo?.(
+                        Object.fromEntries(
+                          Object.entries(toolsInfo).map(([key, value]) => [
+                            key,
+                            {
+                              ...value,
+                              active:
+                                value.mcpServer === mcpServer
+                                  ? val
+                                  : value.active,
+                            },
+                          ]),
+                        ),
+                      );
+                    }}
+                  >
+                    <Text style={[styles.toolTitle, { color: colors.text }]}>
+                      MCP Server: {mcpServer}
+                    </Text>
+                  </Checkbox>
+                  {toolsInfoByServer[mcpServer]!.map((tool) => (
+                    <Checkbox
+                      key={tool.name}
+                      value={tool.active}
+                      onValueChange={(val) => {
+                        setToolsInfo?.(
+                          Object.fromEntries(
+                            Object.entries(toolsInfo).map(([key, value]) => [
+                              key,
+                              {
+                                ...value,
+                                active:
+                                  (value.mcpServer || "unknown") ===
+                                    mcpServer && key === tool.name
+                                    ? val
+                                    : value.active,
+                              },
+                            ]),
+                          ),
+                        );
+                      }}
+                      style={{ paddingLeft: 16 }}
+                    >
+                      <Text
+                        numberOfLines={1}
+                        style={[styles.toolDesc, { color: colors.placeholder }]}
+                      >
+                        <Text
+                          style={[styles.toolTitle, { color: colors.text }]}
+                        >
+                          {tool.name}
+                          {tool.description && ":"}
+                        </Text>
+                        {tool.description}
+                      </Text>
+                    </Checkbox>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </Popover>
       </View>
     </View>
   );
@@ -170,5 +307,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginVertical: 8,
     paddingHorizontal: 8,
+  },
+  toolTitle: {
+    fontFamily: "Manrope_500Medium",
+    fontSize: 14,
+    lineHeight: 21,
+    paddingRight: 4,
+  },
+  toolDesc: {
+    fontFamily: "Manrope_400Regular",
+    fontSize: 14,
+    lineHeight: 21,
   },
 });

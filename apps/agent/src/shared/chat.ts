@@ -12,7 +12,13 @@ import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 export type { ToolDefinition };
 export type ToolsInfoMap = Record<
   string,
-  { title: string; description?: string; mcpServer?: string }
+  {
+    name: string;
+    title?: string;
+    description?: string;
+    mcpServer?: string;
+    active?: boolean;
+  }
 >;
 export type ToolCallsMap = Record<
   string,
@@ -40,6 +46,8 @@ export type ToolCallResultContent = CallToolResult["content"];
 
 export const toContents = (content: ChatMessage["content"]) =>
   typeof content === "string" ? [{ type: "text", text: content }] : content;
+
+export type ChatMessageContents = ReturnType<typeof toContents>;
 
 const llmProviderFromEnv = () => {
   // Check .env and use a switch statement

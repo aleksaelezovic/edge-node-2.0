@@ -7,7 +7,7 @@
     "check": "turbo run format check-types lint",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,json,md,yml}\"",
     "check-types": "turbo run check-types",
     "test:mocha": "mocha",
     "test": "turbo run test --force",
@@ -21,6 +21,7 @@
     "@playwright/test": "^1.54.2",
     "@types/chai": "^5.2.2",
     "@types/mocha": "^10.0.10",
+    "@types/node": "^22.9.0",
     "@types/sinon": "^17.0.4",
     "@types/supertest": "^6.0.3",
     "chai": "^5.2.1",
@@ -37,7 +38,7 @@
     "typescript": "^5.8.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "packageManager": "npm@10.9.2",
   "workspaces": [

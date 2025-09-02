@@ -5,8 +5,8 @@ import { clientUri } from "./createTransport";
  * Provided for backward compatibility.
  */
 const useMcpClient = () => {
-  const { mcp, connected, getToken } = useMcpContext();
-  return { mcp, connected, getToken };
+  const { mcp, connected, token } = useMcpContext();
+  return { mcp, connected, token };
 };
 
 export { clientUri, McpContextProvider, useMcpContext, useMcpClient };
