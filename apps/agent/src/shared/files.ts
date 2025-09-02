@@ -57,9 +57,9 @@ export const parseFiles = (
  * @param {{uri: string; name: string; mimeType?: string;}[]} files Array of file URIs.
  * On mobile these should be local file uris and on web these should be base64 encoded data uris
  * @param {FileSystem.FileSystemUploadOptions} options Upload options
- * @returns {Promise<PromiseSettledResult<{body: string; status: number; }>[]>} Result of Promise.allSettled for every uri
+ * @returns {Promise<{ successful: any[]; failed: any[] }>} list of successful and failed uploads
  */
-export const uploadFiles = (
+export const uploadFiles = async (
   location: URL,
   files: {
     uri: string;
@@ -67,7 +67,7 @@ export const uploadFiles = (
     mimeType?: string;
   }[],
   options: FileSystem.FileSystemUploadOptions,
-): Promise<PromiseSettledResult<{ body: string; status: number }>[]> => {
+): Promise<{ successful: any[]; failed: any[] }> => {
   return Promise.allSettled(
     files.map(({ uri, name, mimeType }) =>
       Platform.OS === "web"
@@ -105,5 +105,18 @@ export const uploadFiles = (
             status: r.status,
           })),
     ),
-  );
+  ).then((settled) => {
+    const successful: Omit<FileDefinition, "uri">[] = [];
+    const failed: any[] = [];
+    for (const p of settled) {
+      if (p.status === "fulfilled" && p.value.status < 300) {
+        successful.push(JSON.parse(p.value.body));
+      } else if (p.status === "rejected") {
+        failed.push(p.reason);
+      } else {
+        failed.push(p);
+      }
+    }
+    return { successful, failed };
+  });
 };

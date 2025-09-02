@@ -396,36 +396,23 @@ export default function ChatPage() {
                       uploadType: 1,
                       headers: { Authorization: `Bearer ${mcp.token}` },
                     },
-                  ).then((result) => {
-                    const successfulUploads = result
-                      .filter((f) => f.status === "fulfilled")
-                      .filter((f) => f.value.status < 300);
-
-                    if (successfulUploads.length !== result.length) {
-                      console.error("Some uploads failed");
-                      console.log(
-                        "Failed uploads:",
-                        result
-                          .filter((f) => f.status !== "fulfilled")
-                          .map((f) => f.reason),
-                      );
+                  ).then(({ successful, failed }) => {
+                    if (failed.length) {
+                      console.debug("Failed uploads:", failed);
                       showAlert({
                         type: "error",
                         title: "Upload error",
-                        message: "Some uploads failed!",
+                        message: "Some uploads have failed!",
                         timeout: 5000,
                       });
                     }
 
-                    return successfulUploads.map(({ value }) => {
-                      const body = JSON.parse(value.body);
-                      return {
-                        ...body,
-                        uri: new URL(
-                          process.env.EXPO_PUBLIC_MCP_URL + "/blob/" + body.id,
-                        ).toString(),
-                      };
-                    });
+                    return successful.map((data) => ({
+                      ...data,
+                      uri: new URL(
+                        process.env.EXPO_PUBLIC_MCP_URL + "/blob/" + data.id,
+                      ).toString(),
+                    }));
                   })
                 }
                 onFileRemoved={(f) => {
@@ -435,11 +422,10 @@ export default function ChatPage() {
                     ).toString(),
                     {
                       method: "DELETE",
-                      headers: {
-                        Authorization: `Bearer ${mcp.token}`,
-                      },
+                      headers: { Authorization: `Bearer ${mcp.token}` },
                     },
                   ).catch((error) => {
+                    console.debug("File removal error:", error);
                     showAlert({
                       type: "error",
                       title: "File removal error",
@@ -448,14 +434,15 @@ export default function ChatPage() {
                     });
                   });
                 }}
-                onUploadError={(err) =>
+                onUploadError={(error) => {
+                  console.debug("Upload error:", error);
                   showAlert({
                     type: "error",
                     title: "Upload error",
-                    message: err.message,
+                    message: error.message,
                     timeout: 5000,
-                  })
-                }
+                  });
+                }}
                 onAttachFiles={serializeFiles}
                 authToken={mcp.token}
                 tools={{
