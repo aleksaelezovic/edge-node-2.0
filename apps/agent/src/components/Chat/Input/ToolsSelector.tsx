@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet } from "react-native";
 import useColors from "@/hooks/useColors";
 import Checkbox from "@/components/Checkbox";
 
-export default function ToolsSelector({
+export default function ChatInputToolsSelector({
   tools = {},
   onToolTick,
   onToolServerTick,

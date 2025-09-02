@@ -17,8 +17,8 @@ import usePlatform from "@/hooks/usePlatform";
 import Page from "@/components/layout/Page";
 import Container from "@/components/layout/Container";
 import Header from "@/components/layout/Header";
-import Chat from "@/components/chat/Chat";
-import { SourceKAResolver } from "@/components/chat/ChatMessage/SourceKAs/SourceKAsCollapsibleItem";
+import Chat from "@/components/Chat";
+import { SourceKAResolver } from "@/components/Chat/Message/SourceKAs/CollapsibleItem";
 import { useAlerts } from "@/components/Alerts";
 
 import {

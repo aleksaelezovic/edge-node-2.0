@@ -1,13 +1,13 @@
 import { ComponentProps, useState } from "react";
 import { ScrollView, ViewProps } from "react-native";
 
-import SourceKAsCollapsibleItem from "./SourceKAsCollapsibleItem";
+import ChatMessageSourceKAsCollapsibleItem from "./CollapsibleItem";
 
 type SourceKAsCollapsibleItemComponent = React.ReactElement<
-  ComponentProps<typeof SourceKAsCollapsibleItem>
+  ComponentProps<typeof ChatMessageSourceKAsCollapsibleItem>
 >;
 
-export default function SourceKAsCollapsible({
+export default function ChatMessageSourceKAsCollapsible({
   children,
   style,
   onExpandChange,
@@ -25,7 +25,7 @@ export default function SourceKAsCollapsible({
   return (
     <ScrollView {...props} style={{ flex: 1 }} contentContainerStyle={style}>
       {arrayChildren.map((child, i) => (
-        <SourceKAsCollapsibleItem
+        <ChatMessageSourceKAsCollapsibleItem
           key={child.key ?? i}
           {...child.props}
           collapsed={visibleIndex !== i}
@@ -44,4 +44,4 @@ export default function SourceKAsCollapsible({
   );
 }
 
-SourceKAsCollapsible.Item = SourceKAsCollapsibleItem;
+ChatMessageSourceKAsCollapsible.Item = ChatMessageSourceKAsCollapsibleItem;

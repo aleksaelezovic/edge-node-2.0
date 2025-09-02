@@ -1,4 +1,3 @@
-import useColors from "@/hooks/useColors";
 import Svg, {
   SvgProps,
   Path,
@@ -7,7 +6,9 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 
-export default function AssistantIcon(props: SvgProps) {
+import useColors from "@/hooks/useColors";
+
+export default function ChatMessageIconAssistant(props: SvgProps) {
   const colors = useColors();
 
   return (

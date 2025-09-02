@@ -9,6 +9,7 @@ import {
 import * as DocumentPicker from "expo-document-picker";
 
 import Button from "@/components/Button";
+import Popover from "@/components/Popover";
 import ArrowUpIcon from "@/components/icons/ArrowUpIcon";
 import MicrophoneIcon from "@/components/icons/MicrophoneIcon";
 import AttachFileIcon from "@/components/icons/AttachFileIcon";
@@ -18,9 +19,9 @@ import { ChatMessage, toContents } from "@/shared/chat";
 import { toError } from "@/shared/errors";
 import { FileDefinition } from "@/shared/files";
 
-import FilesSelected from "./ChatInput/FilesSelected";
-import ToolsSelector from "./ChatInput/ToolsSelector";
-import Popover from "../Popover";
+import ChatInputFilesSelected from "./Input/FilesSelected";
+import ChatInputToolsSelector from "./Input/ToolsSelector";
+import ChatInputAttachmentChip from "./Input/AttachmentChip";
 
 export default function ChatInput({
   onSendMessage,
@@ -59,7 +60,7 @@ export default function ChatInput({
   authToken?: string;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
-} & ComponentProps<typeof ToolsSelector>) {
+} & ComponentProps<typeof ChatInputToolsSelector>) {
   const colors = useColors();
   const [message, setMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<FileDefinition[]>([]);
@@ -80,7 +81,7 @@ export default function ChatInput({
   return (
     <View style={[{ width: "100%", position: "relative" }, style]}>
       {!!selectedFiles.length && (
-        <FilesSelected
+        <ChatInputFilesSelected
           selectedFiles={selectedFiles}
           authToken={authToken}
           onRemove={(removedFile) => {
@@ -172,7 +173,7 @@ export default function ChatInput({
             />
           )}
         >
-          <ToolsSelector
+          <ChatInputToolsSelector
             tools={tools}
             onToolTick={onToolTick}
             onToolServerTick={onToolServerTick}
@@ -182,6 +183,10 @@ export default function ChatInput({
     </View>
   );
 }
+
+ChatInput.FilesSelected = ChatInputFilesSelected;
+ChatInput.ToolsSelector = ChatInputToolsSelector;
+ChatInput.AttachmentChip = ChatInputAttachmentChip;
 
 const styles = StyleSheet.create({
   inputContainer: {

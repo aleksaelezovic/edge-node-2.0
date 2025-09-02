@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import useColors from "@/hooks/useColors";
-import Button from "../../Button";
-import Checkbox from "../../Checkbox";
+import Button from "@/components/Button";
+import Checkbox from "@/components/Checkbox";
 
-export default function ToolCall({
+export default function ChatMessageToolCall({
   title,
   description,
   status,

@@ -3,8 +3,9 @@ import { Image, useImage } from "expo-image";
 import type { MessageContentComplex } from "@langchain/core/messages";
 
 import Markdown from "@/components/Markdown";
-import AttachmentChip from "../ChatInput/AttachmentChip";
 import { FileDefinition } from "@/shared/files";
+
+import AttachmentChip from "../Input/AttachmentChip";
 
 function TextContent(props: { text: string }) {
   return <Markdown>{props.text}</Markdown>;

@@ -1,9 +1,9 @@
 import type { PropsWithChildren } from "react";
 
-import ChatInput from "./ChatInput";
-import ChatMessages from "./ChatMessages";
-import ChatMessage from "./ChatMessage";
-import ChatThinking from "./ChatThinking";
+import ChatInput from "./Input";
+import ChatMessages from "./Messages";
+import ChatMessage from "./Message";
+import ChatThinking from "./Thinking";
 
 export default function Chat(props: PropsWithChildren) {
   return <>{props.children}</>;
