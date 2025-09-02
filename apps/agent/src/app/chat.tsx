@@ -5,7 +5,10 @@ import * as Clipboard from "expo-clipboard";
 import { fetch } from "expo/fetch";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 //import AsyncStorage from "@react-native-async-storage/async-storage";
-import { parseSourceKAContent } from "@dkg/plugin-dkg-essentials/utils";
+import {
+  parseSourceKAContent,
+  SourceKA,
+} from "@dkg/plugin-dkg-essentials/utils";
 
 import { useMcpClient } from "@/client";
 import useMcpToolsSession from "@/hooks/useMcpToolsSession";
@@ -26,6 +29,7 @@ import {
   toContents,
 } from "@/shared/chat";
 import {
+  FileDefinition,
   parseFilesFromContent,
   serializeFiles,
   uploadFiles,
@@ -235,35 +239,39 @@ export default function ChatPage() {
               {messages.map((m, i) => {
                 if (m.role !== "user" && m.role !== "assistant") return null;
 
-                const content = toContents(m.content);
+                const kas: SourceKA[] = [];
+                const files: FileDefinition[] = [];
+                const images: { uri: string }[] = [];
+                const text: string[] = [];
 
-                const [kas, kasIndex] = (() => {
-                  for (const [i, c] of content.entries()) {
-                    const kas = parseSourceKAContent(c as unknown as any);
-                    if (!kas) continue;
-
-                    return [kas, i];
+                for (const c of toContents(m.content)) {
+                  if (c.type === "image_url") {
+                    images.push({ uri: c.image_url });
+                    continue;
                   }
-                  return [[], -1];
-                })();
 
-                const [allFiles, filesIndex] = (() => {
-                  for (const [i, c] of content.entries()) {
-                    const files = parseFilesFromContent(c);
-                    if (!files.length) continue;
+                  if (c.type === "text") {
+                    const k = parseSourceKAContent(c as unknown as any);
+                    if (k) {
+                      kas.push(...k);
+                      continue;
+                    }
 
-                    return [files, i];
+                    const f = parseFilesFromContent(c);
+                    if (f.length) {
+                      for (const file of f)
+                        if (file.mimeType?.startsWith("image/"))
+                          images.push({ uri: file.uri });
+                        else files.push(file);
+                      continue;
+                    }
+
+                    text.push(c.text);
                   }
-                  return [[], -1];
-                })();
+                }
 
-                const images = allFiles.filter((f) =>
-                  f.mimeType?.startsWith("image/"),
-                );
-
-                const files = allFiles.filter(
-                  (f) => !f.mimeType?.startsWith("image/"),
-                );
+                const isLastMessage = i === messages.length - 1;
+                const isIdle = !isGenerating && !m.tool_calls?.length;
 
                 return (
                   <Chat.Message
@@ -288,14 +296,10 @@ export default function ChatPage() {
                       <Chat.Message.Content.File key={i} file={file} />
                     ))}
 
-                    {/* Message contnet (text/image) */}
-                    {content.map(
-                      (c, i) =>
-                        i !== kasIndex &&
-                        i !== filesIndex && (
-                          <Chat.Message.Content key={i} content={c} />
-                        ),
-                    )}
+                    {/* Text (markdown) */}
+                    {text.map((c, i) => (
+                      <Chat.Message.Content.Text key={i} text={c} />
+                    ))}
 
                     {/* Tool calls */}
                     {m.tool_calls?.map((_tc, i) => {
@@ -333,25 +337,22 @@ export default function ChatPage() {
                     })}
 
                     {/* Actions at the bottom */}
-                    {!isGenerating &&
-                      m.role === "assistant" &&
-                      !m.tool_calls?.length &&
-                      i === messages.length - 1 && (
-                        <Chat.Message.Actions
-                          style={{ marginVertical: 16 }}
-                          onCopyAnswer={() => {
-                            const answerText = content.reduce((acc, curr) => {
-                              if (curr.type !== "text") return acc;
-                              return acc + "\n" + curr.text;
-                            }, "");
-                            Clipboard.setStringAsync(answerText.trim());
-                          }}
-                          onStartAgain={() => {
-                            setMessages([]);
-                            tools.reset();
-                          }}
-                        />
-                      )}
+                    {m.role === "assistant" && isLastMessage && isIdle && (
+                      <Chat.Message.Actions
+                        style={{ marginVertical: 16 }}
+                        onCopyAnswer={() => {
+                          Clipboard.setStringAsync(
+                            text
+                              .reduce((acc, curr) => acc + "\n" + curr, "")
+                              .trim(),
+                          );
+                        }}
+                        onStartAgain={() => {
+                          setMessages([]);
+                          tools.reset();
+                        }}
+                      />
+                    )}
                   </Chat.Message>
                 );
               })}
