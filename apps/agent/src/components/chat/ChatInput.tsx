@@ -16,7 +16,7 @@ import MicrophoneIcon from "@/components/icons/MicrophoneIcon";
 import AttachFileIcon from "@/components/icons/AttachFileIcon";
 import ToolsIcon from "@/components/icons/ToolsIcon";
 import useColors from "@/hooks/useColors";
-import { ChatMessage, toContents, ToolsInfoMap } from "@/shared/chat";
+import { ChatMessage, toContents } from "@/shared/chat";
 import { toError } from "@/shared/errors";
 import { FileDefinition } from "@/shared/files";
 
@@ -44,8 +44,9 @@ export default function ChatInput({
     })),
   onFileRemoved,
   authToken,
-  toolsInfo = {},
-  setToolsInfo,
+  tools = {},
+  onToolTick,
+  onToolServerTick,
   disabled,
   style,
 }: {
@@ -58,8 +59,12 @@ export default function ChatInput({
   onFileRemoved?: (file: FileDefinition) => void;
   /* Required for previewing uploaded images */
   authToken?: string;
-  toolsInfo?: ToolsInfoMap;
-  setToolsInfo?: (toolsInfo: ToolsInfoMap) => void;
+  tools?: Record<
+    string,
+    { name: string; description?: string; enabled?: boolean }[]
+  >;
+  onToolTick?: (mcpServer: string, toolName: string, value: boolean) => void;
+  onToolServerTick?: (mcpServer: string, value: boolean) => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -79,15 +84,6 @@ export default function ChatInput({
     setMessage("");
     setSelectedFiles([]);
   }, [message, selectedFiles, onSendMessage, onAttachFiles]);
-
-  const toolsInfoByServer = Object.values(toolsInfo).reduce<
-    Record<string, ToolsInfoMap[string][]>
-  >((acc, tool) => {
-    const mcpServer = tool.mcpServer || "unknown";
-    if (!acc[mcpServer]) acc[mcpServer] = [];
-    acc[mcpServer].push(tool);
-    return acc;
-  }, {});
 
   return (
     <View style={[{ width: "100%", position: "relative" }, style]}>
@@ -193,57 +189,30 @@ export default function ChatInput({
               padding: 8,
             }}
           >
-            {!Object.keys(toolsInfo).length && (
+            {!Object.keys(tools).length && (
               <Text style={[{ color: colors.placeholder, padding: 8 }]}>
                 No tools provided.
               </Text>
             )}
             <ScrollView>
-              {Object.keys(toolsInfoByServer).map((mcpServer) => (
+              {Object.keys(tools).map((mcpServer) => (
                 <View key={mcpServer}>
                   <Checkbox
-                    value={toolsInfoByServer[mcpServer]!.some((t) => t.active)}
+                    value={tools[mcpServer]!.some((t) => t.enabled)}
                     onValueChange={(val) => {
-                      setToolsInfo?.(
-                        Object.fromEntries(
-                          Object.entries(toolsInfo).map(([key, value]) => [
-                            key,
-                            {
-                              ...value,
-                              active:
-                                value.mcpServer === mcpServer
-                                  ? val
-                                  : value.active,
-                            },
-                          ]),
-                        ),
-                      );
+                      onToolServerTick?.(mcpServer, val);
                     }}
                   >
                     <Text style={[styles.toolTitle, { color: colors.text }]}>
                       MCP Server: {mcpServer}
                     </Text>
                   </Checkbox>
-                  {toolsInfoByServer[mcpServer]!.map((tool) => (
+                  {tools[mcpServer]!.map((tool) => (
                     <Checkbox
                       key={tool.name}
-                      value={tool.active}
+                      value={tool.enabled}
                       onValueChange={(val) => {
-                        setToolsInfo?.(
-                          Object.fromEntries(
-                            Object.entries(toolsInfo).map(([key, value]) => [
-                              key,
-                              {
-                                ...value,
-                                active:
-                                  (value.mcpServer || "unknown") ===
-                                    mcpServer && key === tool.name
-                                    ? val
-                                    : value.active,
-                              },
-                            ]),
-                          ),
-                        );
+                        onToolTick?.(mcpServer, tool.name, val);
                       }}
                       style={{ paddingLeft: 16 }}
                     >

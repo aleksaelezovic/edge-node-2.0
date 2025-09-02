@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
@@ -12,20 +12,29 @@ export default function ToolCall({
   status,
   input,
   output,
+  autoconfirm,
   onConfirm,
   onCancel,
 }: {
   title: string;
   description?: string;
-  status: "init" | "loading" | "success" | "error" | "cancelled";
+  status?: "init" | "loading" | "success" | "error" | "cancelled";
   input?: unknown;
   output?: unknown;
+  autoconfirm?: boolean;
   onConfirm: (allowForSession: boolean) => void;
   onCancel: () => void;
 }) {
   const colors = useColors();
   const [collapsed, setCollapsed] = useState(true);
   const [allowForSession, setAllowForSession] = useState(false);
+
+  if (!status && autoconfirm) status = "loading";
+  if (!status) status = "init";
+
+  useEffect(() => {
+    if (autoconfirm) onConfirm(true);
+  }, [autoconfirm, onConfirm]);
 
   if (status === "init" || status === "loading")
     return (

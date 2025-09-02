@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { View, Platform, KeyboardAvoidingView } from "react-native";
 import { Image } from "expo-image";
 import * as Clipboard from "expo-clipboard";
@@ -6,9 +6,9 @@ import { fetch } from "expo/fetch";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 //import AsyncStorage from "@react-native-async-storage/async-storage";
 import { parseSourceKAContent } from "@dkg/plugin-dkg-essentials/utils";
-import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
 
 import { useMcpClient } from "@/client";
+import useMcpToolsSession from "@/hooks/useMcpToolsSession";
 import useColors from "@/hooks/useColors";
 import usePlatform from "@/hooks/usePlatform";
 import Page from "@/components/layout/Page";
@@ -20,11 +20,8 @@ import { useAlerts } from "@/components/Alerts";
 
 import {
   type ChatMessage,
-  type ToolDefinition,
   type ToolCall,
   type ToolCallResultContent,
-  type ToolsInfoMap,
-  type ToolCallsMap,
   makeCompletionRequest,
   toContents,
 } from "@/shared/chat";
@@ -38,78 +35,26 @@ import { toError } from "@/shared/errors";
 export default function ChatPage() {
   const colors = useColors();
   const { isNativeMobile, isWeb, width } = usePlatform();
-
-  const { connected, mcp, token } = useMcpClient();
-  const [tools, setTools] = useState<ToolDefinition[]>([]);
-  const [toolsInfo, setToolsInfo] = useState<ToolsInfoMap>({});
-  const [toolCalls, setToolCalls] = useState<ToolCallsMap>({});
-  const [toolsAllowed, setToolsAllowed] = useState<string[]>([]);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
   const safeAreaInsets = useSafeAreaInsets();
-  const activeTools = tools.filter((t) => toolsInfo[t.function.name]?.active);
-
   const { showAlert } = useAlerts();
 
-  const fetchTools = useCallback(async () => {
-    try {
-      const { tools } = await mcp.listTools();
-      const toolFns: ToolDefinition[] = [];
-      const toolsInfo: ToolsInfoMap = {};
-      for (const tool of tools) {
-        toolFns.push({
-          type: "function",
-          function: {
-            name: tool.name,
-            description: tool.description,
-            parameters: tool.inputSchema,
-          },
-        });
-        toolsInfo[tool.name] = {
-          name: tool.name,
-          title: tool.title,
-          description: tool.description,
-          mcpServer: "dkg-agent-2.0",
-          active: true,
-        };
-      }
-      setTools(toolFns);
-      setToolsInfo(toolsInfo);
-    } catch (error) {
-      showAlert({
-        type: "error",
-        title: "Error listing MCP tools",
-        message: toError(error).message,
-      });
-    }
-  }, [mcp, showAlert]);
+  const mcp = useMcpClient();
+  const tools = useMcpToolsSession(mcp.tools);
 
-  useEffect(() => {
-    if (!connected) return;
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-    fetchTools();
-    mcp.setNotificationHandler(ToolListChangedNotificationSchema, () => {
-      fetchTools();
-    });
-  }, [mcp, connected, fetchTools]);
-
-  async function callTool(tc: ToolCall) {
-    setToolCalls((p) => ({
-      ...p,
-      [tc.id!]: { input: tc.args, status: "loading" },
-    }));
+  async function callTool(tc: ToolCall & { id: string }) {
+    tools.saveCallInfo(tc.id, { input: tc.args, status: "loading" });
 
     return mcp
       .callTool({ name: tc.name, arguments: tc.args }, undefined, {timeout: 300000, maxTotalTimeout: 300000})
       .then((result) => {
-        setToolCalls((p) => ({
-          ...p,
-          [tc.id!]: {
-            input: tc.args,
-            status: "success",
-            output: result.content,
-          },
-        }));
+        tools.saveCallInfo(tc.id, {
+          input: tc.args,
+          status: "success",
+          output: result.content,
+        });
 
         return sendMessage({
           role: "tool",
@@ -118,10 +63,11 @@ export default function ChatPage() {
         });
       })
       .catch((err) => {
-        setToolCalls((p) => ({
-          ...p,
-          [tc.id!]: { input: tc.args, status: "error", error: err.message },
-        }));
+        tools.saveCallInfo(tc.id, {
+          input: tc.args,
+          status: "error",
+          error: err.message,
+        });
 
         return sendMessage({
           role: "tool",
@@ -132,11 +78,8 @@ export default function ChatPage() {
       });
   }
 
-  async function cancelToolCall(tc: ToolCall) {
-    setToolCalls((p) => ({
-      ...p,
-      [tc.id!]: { input: tc.args, status: "cancelled" },
-    }));
+  async function cancelToolCall(tc: ToolCall & { id: string }) {
+    tools.saveCallInfo(tc.id, { input: tc.args, status: "cancelled" });
 
     return sendMessage({
       role: "tool",
@@ -146,30 +89,36 @@ export default function ChatPage() {
   }
 
   async function sendMessage(newMessage: ChatMessage) {
+    const kaContents: any[] = [];
+    if (newMessage.role === "tool") {
+      const otherContents: any[] = [];
+      for (const c of toContents(newMessage.content) as ToolCallResultContent) {
+        const kas = parseSourceKAContent(c);
+        if (kas) kaContents.push(c);
+        else otherContents.push(c);
+      }
+      newMessage.content = otherContents;
+    }
+
     setMessages((prevMessages) => [...prevMessages, newMessage]);
 
-    if (!token) throw new Error("Unauthorized");
+    if (!mcp.token) throw new Error("Unauthorized");
 
     setIsGenerating(true);
     const completion = await makeCompletionRequest(
       {
         messages: [...messages, newMessage],
-        tools: activeTools,
+        tools: tools.enabled,
       },
       {
         fetch: (url, opts) => fetch(url.toString(), opts as any),
-        bearerToken: token,
+        bearerToken: mcp.token,
       },
     );
 
     if (newMessage.role === "tool") {
-      for (const c of toContents(newMessage.content) as ToolCallResultContent) {
-        const kas = parseSourceKAContent(c);
-        if (!kas) continue;
-
-        completion.content = toContents(completion.content);
-        completion.content.push(c);
-      }
+      completion.content = toContents(completion.content);
+      completion.content.push(...kaContents);
     }
 
     setMessages((prevMessages) => [...prevMessages, completion]);
@@ -248,7 +197,7 @@ export default function ChatPage() {
 
   const isLandingScreen = !messages.length && !isNativeMobile;
   console.debug("Messages:", messages);
-  console.debug("Tools (active):", activeTools);
+  console.debug("Tools (enabled):", tools.enabled);
 
   return (
     <Page style={{ flex: 1, position: "relative", marginBottom: 0 }}>
@@ -330,7 +279,7 @@ export default function ChatPage() {
                       <Chat.Message.Content.Image
                         key={i}
                         url={image.uri}
-                        authToken={token}
+                        authToken={mcp.token}
                       />
                     ))}
 
@@ -349,33 +298,34 @@ export default function ChatPage() {
                     )}
 
                     {/* Tool calls */}
-                    {m.tool_calls?.map((tc, i) => {
-                      if (!tc.id) tc.id = i.toString();
-                      const toolInfo = toolsInfo[tc.name];
-                      const toolTitle = toolInfo
-                        ? `${toolInfo.name} - ${toolInfo.mcpServer} (MCP Server)`
-                        : tc.name;
-                      const toolAllowed = toolsAllowed.includes(tc.name);
-
-                      if (toolAllowed && !toolCalls[tc.id!]) callTool(tc);
-
-                      const status = toolCalls[tc.id!] || {
-                        status: toolAllowed ? "loading" : "init",
-                        input: tc.args,
+                    {m.tool_calls?.map((_tc, i) => {
+                      const tcId = _tc.id || i.toString();
+                      const tc = {
+                        ..._tc,
+                        id: tcId,
+                        info: tools.getCallInfo(tcId),
                       };
+                      const toolInfo = mcp.getToolInfo(tc.name);
+
+                      const title = toolInfo
+                        ? `${toolInfo.name} - ${mcp.name} (MCP Server)`
+                        : tc.name;
+                      const description = toolInfo?.description;
+                      const autoconfirm =
+                        tools.isAllowedForSession(tc.name) && !tc.info;
 
                       return (
                         <Chat.Message.ToolCall
                           key={tc.id}
-                          title={toolTitle}
-                          description={toolInfo?.description}
-                          status={status.status}
-                          input={status.input}
-                          output={status.output ?? status.error}
+                          title={title}
+                          description={description}
+                          status={tc.info?.status ?? "init"}
+                          input={tc.info?.input}
+                          output={tc.info?.output ?? tc.info?.error}
+                          autoconfirm={autoconfirm}
                           onConfirm={(allowForSession) => {
-                            if (allowForSession)
-                              setToolsAllowed((t) => [...t, tc.name]);
                             callTool(tc);
+                            if (allowForSession) tools.allowForSession(tc.name);
                           }}
                           onCancel={() => cancelToolCall(tc)}
                         />
@@ -398,7 +348,7 @@ export default function ChatPage() {
                           }}
                           onStartAgain={() => {
                             setMessages([]);
-                            setToolCalls({});
+                            tools.reset();
                           }}
                         />
                       )}
@@ -443,7 +393,7 @@ export default function ChatPage() {
                     {
                       fieldName: "file",
                       uploadType: 1,
-                      headers: { Authorization: `Bearer ${token}` },
+                      headers: { Authorization: `Bearer ${mcp.token}` },
                     },
                   ).then((result) => {
                     const successfulUploads = result
@@ -485,7 +435,7 @@ export default function ChatPage() {
                     {
                       method: "DELETE",
                       headers: {
-                        Authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${mcp.token}`,
                       },
                     },
                   ).catch((error) => {
@@ -506,9 +456,20 @@ export default function ChatPage() {
                   })
                 }
                 onAttachFiles={serializeFiles}
-                authToken={token}
-                toolsInfo={toolsInfo}
-                setToolsInfo={setToolsInfo}
+                authToken={mcp.token}
+                tools={{
+                  [mcp.name]: mcp.tools.map((t) => ({
+                    name: t.name,
+                    description: t.description,
+                    enabled: tools.isEnabled(t.name),
+                  })),
+                }}
+                onToolTick={(_, tool, enabled) => {
+                  tools.toggle(tool, enabled);
+                }}
+                onToolServerTick={(_, enabled) => {
+                  tools.toggleAll(enabled);
+                }}
                 disabled={isGenerating}
                 style={[{ maxWidth: 800 }, isWeb && { pointerEvents: "auto" }]}
               />
