@@ -114,7 +114,15 @@ export default function ChatInput({
           placeholderTextColor={colors.placeholder}
           onChangeText={setMessage}
           value={message}
-          multiline
+          multiline={false}
+          onKeyPress={({ nativeEvent }) => {
+            if (nativeEvent.key === 'Enter') {
+              // Submit on Enter key press
+              if (message.trim() && !disabled) {
+                onSubmit();
+              }
+            }
+          }}
         />
         <View style={styles.inputButtons}>
           <Button
