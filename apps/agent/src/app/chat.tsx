@@ -341,11 +341,7 @@ export default function ChatPage() {
                       <Chat.Message.Actions
                         style={{ marginVertical: 16 }}
                         onCopyAnswer={() => {
-                          Clipboard.setStringAsync(
-                            text
-                              .reduce((acc, curr) => acc + "\n" + curr, "")
-                              .trim(),
-                          );
+                          Clipboard.setStringAsync(text.join("\n").trim());
                         }}
                         onStartAgain={() => {
                           setMessages([]);
