@@ -1,0 +1,65 @@
+{
+  "name": "@dkg/agent-integration-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Integration tests for DKG Agent application",
+  "scripts": {
+    "test": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha '**/*.spec.ts' --timeout 60000",
+    "test:workflows": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha 'workflows/**/*.spec.ts' --timeout 60000",
+    "test:cross-plugin": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha 'cross-plugin/**/*.spec.ts' --timeout 60000",
+    "test:performance": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha 'performance/**/*.spec.ts' --timeout 120000",
+    "test:error-handling": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha 'workflows/error-handling.spec.ts' --timeout 60000",
+    "test:watch": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha '**/*.spec.ts' --watch --timeout 60000",
+    "test:verbose": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha '**/*.spec.ts' --timeout 60000 --reporter spec",
+    "test:quick": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha 'workflows/file-upload-workflow.spec.ts workflows/oauth-flow.spec.ts' --timeout 30000",
+    "clean": "rm -rf coverage .nyc_output test-*.db test-data-*",
+    "coverage": "nyc --reporter=html --reporter=text ../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha '**/*.spec.ts' --timeout 60000"
+  },
+  "dependencies": {
+    "@dkg/plugins": "*",
+    "@dkg/plugin-oauth": "*",
+    "@dkg/plugin-dkg-essentials": "*",
+    "@dkg/plugin-example": "*",
+    "@dkg/plugin-swagger": "*",
+    "@node-rs/argon2": "^1.8.3",
+    "better-sqlite3": "^9.6.0",
+    "drizzle-orm": "^0.33.0",
+    "dkg.js": "^8.0.14"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^10.0.0",
+    "@types/supertest": "^6.0.0",
+    "@types/node": "^20.0.0",
+    "chai": "^4.3.0",
+    "mocha": "^10.0.0",
+    "nyc": "^15.1.0",
+    "supertest": "^6.3.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "tsx": "^4.0.0"
+  },
+  "mocha": {
+    "extensions": [
+      "ts"
+    ],
+    "spec": "**/*.spec.ts",
+    "timeout": 60000,
+    "exit": true
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "exclude": [
+      "**/*.spec.ts",
+      "**/*.test.ts"
+    ],
+    "reporter": [
+      "html",
+      "text"
+    ],
+    "all": true
+  }
+}

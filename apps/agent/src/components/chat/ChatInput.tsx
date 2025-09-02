@@ -116,7 +116,7 @@ export default function ChatInput({
           value={message}
           multiline={false}
           onKeyPress={({ nativeEvent }) => {
-            if (nativeEvent.key === 'Enter') {
+            if (nativeEvent.key === "Enter") {
               // Submit on Enter key press
               if (message.trim() && !disabled) {
                 onSubmit();

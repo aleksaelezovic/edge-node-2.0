@@ -10,9 +10,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,json,md,yml}\"",
     "check-types": "turbo run check-types",
     "test:mocha": "mocha",
-    "test": "turbo run test --force",
-    "test:ui": "turbo run test --filter=@dkg/agent --force",
+    "test": "npm run test:api && npm run test:integration && npm run test:e2e",
+    "test:e2e": "turbo run test:e2e --filter=@dkg/agent --force",
     "test:api": "turbo run test --filter='@dkg/plugin-*' --force",
+    "test:integration": "cd apps/agent/tests/integration && npm test",
     "test:ui:report": "node report-UI-Tests-config.js",
     "test:api:report": "node report-API-Tests-config.js"
   },
@@ -33,7 +34,7 @@
     "sinon": "^21.0.0",
     "supertest": "^7.1.4",
     "test-results-reporter": "^1.1.6",
-    "tsx": "^4.20.4",
+    "tsx": "^4.20.5",
     "turbo": "^2.5.5",
     "typescript": "^5.8.3"
   },
