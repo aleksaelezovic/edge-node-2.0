@@ -52,7 +52,10 @@ export default function ChatPage() {
     tools.saveCallInfo(tc.id, { input: tc.args, status: "loading" });
 
     return mcp
-      .callTool({ name: tc.name, arguments: tc.args }, undefined, {timeout: 300000, maxTotalTimeout: 300000})
+      .callTool({ name: tc.name, arguments: tc.args }, undefined, {
+        timeout: 300000,
+        maxTotalTimeout: 300000,
+      })
       .then((result) => {
         tools.saveCallInfo(tc.id, {
           input: tc.args,
