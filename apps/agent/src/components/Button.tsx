@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { forwardRef, type ReactNode } from "react";
 import {
   TouchableOpacity,
   Text,
@@ -6,21 +6,25 @@ import {
   GestureResponderEvent,
   StyleProp,
   ViewStyle,
+  View,
 } from "react-native";
 import { SvgProps } from "react-native-svg";
 
 import useColors, { Color } from "@/hooks/useColors";
 
-export default function Button(props: {
-  color: Color;
-  flat?: boolean;
-  icon?: (props: SvgProps) => ReactNode;
-  iconMode?: "fill" | "stroke";
-  text?: string;
-  disabled?: boolean;
-  onPress?: (e: GestureResponderEvent) => void;
-  style?: StyleProp<ViewStyle>;
-}) {
+const Button = forwardRef<
+  View,
+  {
+    color: Color;
+    flat?: boolean;
+    icon?: (props: SvgProps) => ReactNode;
+    iconMode?: "fill" | "stroke";
+    text?: string;
+    disabled?: boolean;
+    onPress?: (e: GestureResponderEvent) => void;
+    style?: StyleProp<ViewStyle>;
+  }
+>(function Button(props, ref) {
   const { color, flat, text, disabled, onPress, style } = props;
   const colors = useColors();
   const buttonColor = disabled ? "#b8b8b8" : colors[color];
@@ -38,6 +42,7 @@ export default function Button(props: {
 
   return (
     <TouchableOpacity
+      ref={ref}
       style={[
         styles.button,
         { backgroundColor },
@@ -61,7 +66,9 @@ export default function Button(props: {
       )}
     </TouchableOpacity>
   );
-}
+});
+
+export default Button;
 
 const styles = StyleSheet.create({
   button: {

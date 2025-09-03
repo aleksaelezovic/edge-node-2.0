@@ -4,12 +4,14 @@ import morgan from "morgan";
 import compression from "compression";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerMcp } from "./registerMcp";
+import { BlobStorage } from "./types";
 
 //@ts-ignore
 import type DKG from "dkg.js";
 
 export type DkgContext = {
   dkg: DKG;
+  blob: BlobStorage;
 };
 export type DkgPlugin = (
   ctx: DkgContext,
@@ -33,12 +35,47 @@ export const defineDkgPlugin = (plugin: DkgPlugin): DkgPluginBuilder =>
       return defineDkgPlugin((ctx, mcp, api) => {
         const router = express.Router();
         options?.middlewares.forEach((m) => router.use(m));
-
         // Required patch in order for @dkg/plugin-swagger to work!
         Object.assign(router, { prefix: "/" + namespace });
 
+        const mockRegistrationFns = (...fns: (keyof typeof mcp)[]) => {
+          const impls: Record<string, Function> = {};
+
+          for (const fnKey of fns) {
+            if (typeof mcp[fnKey] !== "function") continue;
+
+            impls[fnKey] = mcp[fnKey] as Function;
+            (mcp as any)[fnKey] = (...args: any[]) => {
+              if (typeof args[0] !== "string") {
+                console.warn(
+                  `Expected string as first argument for "mcp.${fnKey}" - skipping it.`,
+                );
+              } else {
+                args[0] = `${namespace}__${args[0]}`;
+              }
+
+              return impls[fnKey]!.bind(mcp)(...args);
+            };
+          }
+
+          return () => {
+            for (const fnKey in impls) (mcp as any)[fnKey] = impls[fnKey]!;
+          };
+        };
+
+        const revertMock = mockRegistrationFns(
+          "registerTool",
+          "registerPrompt",
+          "registerResource",
+          "tool",
+          "prompt",
+          "resource",
+        );
+
         plugin(ctx, mcp, router);
         api.use("/" + namespace, router);
+
+        revertMock();
       });
     },
   } satisfies DkgPluginBuilderMethods);

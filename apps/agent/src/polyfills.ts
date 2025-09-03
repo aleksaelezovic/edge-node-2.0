@@ -1,4 +1,8 @@
 import * as ExpoCrypto from "expo-crypto";
+import { THREE } from "expo-three";
+
+(global as any).THREE = (global as any).THREE || THREE;
+(globalThis as any).THREE = (globalThis as any).THREE || THREE;
 
 const crypto = {
   ...ExpoCrypto,

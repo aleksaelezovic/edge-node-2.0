@@ -58,13 +58,13 @@ EXPO_PUBLIC_APP_URL="http://localhost:8081"
       username: "admin",
       password: "admin123",
     },
-    ["mcp", "llm", "scope123"],
+    ["mcp", "llm", "blob", "scope123"],
   );
   console.log(`Created admin user:
   ID: ${userId}
   Username: admin
   Password: admin123
-  Scope: mcp, llm, scope123`);
+  Scope: mcp, llm, blob, scope123`);
 }
 
 setup()

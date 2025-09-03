@@ -3,15 +3,18 @@ import { Image } from "expo-image";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import useColors from "@/hooks/useColors";
-
-import type { FileDefinition } from "../ChatInput";
+import { FileDefinition } from "@/shared/files";
 
 export default function AttachmentChip({
-  file: { mimeType, name, uri, base64 },
+  file: { mimeType, name, uri },
+  authToken,
   onPress,
+  onRemove,
 }: {
   file: FileDefinition;
+  authToken?: string;
   onPress?: () => void;
+  onRemove?: () => void;
 }) {
   const colors = useColors();
 
@@ -56,7 +59,11 @@ export default function AttachmentChip({
     >
       {isImage ? (
         <Image
-          source={{ uri: uri || base64 }}
+          source={
+            authToken
+              ? { uri, headers: { Authorization: `Bearer ${authToken}` } }
+              : { uri }
+          }
           style={{ width: 40, height: 40 }}
           contentFit="cover"
         />
@@ -99,6 +106,16 @@ export default function AttachmentChip({
           {ext}
         </Text>
       </View>
+      {onRemove && (
+        <View style={{ justifyContent: "center", alignItems: "center" }}>
+          <Ionicons
+            name="close"
+            size={24}
+            color={colors.secondary}
+            onPress={onRemove}
+          />
+        </View>
+      )}
     </TouchableOpacity>
   );
 }

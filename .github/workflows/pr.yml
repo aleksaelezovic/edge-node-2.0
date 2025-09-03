@@ -7,24 +7,33 @@ concurrency:
 on:
   pull_request:
     branches: [main]
+  schedule:
+    - cron: "0 0 * * 3" # Wednesdays at midnight check all node js versions
+
   workflow_dispatch:
 
 jobs:
   validate:
-    name: Check Code Quality
+    name: Check Code Quality on Node.js ${{ matrix.node-version }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       TURBO_TELEMETRY_DISABLED: 1
 
+    strategy:
+      matrix:
+        # The fromJSON() function converts the JSON string into an actual array
+        node-version: ${{ fromJSON((github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && '[22]' || '[22, 24]') }}
+      fail-fast: false
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version-file: ".nvmrc"
+          node-version: ${{ matrix.node-version }}
           cache: "npm"
           cache-dependency-path: "package-lock.json"
 

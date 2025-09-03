@@ -8,11 +8,13 @@ import useColors from "@/hooks/useColors";
 
 import SourceKAsChip from "./SourceKAsChip";
 import KAProfileCard from "./KAProfileCard";
+import GraphView from "@/components/GraphView";
 
 export type SourceKAResolved = {
   lastUpdated: number;
   publisher: string;
-  assertion: string;
+  txHash: string;
+  assertion: Record<string, any>[];
 };
 
 export type SourceKAResolver = (ual: string) => Promise<SourceKAResolved>;
@@ -125,17 +127,10 @@ export default function SourceKAsCollapsibleItem({
                 justifyContent: "center",
                 alignItems: "center",
                 minWidth: 300,
+                overflow: "hidden",
               }}
             >
-              <Text
-                style={{
-                  color: colors.placeholder,
-                  fontFamily: "Manrope_600SemiBold",
-                  fontSize: 16,
-                }}
-              >
-                Coming soon...
-              </Text>
+              <GraphView ual={ual} assertion={resolvedData.assertion} />
             </View>
           )}
         </View>

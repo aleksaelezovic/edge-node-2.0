@@ -45,3 +45,6 @@ app-example
 playwright-report/
 test-results/
 playwright/.cache/
+
+# FS Blob Storage
+data/

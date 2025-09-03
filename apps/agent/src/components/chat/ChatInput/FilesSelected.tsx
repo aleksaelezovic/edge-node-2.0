@@ -1,20 +1,17 @@
-import { ScrollView, TouchableOpacity } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-
-import useColors from "@/hooks/useColors";
+import { ScrollView } from "react-native";
 
 import AttachmentChip from "./AttachmentChip";
-import type { FileDefinition } from "../ChatInput";
+import { FileDefinition } from "@/shared/files";
 
 export default function FilesSelected({
   selectedFiles,
-  onClear,
+  onRemove,
+  authToken,
 }: {
   selectedFiles: FileDefinition[];
-  onClear: () => void;
+  onRemove: (file: FileDefinition) => void;
+  authToken?: string;
 }) {
-  const colors = useColors();
-
   return (
     <ScrollView
       horizontal
@@ -27,23 +24,13 @@ export default function FilesSelected({
       }}
     >
       {selectedFiles.map((file, i) => (
-        <AttachmentChip key={file.name + "---" + i} file={file} />
-      ))}
-
-      <TouchableOpacity onPress={onClear}>
-        <Ionicons
-          name="close"
-          size={56}
-          color={colors.secondary}
-          style={{
-            padding: 8,
-            height: 72,
-            width: 72,
-            backgroundColor: colors.card,
-            borderRadius: 16,
-          }}
+        <AttachmentChip
+          key={file.id}
+          file={file}
+          onRemove={() => onRemove(file)}
+          authToken={authToken}
         />
-      </TouchableOpacity>
+      ))}
     </ScrollView>
   );
 }

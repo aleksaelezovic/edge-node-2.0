@@ -4,13 +4,21 @@ import type { MessageContentComplex } from "@langchain/core/messages";
 
 import Markdown from "@/components/Markdown";
 import AttachmentChip from "../ChatInput/AttachmentChip";
+import { FileDefinition } from "@/shared/files";
 
 function TextContent(props: { text: string }) {
   return <Markdown>{props.text}</Markdown>;
 }
 
-function ImageContent(props: { url: string }) {
-  const image = useImage(props.url);
+function ImageContent(props: { url: string; authToken?: string }) {
+  const image = useImage(
+    props.authToken
+      ? {
+          uri: props.url,
+          headers: { Authorization: `Bearer ${props.authToken}` },
+        }
+      : props.url,
+  );
 
   return (
     <Image
@@ -25,14 +33,10 @@ function ImageContent(props: { url: string }) {
   );
 }
 
-function FileContent(props: { name: string; base64: string }) {
-  const mimeType = props.base64.split(";").at(0)?.split(":")[1];
-
+function FileContent(props: { file: FileDefinition }) {
   return (
     <View style={{ display: "flex", flexDirection: "row" }}>
-      <AttachmentChip
-        file={{ name: props.name, base64: props.base64, mimeType }}
-      />
+      <AttachmentChip file={props.file} />
     </View>
   );
 }
@@ -51,10 +55,17 @@ export default function ChatMessageContent({
   if (c.type === "file") {
     return (
       <FileContent
-        name={c.file?.filename ?? "unknown"}
-        base64={c.file.file_data}
+        file={{
+          id: c.file.file_id ?? c.file.filename,
+          name: c.file.filename,
+          uri: c.file.file_data,
+        }}
       />
     );
   }
   return null;
 }
+
+ChatMessageContent.Text = TextContent;
+ChatMessageContent.Image = ImageContent;
+ChatMessageContent.File = FileContent;

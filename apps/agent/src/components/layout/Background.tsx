@@ -1,9 +1,20 @@
 import useThemeColor from "@/hooks/useThemeColor";
 import { PropsWithChildren } from "react";
 import { View, StyleSheet } from "react-native";
-import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
+import Svg, {
+  Defs,
+  RadialGradient,
+  Stop,
+  Rect,
+  NumberProp,
+} from "react-native-svg";
 
-export default function Background(props: PropsWithChildren) {
+export default function Background(
+  props: PropsWithChildren<{
+    gradientWidth?: NumberProp;
+    gradientHeight?: NumberProp;
+  }>,
+) {
   const backgroundColor = useThemeColor("background");
 
   return (
@@ -30,7 +41,11 @@ export default function Background(props: PropsWithChildren) {
             <Stop offset="1" stopColor="#1D1D1D" stopOpacity={1} />
           </RadialGradient>
         </Defs>
-        <Rect width="100%" height="100%" fill="url(#radialGradient)" />
+        <Rect
+          width={props.gradientWidth ?? "100%"}
+          height={props.gradientHeight ?? "100%"}
+          fill="url(#radialGradient)"
+        />
       </Svg>
 
       <View

@@ -2,6 +2,7 @@ import path from "path";
 import { createPluginServer, defaultPlugin } from "@dkg/plugins";
 import { authorized, createOAuthPlugin } from "@dkg/plugin-oauth";
 import dkgEssentialsPlugin from "@dkg/plugin-dkg-essentials";
+import createFsBlobStorage from "@dkg/plugin-dkg-essentials/createFsBlobStorage";
 import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
 //@ts-expect-error No types for dkg.js ...
@@ -23,7 +24,7 @@ const version = "1.0.0";
 const { oauthPlugin, openapiSecurityScheme } = createOAuthPlugin({
   storage: new SqliteOAuthStorageProvider(db),
   issuerUrl: new URL(process.env.EXPO_PUBLIC_MCP_URL),
-  scopesSupported: ["mcp", "llm", "scope123"],
+  scopesSupported: ["mcp", "llm", "scope123", "blob"],
   loginPageUrl: new URL(process.env.EXPO_PUBLIC_APP_URL + "/login"),
   schema: userCredentialsSchema,
   async login(credentials) {
@@ -41,12 +42,15 @@ const { oauthPlugin, openapiSecurityScheme } = createOAuthPlugin({
   },
 });
 
+const blobStorage = createFsBlobStorage(path.join(__dirname, "../data"));
+
 const otnodeUrl = new URL(process.env.DKG_OTNODE_URL);
 
 const app = createPluginServer({
   name: "DKG API",
   version,
   context: {
+    blob: blobStorage,
     dkg: new DKG({
       endpoint: `${otnodeUrl.protocol}//${otnodeUrl.hostname}`,
       port: otnodeUrl.port || "8900",
@@ -63,11 +67,12 @@ const app = createPluginServer({
   plugins: [
     defaultPlugin,
     oauthPlugin,
-    dkgEssentialsPlugin,
     (_, __, api) => {
       api.use("/mcp", authorized(["mcp"]));
       api.use("/llm", authorized(["llm"]));
+      api.use("/blob", authorized(["blob"]));
     },
+    dkgEssentialsPlugin,
     examplePlugin.withNamespace("protected", {
       middlewares: [authorized(["scope123"])], // Allow only users with the "scope123" scope
     }),
