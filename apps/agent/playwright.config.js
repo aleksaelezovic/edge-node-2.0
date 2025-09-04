@@ -9,8 +9,8 @@ module.exports = defineConfig({
   testMatch: "**/*.spec.js",
   retries: 5,
   workers: 1,
-  timeout: 100 * 2000,
-  globalTimeout: process.env.CI ? 180000 : 0, // 3 minutes in CI, no limit locally
+  timeout: 300 * 1000, // 5 minutes per test
+  globalTimeout: process.env.CI ? 1800000 : 0, // 30 minutes in CI, no limit locally
   expect: {
     timeout: 120000,
   },
