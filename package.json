@@ -11,7 +11,7 @@
     "check-types": "turbo run check-types",
     "test:mocha": "mocha",
     "test": "turbo run test --force",
-    "test:ui": "turbo run test --filter=@dkg/agent --force",
+    "test:e2e": "apps/agent/tests/utils/kill-dev-ports.sh && turbo run test:all --filter=@dkg/agent --force",
     "test:api": "turbo run test --filter='@dkg/plugin-*' --force",
     "test:ui:report": "node report-UI-Tests-config.js",
     "test:api:report": "node report-API-Tests-config.js"

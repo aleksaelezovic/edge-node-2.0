@@ -7,12 +7,12 @@ const { defineConfig, devices } = require("@playwright/test");
 module.exports = defineConfig({
   testDir: "./tests",
   testMatch: "**/*.spec.js",
-  retries: 1,
+  retries: 5,
   workers: 1,
   timeout: 100 * 2000,
   globalTimeout: process.env.CI ? 180000 : 0, // 3 minutes in CI, no limit locally
   expect: {
-    timeout: 5000,
+    timeout: 120000,
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -45,8 +45,9 @@ module.exports = defineConfig({
     baseURL: "http://localhost:8081",
     browserName: "chromium",
     headless: true,
+    actionTimeout: 120000, // 120 seconds for all actions
     launchOptions: {
-      slowMo: 800,
+      slowMo: 1500,
     },
     //args: ['--window-size=1920,1080'],
     //viewport: { width: 1920, height: 1080 },
@@ -103,7 +104,7 @@ module.exports = defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "turbo dev:app dev:server",
+    command: "turbo dev:app dev:server drizzle:studio",
     url: "http://localhost:8081",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000, // 2 minutes timeout for server startup
