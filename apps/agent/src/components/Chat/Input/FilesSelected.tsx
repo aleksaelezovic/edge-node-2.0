@@ -1,9 +1,10 @@
 import { ScrollView } from "react-native";
 
-import AttachmentChip from "./AttachmentChip";
 import { FileDefinition } from "@/shared/files";
 
-export default function FilesSelected({
+import AttachmentChip from "./AttachmentChip";
+
+export default function ChatInputFilesSelected({
   selectedFiles,
   onRemove,
   authToken,

@@ -5,7 +5,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import useColors from "@/hooks/useColors";
 import { FileDefinition } from "@/shared/files";
 
-export default function AttachmentChip({
+export default function ChatInputAttachmentChip({
   file: { mimeType, name, uri },
   authToken,
   onPress,

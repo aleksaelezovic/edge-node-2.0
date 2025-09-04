@@ -5,7 +5,7 @@ import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
 
-import { clientUri, useMcpContext } from "@/client";
+import { clientUri, useMcpClient } from "@/client";
 import { AuthError, login } from "@/shared/auth";
 import useColors from "@/hooks/useColors";
 import Checkbox from "@/components/Checkbox";
@@ -25,8 +25,8 @@ export default function Login() {
 
   const colors = useColors();
 
-  const { connected } = useMcpContext();
-  if (connected) return <Redirect href="/" />;
+  const mcp = useMcpClient();
+  if (mcp.connected) return <Redirect href="/" />;
 
   function submit() {
     setError("");

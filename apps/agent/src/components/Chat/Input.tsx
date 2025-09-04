@@ -1,28 +1,27 @@
-import { useCallback, useState } from "react";
+import { ComponentProps, useCallback, useState } from "react";
 import {
   View,
   TextInput,
   StyleProp,
   ViewStyle,
   StyleSheet,
-  Text,
-  ScrollView,
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 
 import Button from "@/components/Button";
+import Popover from "@/components/Popover";
 import ArrowUpIcon from "@/components/icons/ArrowUpIcon";
 import MicrophoneIcon from "@/components/icons/MicrophoneIcon";
 import AttachFileIcon from "@/components/icons/AttachFileIcon";
 import ToolsIcon from "@/components/icons/ToolsIcon";
 import useColors from "@/hooks/useColors";
-import { ChatMessage, toContents, ToolsInfoMap } from "@/shared/chat";
+import { ChatMessage, toContents } from "@/shared/chat";
 import { toError } from "@/shared/errors";
 import { FileDefinition } from "@/shared/files";
 
-import FilesSelected from "./ChatInput/FilesSelected";
-import Checkbox from "../Checkbox";
-import Popover from "../Popover";
+import ChatInputFilesSelected from "./Input/FilesSelected";
+import ChatInputToolsSelector from "./Input/ToolsSelector";
+import ChatInputAttachmentChip from "./Input/AttachmentChip";
 
 export default function ChatInput({
   onSendMessage,
@@ -44,8 +43,9 @@ export default function ChatInput({
     })),
   onFileRemoved,
   authToken,
-  toolsInfo = {},
-  setToolsInfo,
+  tools = {},
+  onToolTick,
+  onToolServerTick,
   disabled,
   style,
 }: {
@@ -58,11 +58,9 @@ export default function ChatInput({
   onFileRemoved?: (file: FileDefinition) => void;
   /* Required for previewing uploaded images */
   authToken?: string;
-  toolsInfo?: ToolsInfoMap;
-  setToolsInfo?: (toolsInfo: ToolsInfoMap) => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
-}) {
+} & ComponentProps<typeof ChatInputToolsSelector>) {
   const colors = useColors();
   const [message, setMessage] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<FileDefinition[]>([]);
@@ -80,19 +78,10 @@ export default function ChatInput({
     setSelectedFiles([]);
   }, [message, selectedFiles, onSendMessage, onAttachFiles]);
 
-  const toolsInfoByServer = Object.values(toolsInfo).reduce<
-    Record<string, ToolsInfoMap[string][]>
-  >((acc, tool) => {
-    const mcpServer = tool.mcpServer || "unknown";
-    if (!acc[mcpServer]) acc[mcpServer] = [];
-    acc[mcpServer].push(tool);
-    return acc;
-  }, {});
-
   return (
     <View style={[{ width: "100%", position: "relative" }, style]}>
       {!!selectedFiles.length && (
-        <FilesSelected
+        <ChatInputFilesSelected
           selectedFiles={selectedFiles}
           authToken={authToken}
           onRemove={(removedFile) => {
@@ -116,7 +105,7 @@ export default function ChatInput({
           value={message}
           multiline={false}
           onKeyPress={({ nativeEvent }) => {
-            if (nativeEvent.key === 'Enter') {
+            if (nativeEvent.key === "Enter") {
               // Submit on Enter key press
               if (message.trim() && !disabled) {
                 onSubmit();
@@ -184,92 +173,20 @@ export default function ChatInput({
             />
           )}
         >
-          <View
-            style={{
-              maxWidth: 530,
-              maxHeight: 220,
-              backgroundColor: colors.card,
-              borderRadius: 16,
-              padding: 8,
-            }}
-          >
-            {!Object.keys(toolsInfo).length && (
-              <Text style={[{ color: colors.placeholder, padding: 8 }]}>
-                No tools provided.
-              </Text>
-            )}
-            <ScrollView>
-              {Object.keys(toolsInfoByServer).map((mcpServer) => (
-                <View key={mcpServer}>
-                  <Checkbox
-                    value={toolsInfoByServer[mcpServer]!.some((t) => t.active)}
-                    onValueChange={(val) => {
-                      setToolsInfo?.(
-                        Object.fromEntries(
-                          Object.entries(toolsInfo).map(([key, value]) => [
-                            key,
-                            {
-                              ...value,
-                              active:
-                                value.mcpServer === mcpServer
-                                  ? val
-                                  : value.active,
-                            },
-                          ]),
-                        ),
-                      );
-                    }}
-                  >
-                    <Text style={[styles.toolTitle, { color: colors.text }]}>
-                      MCP Server: {mcpServer}
-                    </Text>
-                  </Checkbox>
-                  {toolsInfoByServer[mcpServer]!.map((tool) => (
-                    <Checkbox
-                      key={tool.name}
-                      value={tool.active}
-                      onValueChange={(val) => {
-                        setToolsInfo?.(
-                          Object.fromEntries(
-                            Object.entries(toolsInfo).map(([key, value]) => [
-                              key,
-                              {
-                                ...value,
-                                active:
-                                  (value.mcpServer || "unknown") ===
-                                    mcpServer && key === tool.name
-                                    ? val
-                                    : value.active,
-                              },
-                            ]),
-                          ),
-                        );
-                      }}
-                      style={{ paddingLeft: 16 }}
-                    >
-                      <Text
-                        numberOfLines={1}
-                        style={[styles.toolDesc, { color: colors.placeholder }]}
-                      >
-                        <Text
-                          style={[styles.toolTitle, { color: colors.text }]}
-                        >
-                          {tool.name}
-                          {tool.description && ":"}
-                        </Text>
-                        {tool.description}
-                      </Text>
-                    </Checkbox>
-                  ))}
-                </View>
-              ))}
-            </ScrollView>
-          </View>
+          <ChatInputToolsSelector
+            tools={tools}
+            onToolTick={onToolTick}
+            onToolServerTick={onToolServerTick}
+          />
         </Popover>
       </View>
     </View>
   );
 }
+
+ChatInput.FilesSelected = ChatInputFilesSelected;
+ChatInput.ToolsSelector = ChatInputToolsSelector;
+ChatInput.AttachmentChip = ChatInputAttachmentChip;
 
 const styles = StyleSheet.create({
   inputContainer: {
@@ -307,16 +224,5 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginVertical: 8,
     paddingHorizontal: 8,
-  },
-  toolTitle: {
-    fontFamily: "Manrope_500Medium",
-    fontSize: 14,
-    lineHeight: 21,
-    paddingRight: 4,
-  },
-  toolDesc: {
-    fontFamily: "Manrope_400Regular",
-    fontSize: 14,
-    lineHeight: 21,
   },
 });

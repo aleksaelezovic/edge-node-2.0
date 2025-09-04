@@ -1,11 +1,11 @@
 import { View, ViewProps } from "react-native";
 
-import UserIcon from "./ChatMessage/UserIcon";
-import AssistantIcon from "./ChatMessage/AssistantIcon";
-import ChatMessageContent from "./ChatMessage/ChatMessageContent";
-import ChatMessageToolCall from "./ChatMessage/ChatMessageToolCall";
-import ChatMessageActions from "./ChatMessage/ChatMessageActions";
-import ChatMessageSourceKAs from "./ChatMessage/SourceKAs";
+import IconUser from "./Message/IconUser";
+import IconAssistant from "./Message/IconAssistant";
+import ChatMessageContent from "./Message/Content";
+import ChatMessageToolCall from "./Message/ToolCall";
+import ChatMessageActions from "./Message/Actions";
+import ChatMessageSourceKAs from "./Message/SourceKAs";
 
 export default function ChatMessage({
   icon,
@@ -18,14 +18,18 @@ export default function ChatMessage({
       style={{ gap: 16, flexDirection: "row", width: "100%", marginBottom: 16 }}
     >
       <View style={{ width: 32 }}>
-        {icon === "user" && <UserIcon />}
-        {icon === "assistant" && <AssistantIcon />}
+        {icon === "user" && <IconUser />}
+        {icon === "assistant" && <IconAssistant />}
       </View>
       <View {...props} style={[{ flex: 1 }, props.style]} />
     </View>
   );
 }
 
+ChatMessage.Icon = {
+  User: IconUser,
+  Assistant: IconAssistant,
+};
 ChatMessage.Content = ChatMessageContent;
 ChatMessage.ToolCall = ChatMessageToolCall;
 ChatMessage.Actions = ChatMessageActions;

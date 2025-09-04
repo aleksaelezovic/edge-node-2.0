@@ -142,11 +142,11 @@ describe("Blob Storage", () => {
     // Test blob storage functionality if your plugin uses it
     const blobId = "test-blob-id";
     const testData = Buffer.from("test data");
-    await mockDkgContext.blob.put(blobId, testData, { 
-      filename: "test.txt", 
-      mimeType: "text/plain" 
+    await mockDkgContext.blob.put(blobId, testData, {
+      filename: "test.txt",
+      mimeType: "text/plain",
     });
-    
+
     const retrievedData = await mockDkgContext.blob.get(blobId);
     expect(retrievedData).to.not.be.null;
   });
@@ -160,6 +160,7 @@ describe("Blob Storage", () => {
 **See a complete working example at `packages/plugin-example/tests/addition.spec.ts`**
 
 This example demonstrates:
+
 - Using `@dkg/plugins/testing` helpers
 - Proper MCP server/client testing with real SDK components
 - Mock DKG context with blob storage
@@ -202,6 +203,7 @@ Add the testing helpers to your plugin's dependencies:
 ```
 
 **Import testing helpers:**
+
 ```typescript
 import {
   createExpressApp,
