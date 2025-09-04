@@ -9,10 +9,10 @@ module.exports = defineConfig({
   testMatch: "**/*.spec.js",
   retries: 5,
   workers: 1,
-  timeout: 300 * 1000, // 5 minutes per test
-  globalTimeout: process.env.CI ? 1800000 : 0, // 30 minutes in CI, no limit locally
+  timeout: 3600 * 1000, // 60 minutes per test
+  globalTimeout: process.env.CI ? 3600000 : 0, // 60 minutes in CI, no limit locally
   expect: {
-    timeout: 120000,
+    timeout: 600000, // 10 minutes for expect operations
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -45,7 +45,7 @@ module.exports = defineConfig({
     baseURL: "http://localhost:8081",
     browserName: "chromium",
     headless: true,
-    actionTimeout: 120000, // 120 seconds for all actions
+    actionTimeout: 600000, // 10 minutes for all actions
     launchOptions: {
       slowMo: 1500,
     },

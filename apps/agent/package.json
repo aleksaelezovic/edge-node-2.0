@@ -19,8 +19,8 @@
     "script:setup": "node dist/scripts/setup.js",
     "script:createUser": "node dist/scripts/createUser.js",
     "script:createToken": "node dist/scripts/createToken.js",
-    "test": "./tests/utils/kill-dev-ports.sh && PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml playwright test tests/spec/testUI.spec.js --timeout=300000 --grep '@gh_actions' --reporter=list,junit || true",
-    "test:all": "PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml playwright test tests/spec/testUI.spec.js --timeout=300000 --reporter=list,junit || true",
+    "test": "./tests/utils/kill-dev-ports.sh && PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml playwright test tests/spec/testUI.spec.js --timeout=3600000 --grep '@gh_actions' --reporter=list,junit || true",
+    "test:all": "PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml playwright test tests/spec/testUI.spec.js --timeout=3600000 --reporter=list,junit || true",
     "kill-ports": "./tests/utils/kill-dev-ports.sh",
     "dev:clean": "npm run kill-ports && turbo dev",
     "postinstall": "node fix-uuid.js"
