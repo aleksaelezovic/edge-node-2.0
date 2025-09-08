@@ -40,6 +40,56 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Create environment files for tests
+        run: |
+          # Create main .env file for agent
+          cat > apps/agent/.env << 'EOF'
+          PORT=9200
+          EXPO_PUBLIC_MCP_URL="http://localhost:9200"
+          EXPO_PUBLIC_APP_URL="http://localhost:9200"
+          DATABASE_URL="./test.db"
+          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+          DKG_PUBLISH_WALLET="${{ secrets.DKG_Node_Private_key }}"
+          DKG_BLOCKCHAIN="otp:2043"
+          DKG_OTNODE_URL="https://positron.origin-trail.network"
+          EOF
+
+          # Create development override file
+          cat > apps/agent/.env.development.local << 'EOF'
+          # These values will override the .env file during the development
+          EXPO_PUBLIC_APP_URL="http://localhost:8081"
+          EOF
+
+          # Create testnet environment file
+          mkdir -p apps/agent/tests
+          cat > apps/agent/tests/.env.testing.testnet.local << 'EOF'
+          PORT=9200
+          EXPO_PUBLIC_MCP_URL="http://localhost:9200"
+          EXPO_PUBLIC_APP_URL="http://localhost:9200"
+          DATABASE_URL="test.db"
+          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+          DKG_PUBLISH_WALLET="${{ secrets.DKG_Node_Private_key }}"
+          DKG_BLOCKCHAIN="otp:20430"
+          DKG_OTNODE_URL="https://v6-pegasus-node-02.origin-trail.network"
+          EOF
+
+          # Create mainnet environment file
+          cat > apps/agent/tests/.env.testing.mainnet.local << 'EOF'
+          PORT=9200
+          EXPO_PUBLIC_MCP_URL="http://localhost:9200"
+          EXPO_PUBLIC_APP_URL="http://localhost:9200"
+          DATABASE_URL="test.db"
+          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+          DKG_PUBLISH_WALLET="${{ secrets.DKG_Node_Private_key }}"
+          DKG_BLOCKCHAIN="otp:2043"
+          DKG_OTNODE_URL="https://positron.origin-trail.network"
+          EOF
+
+          echo "Environment files created successfully!"
+
+      - name: Install Playwright browsers
+        run: npx playwright install
+
       - name: Check code quality
         run: npm run check
 
