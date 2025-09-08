@@ -20,7 +20,7 @@
       "inputs": ["src/**", "tests/**", "*.config.*"],
       "outputs": []
     },
-    "test:all": {
+    "test:e2e": {
       "dependsOn": ["^build"],
       "inputs": ["src/**", "tests/**", "*.config.*"],
       "outputs": []

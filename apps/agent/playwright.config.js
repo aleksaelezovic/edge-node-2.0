@@ -9,10 +9,10 @@ module.exports = defineConfig({
   testMatch: "**/*.spec.js",
   retries: 5,
   workers: 1,
-  timeout: 3600 * 1000, // 60 minutes per test
-  globalTimeout: process.env.CI ? 3600000 : 0, // 60 minutes in CI, no limit locally
+  timeout: 10 * 60 * 1000, // 10 minutes per test
+  globalTimeout: process.env.CI ? 45 * 60 * 1000 : 0, // 45 minutes in CI, no limit locally
   expect: {
-    timeout: 600000, // 10 minutes for expect operations
+    timeout: 2 * 60 * 1000, // 2 minutes for expect operations
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -44,8 +44,8 @@ module.exports = defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: "http://localhost:8081",
     browserName: "chromium",
-    headless: true,
-    actionTimeout: 600000, // 10 minutes for all actions
+    headless: false,
+    actionTimeout: 2 * 60 * 1000, // 2 minutes for all actions
     launchOptions: {
       slowMo: 1500,
     },
@@ -104,12 +104,17 @@ module.exports = defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "turbo dev:app dev:server drizzle:studio",
+    command: "turbo dev",
     url: "http://localhost:8081",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000, // 2 minutes timeout for server startup
     ignoreHTTPSErrors: true,
     stderr: "pipe",
     stdout: "pipe",
+    // Gracefully shutdown servers when tests finish
+    gracefulShutdown: {
+      timeout: 2000,
+      signal: "SIGINT",
+    },
   },
 });

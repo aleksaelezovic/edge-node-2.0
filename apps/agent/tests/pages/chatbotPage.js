@@ -68,7 +68,7 @@ class ChatbotPage {
   }
   async getUAL(UAL){
     await this.sendMessage(`Get this Knowledge Asset from the DKG and summarize it for me: ${UAL}`);
-    await this.page.waitForSelector('text="Here is a summary of the Knowledge Asset retrieved from the Decentralized Knowledge Graph (DKG):"', { timeout: 120000 });
+    //await this.page.waitForSelector('text="Here is a summary of the Knowledge Asset retrieved from the Decentralized Knowledge Graph (DKG):"', { timeout: 120000 });
     await expect(this.page.locator(".css-textHasAncestor-1jxf684").nth(12)).toHaveText(
       "Here is a summary of the Knowledge Asset retrieved from the Decentralized Knowledge Graph (DKG):",
     );

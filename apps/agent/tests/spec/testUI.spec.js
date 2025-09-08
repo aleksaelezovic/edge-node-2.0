@@ -80,7 +80,7 @@ test.skip("Test if importing files and summarizing works", async ({ page }) => {
   );
 });
 test("Test publish KA and GET UAL on Testnet", async () => {
-  loadEnvFile('.env_testnet');
+  loadEnvFile('.env.testing.testnet.local');
   console.log("Testnet Environment loaded:", {
     network: process.env.DKG_BLOCKCHAIN,
     node: process.env.DKG_OTNODE_URL
@@ -91,7 +91,7 @@ test("Test publish KA and GET UAL on Testnet", async () => {
   await chatbotPage.getUAL(ual);
 });
 test("Test publish KA and GET UAL on Mainnet", async () => {
-  loadEnvFile('.env_mainnet');
+  loadEnvFile('.env.testing.mainnet.local');
   console.log("Mainnet Environment loaded:", {
     network: process.env.DKG_BLOCKCHAIN,
     node: process.env.DKG_OTNODE_URL
