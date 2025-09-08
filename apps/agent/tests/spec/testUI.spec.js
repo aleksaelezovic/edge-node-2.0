@@ -3,7 +3,7 @@ const { test } = require("@playwright/test");
 const { Base } = require("../utils/base");
 const { LoginPage } = require("../pages/loginPage");
 const { ChatbotPage } = require("../pages/chatbotPage");
-const fs = require("fs");
+const dotenv = require("dotenv");
 const path = require("path");
 
 let base;
@@ -11,19 +11,12 @@ let loginPage;
 let chatbotPage;
 
 function loadEnvFile(envFile) {
-  const envPath = path.join(__dirname, "..", envFile);
-  const envContent = fs.readFileSync(envPath, "utf8");
-
-  envContent.split("\n").forEach((line) => {
-    line = line.trim();
-    if (line && !line.startsWith("#")) {
-      const [key, value] = line.split("=", 2);
-      if (key && value) {
-        process.env[key] = value.replace(/^["']|["']$/g, "");
-      }
-    }
+  dotenv.config({
+    path: path.join(__dirname, "..", envFile),
+    override: true,
   });
 }
+
 test.beforeEach(async ({ page }) => {
   base = new Base(page);
   await base.goToWebsite();
