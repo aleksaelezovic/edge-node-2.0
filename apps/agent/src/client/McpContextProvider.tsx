@@ -1,83 +1,53 @@
-import {
-  createContext,
-  useContext,
-  PropsWithChildren,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { createContext, useContext, PropsWithChildren, useEffect } from "react";
 
 import { toError } from "@/shared/errors";
+import useMcpClientConnection, {
+  McpClient,
+} from "@/hooks/useMcpClientConnection";
 
-import useMcpClientConnection from "./useMcpClientConnection";
+import createTransport from "./createTransport";
 
 const McpContext = createContext<{
-  mcp: Client;
-  connected: boolean;
-  token: string | undefined;
+  mcp: McpClient;
 }>({
-  mcp: new Client({ name: "dkg-agent", version: "1.0.0" }),
-  connected: false,
-  token: undefined,
+  mcp: null as any,
 });
 
 export const useMcpContext = () => useContext(McpContext);
 
 export default function McpContextProvider({
-  authorizationCode,
   autoconnect = true,
-  onConnectedChange,
-  onError,
+  onMcpError,
   children,
 }: PropsWithChildren<{
-  authorizationCode: string | null;
-  autoconnect?: boolean;
-  onConnectedChange?: (connected: boolean) => void;
-  onError?: (error: Error) => void;
+  autoconnect?:
+    | boolean
+    | {
+        authorizationCode?: string;
+        callback?: (error?: Error) => void;
+      };
+  onMcpError?: (error: Error) => void;
 }>) {
-  const [token, setToken] = useState<string | undefined>();
-  const { mcp, connect, connected, authorize, getToken } =
-    useMcpClientConnection(process.env.EXPO_PUBLIC_MCP_URL + "/mcp");
+  const mcp = useMcpClientConnection({
+    url: process.env.EXPO_PUBLIC_MCP_URL + "/mcp",
+    name: "dkg-agent",
+    version: "1.0.0",
+    transportFactory: createTransport,
+    onError: onMcpError,
+  });
 
-  const init = useCallback(async () => {
-    try {
-      if (connected) return;
-      if (authorizationCode) await authorize(authorizationCode);
-      if (autoconnect) await connect();
-    } catch (error) {
-      onError?.(toError(error));
-    }
-  }, [autoconnect, connected, connect, authorizationCode, authorize, onError]);
+  const tryConnect = autoconnect && !mcp.connected;
+  const { authorizationCode, callback } =
+    typeof autoconnect === "object" ? autoconnect : {};
 
   useEffect(() => {
-    init();
-  }, [init]);
+    if (!tryConnect) return;
 
-  useEffect(() => {
-    onConnectedChange?.(connected);
-    getToken().then(setToken);
-  }, [connected, onConnectedChange, getToken]);
+    mcp
+      .connect(authorizationCode)
+      .then(() => callback?.())
+      .catch((err) => callback?.(toError(err)));
+  }, [tryConnect, mcp, authorizationCode, callback]);
 
-  const intervalRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (connected)
-      intervalRef.current = setInterval(
-        // Expecting to error when token is expired / revoked
-        () => mcp.ping().catch(() => null),
-        5000,
-      );
-    else if (intervalRef.current) clearInterval(intervalRef.current);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [connected, mcp]);
-
-  return (
-    <McpContext.Provider value={{ mcp, token, connected }}>
-      {children}
-    </McpContext.Provider>
-  );
+  return <McpContext.Provider value={{ mcp }}>{children}</McpContext.Provider>;
 }

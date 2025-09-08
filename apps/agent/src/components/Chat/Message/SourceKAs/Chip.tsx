@@ -9,7 +9,7 @@ import {
 import useColors from "@/hooks/useColors";
 import KAIcon from "@/components/icons/KAIcon";
 
-export default function SourceKAsChip({
+export default function ChatMessageSourceKAsChip({
   title,
   issuer,
   onPress,

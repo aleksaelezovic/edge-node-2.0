@@ -5,10 +5,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import type { SourceKA } from "@dkg/plugin-dkg-essentials/utils";
 
 import useColors from "@/hooks/useColors";
-
-import SourceKAsChip from "./SourceKAsChip";
-import KAProfileCard from "./KAProfileCard";
 import GraphView from "@/components/GraphView";
+
+import ChatMessageSourceKAsChip from "./Chip";
+import ChatMessageSourceKAsProfileCard from "./ProfileCard";
 
 export type SourceKAResolved = {
   lastUpdated: number;
@@ -19,7 +19,7 @@ export type SourceKAResolved = {
 
 export type SourceKAResolver = (ual: string) => Promise<SourceKAResolved>;
 
-export default function SourceKAsCollapsibleItem({
+export default function ChatMessageSourceKAsCollapsibleItem({
   collapsed,
   onPress,
   title,
@@ -64,7 +64,7 @@ export default function SourceKAsCollapsibleItem({
           height: 64,
         }}
       >
-        <SourceKAsChip
+        <ChatMessageSourceKAsChip
           title={title}
           issuer={issuer}
           style={{ padding: 0, backgroundColor: "transparent" }}
@@ -109,7 +109,7 @@ export default function SourceKAsCollapsibleItem({
           )}
 
           {resolvedData && (
-            <KAProfileCard
+            <ChatMessageSourceKAsProfileCard
               ual={ual}
               title={title}
               issuer={issuer}
