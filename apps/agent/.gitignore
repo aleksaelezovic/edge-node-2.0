@@ -48,5 +48,3 @@ playwright/.cache/
 
 # FS Blob Storage
 data/
-.env_mainnet
-.env_testnet
