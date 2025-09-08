@@ -8,7 +8,7 @@ class ChatbotPage {
       '[d="M6 15.351V1.693m0 0L1.122 6.815M6 1.693l4.878 5.122"]',
     );
     this.btn_import = this.page.locator(".r-fontFamily-1j4l7u5");
-    this.btn_continue = this.page.locator('.r-fontFamily-1j4l7u5').first();
+    this.btn_continue = this.page.locator(".r-fontFamily-1j4l7u5").first();
   }
 
   async sendMessage(message) {
@@ -48,7 +48,7 @@ class ChatbotPage {
     await this.page.waitForTimeout(2000);
   }
 
-  async publishKA(){
+  async publishKA() {
     //await this.page.pause();
     await this.sendMessage(`Create this Knowledge Asset on the DKG for me:
 
@@ -59,17 +59,29 @@ class ChatbotPage {
   "name": "Hello DKG",
   "description": "My first Knowledge Asset on the Decentralized Knowledge Graph!"
 }`);
-    await this.page.waitForSelector('text="Your Knowledge Asset has been successfully created on the Decentralized Knowledge Graph (DKG). Here are the details:"', { timeout: 120000 });
-    await expect(this.page.locator(".css-textHasAncestor-1jxf684").nth(1)).toHaveText(
+    await this.page.waitForSelector(
+      'text="Your Knowledge Asset has been successfully created on the Decentralized Knowledge Graph (DKG). Here are the details:"',
+      { timeout: 120000 },
+    );
+    await expect(
+      this.page.locator(".css-textHasAncestor-1jxf684").nth(1),
+    ).toHaveText(
       "Your Knowledge Asset has been successfully created on the Decentralized Knowledge Graph (DKG). Here are the details:",
     );
-    const UAL = await this.page.locator(".css-textHasAncestor-1jxf684").nth(4).textContent();
+    const UAL = await this.page
+      .locator(".css-textHasAncestor-1jxf684")
+      .nth(4)
+      .textContent();
     return UAL;
   }
-  async getUAL(UAL){
-    await this.sendMessage(`Get this Knowledge Asset from the DKG and summarize it for me: ${UAL}`);
+  async getUAL(UAL) {
+    await this.sendMessage(
+      `Get this Knowledge Asset from the DKG and summarize it for me: ${UAL}`,
+    );
     //await this.page.waitForSelector('text="Here is a summary of the Knowledge Asset retrieved from the Decentralized Knowledge Graph (DKG):"', { timeout: 120000 });
-    await expect(this.page.locator(".css-textHasAncestor-1jxf684").nth(12)).toHaveText(
+    await expect(
+      this.page.locator(".css-textHasAncestor-1jxf684").nth(12),
+    ).toHaveText(
       "Here is a summary of the Knowledge Asset retrieved from the Decentralized Knowledge Graph (DKG):",
     );
   }

@@ -3,23 +3,23 @@ const { test } = require("@playwright/test");
 const { Base } = require("../utils/base");
 const { LoginPage } = require("../pages/loginPage");
 const { ChatbotPage } = require("../pages/chatbotPage");
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 let base;
 let loginPage;
 let chatbotPage;
 
 function loadEnvFile(envFile) {
-  const envPath = path.join(__dirname, '..', envFile);
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  
-  envContent.split('\n').forEach(line => {
+  const envPath = path.join(__dirname, "..", envFile);
+  const envContent = fs.readFileSync(envPath, "utf8");
+
+  envContent.split("\n").forEach((line) => {
     line = line.trim();
-    if (line && !line.startsWith('#')) {
-      const [key, value] = line.split('=', 2);
+    if (line && !line.startsWith("#")) {
+      const [key, value] = line.split("=", 2);
       if (key && value) {
-        process.env[key] = value.replace(/^["']|["']$/g, '');
+        process.env[key] = value.replace(/^["']|["']$/g, "");
       }
     }
   });
@@ -80,10 +80,10 @@ test.skip("Test if importing files and summarizing works", async ({ page }) => {
   );
 });
 test("Test publish KA and GET UAL on Testnet", async () => {
-  loadEnvFile('.env.testing.testnet.local');
+  loadEnvFile(".env.testing.testnet.local");
   console.log("Testnet Environment loaded:", {
     network: process.env.DKG_BLOCKCHAIN,
-    node: process.env.DKG_OTNODE_URL
+    node: process.env.DKG_OTNODE_URL,
   });
 
   await loginPage.successfullLogin();
@@ -91,10 +91,10 @@ test("Test publish KA and GET UAL on Testnet", async () => {
   await chatbotPage.getUAL(ual);
 });
 test("Test publish KA and GET UAL on Mainnet", async () => {
-  loadEnvFile('.env.testing.mainnet.local');
+  loadEnvFile(".env.testing.mainnet.local");
   console.log("Mainnet Environment loaded:", {
     network: process.env.DKG_BLOCKCHAIN,
-    node: process.env.DKG_OTNODE_URL
+    node: process.env.DKG_OTNODE_URL,
   });
   await loginPage.successfullLogin();
   const ual = await chatbotPage.publishKA();
