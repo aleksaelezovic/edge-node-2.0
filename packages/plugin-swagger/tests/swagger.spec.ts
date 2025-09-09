@@ -3,12 +3,12 @@
 import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
-import swaggerPlugin, { z, openAPIRoute } from "../src/index.js";
-import { buildOpenAPIDocument, getRoutes } from "../src/openAPI.js";
+import swaggerPlugin, { z, openAPIRoute } from "../dist/index.js";
+import { buildOpenAPIDocument, getRoutes } from "../dist/openAPI.js";
 import {
   getSchemaOfOpenAPIRoute,
   getErrorSummary,
-} from "../src/openAPIRoute.js";
+} from "../dist/openAPIRoute.js";
 import express from "express";
 import request from "supertest";
 import {

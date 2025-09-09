@@ -1,8 +1,8 @@
 import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
-import oauthPlugin, { authorized, createOAuthPlugin } from "../src/index.js";
-import DemoOAuthStorageProvider from "../src/storage/demo.js";
+import oauthPlugin, { authorized, createOAuthPlugin } from "../dist/index.js";
+import DemoOAuthStorageProvider from "../dist/storage/demo.js";
 import { z } from "@dkg/plugin-swagger";
 import {
   createExpressApp,
