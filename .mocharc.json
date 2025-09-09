@@ -1,0 +1,6 @@
+{
+  "loader": "tsx",
+  "recursive": true,
+  "timeout": 30000,
+  "spec": "packages/*/tests/**/*.spec.ts"
+}
