@@ -107,7 +107,7 @@ module.exports = defineConfig({
     command: "turbo dev",
     url: "http://localhost:8081",
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // 2 minutes timeout for server startup
+    timeout: process.env.CI ? 300 * 1000 : 120 * 1000, // 5 minutes in CI, 2 minutes locally
     ignoreHTTPSErrors: true,
     stderr: "pipe",
     stdout: "pipe",

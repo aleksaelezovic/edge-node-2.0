@@ -1,7 +1,0 @@
-{
-  "require": ["tsx/cjs"],
-  "extensions": ["ts"],
-  "spec": "packages/*/tests/**/*.spec.ts",
-  "timeout": 10000,
-  "reporter": "spec"
-}
