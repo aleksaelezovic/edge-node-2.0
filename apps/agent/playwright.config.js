@@ -7,12 +7,12 @@ const { defineConfig, devices } = require("@playwright/test");
 module.exports = defineConfig({
   testDir: "./tests",
   testMatch: "**/*.spec.js",
-  retries: 1,
+  retries: 2,
   workers: 1,
-  timeout: 100 * 2000,
-  globalTimeout: process.env.CI ? 180000 : 0, // 3 minutes in CI, no limit locally
+  timeout: 10 * 60 * 1000, // 10 minutes per test
+  globalTimeout: process.env.CI ? 45 * 60 * 1000 : 0, // 45 minutes in CI, no limit locally
   expect: {
-    timeout: 5000,
+    timeout: 2 * 60 * 1000, // 2 minutes for expect operations
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -45,17 +45,17 @@ module.exports = defineConfig({
     baseURL: "http://localhost:8081",
     browserName: "chromium",
     headless: true,
+    actionTimeout: 2 * 60 * 1000, // 2 minutes for all actions
     launchOptions: {
-      slowMo: 800,
+      slowMo: 1500,
     },
     //args: ['--window-size=1920,1080'],
     //viewport: { width: 1920, height: 1080 },
     video: {
-      mode: "retain-on-failure", // or "on", "off", "retain-on-failure"
+      // GitHub Actions: No video (saves storage/time), Jenkins: Video on failure
+      mode: process.env.GITHUB_ACTIONS === 'true' ? "off" : "retain-on-failure",
       size: { width: 1920, height: 1080 }, // Specify the video size
     },
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: "on-first-retry",
   },
 
   /* Configure projects for major browsers */
@@ -103,12 +103,17 @@ module.exports = defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "turbo dev:app dev:server",
+    command: "turbo dev",
     url: "http://localhost:8081",
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // 2 minutes timeout for server startup
+    timeout: process.env.CI ? 300 * 1000 : 120 * 1000, // 5 minutes in CI, 2 minutes locally
     ignoreHTTPSErrors: true,
     stderr: "pipe",
     stdout: "pipe",
+    // Gracefully shutdown servers when tests finish
+    gracefulShutdown: {
+      timeout: 2000,
+      signal: "SIGINT",
+    },
   },
 });

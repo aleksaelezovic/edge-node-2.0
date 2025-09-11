@@ -3,7 +3,7 @@
 import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
-import blobsPlugin from "../src/plugins/blobs.js";
+import blobsPlugin from "../dist/plugins/blobs.js";
 import {
   createExpressApp,
   createInMemoryBlobStorage,

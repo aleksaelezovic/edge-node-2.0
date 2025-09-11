@@ -10,7 +10,7 @@
     "build": "tsup src/*.ts --format cjs,esm --dts",
     "check-types": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
-    "test": "mocha 'tests/**/*.spec.ts'"
+    "test": "mocha --loader ../../node_modules/tsx/dist/loader.mjs 'tests/**/*.spec.ts'"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.3.4",
