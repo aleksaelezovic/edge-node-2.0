@@ -7,7 +7,7 @@ const { defineConfig, devices } = require("@playwright/test");
 module.exports = defineConfig({
   testDir: "./tests",
   testMatch: "**/*.spec.js",
-  retries: 5,
+  retries: 2,
   workers: 1,
   timeout: 10 * 60 * 1000, // 10 minutes per test
   globalTimeout: process.env.CI ? 45 * 60 * 1000 : 0, // 45 minutes in CI, no limit locally
@@ -52,11 +52,10 @@ module.exports = defineConfig({
     //args: ['--window-size=1920,1080'],
     //viewport: { width: 1920, height: 1080 },
     video: {
-      mode: "retain-on-failure", // or "on", "off", "retain-on-failure"
+      // GitHub Actions: No video (saves storage/time), Jenkins: Video on failure
+      mode: process.env.GITHUB_ACTIONS === 'true' ? "off" : "retain-on-failure",
       size: { width: 1920, height: 1080 }, // Specify the video size
     },
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: "on-first-retry",
   },
 
   /* Configure projects for major browsers */
