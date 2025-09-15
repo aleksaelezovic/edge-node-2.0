@@ -96,16 +96,16 @@ jobs:
           # Build the scripts first
           npm run build:server
           npm run build:scripts
-          
+
           # Run database migrations
           npm run build:migrations
-          
+
           # Create temporary admin creation script
           cat > create-admin-temp.mjs << 'EOF'
           import { configDatabase, configEnv, createUser } from "./dist/helpers.js";
-          
+
           configEnv();
-          
+
           (async () => {
             try {
               console.log("Creating admin user for automated testing...");
@@ -135,7 +135,7 @@ jobs:
             }
           })();
           EOF
-          
+
           # Run the script and then delete it
           node create-admin-temp.mjs
           rm -f create-admin-temp.mjs
