@@ -78,11 +78,11 @@ class ChatbotPage {
     await this.sendMessage(
       `Get this Knowledge Asset from the DKG and summarize it for me: ${UAL}`,
     );
-    //await this.page.waitForSelector('text="Here is a summary of the Knowledge Asset retrieved from the Decentralized Knowledge Graph (DKG):"', { timeout: 120000 });
+    // Accept both text variations for Knowledge Asset retrieval
     await expect(
       this.page.locator(".css-textHasAncestor-1jxf684").nth(12),
     ).toHaveText(
-      "Here is a summary of the Knowledge Asset retrieved from the Decentralized Knowledge Graph (DKG):",
+      /(The Knowledge Asset you requested has been retrieved from the Decentralized Knowledge Graph \(DKG\)\. Here's a summary of its key components:|Here is a summary of the Knowledge Asset retrieved from the Decentralized Knowledge Graph \(DKG\)):?/
     );
   }
 }
