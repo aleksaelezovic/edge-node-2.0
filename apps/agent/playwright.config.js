@@ -53,7 +53,7 @@ module.exports = defineConfig({
     //viewport: { width: 1920, height: 1080 },
     video: {
       // GitHub Actions: No video (saves storage/time), Jenkins: Video on failure
-      mode: process.env.GITHUB_ACTIONS === 'true' ? "off" : "retain-on-failure",
+      mode: process.env.GITHUB_ACTIONS === "true" ? "off" : "retain-on-failure",
       size: { width: 1920, height: 1080 }, // Specify the video size
     },
   },

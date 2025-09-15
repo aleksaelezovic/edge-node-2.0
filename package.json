@@ -5,7 +5,7 @@
     "build": "turbo run build",
     "build:check": "turbo run format lint check-types build",
     "check": "turbo run format check-types lint",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,json,md,yml}\"",
     "check-types": "turbo run check-types",
