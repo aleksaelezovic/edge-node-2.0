@@ -6,7 +6,6 @@ import type {
   BaseFunctionCallOptions,
   ToolDefinition,
 } from "@langchain/core/language_models/base";
-import { ChatOpenAI } from "@langchain/openai";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 export type { ToolDefinition };
@@ -45,26 +44,93 @@ export const toContents = (content: ChatMessage["content"]) =>
 
 export type ChatMessageContents = ReturnType<typeof toContents>;
 
-const llmProviderFromEnv = () => {
-  // Check .env and use a switch statement
-  return new ChatOpenAI({
-    model: "gpt-4o-mini",
-    temperature: 0,
-  });
+export enum LLMProvider {
+  OpenAI = "openai",
+  Groq = "groq",
+  Anthropic = "anthropic",
+  GoogleGenAI = "google-genai",
+  MistralAI = "mistralai",
+  Ollama = "ollama",
+}
+
+export const isValidLLMProvider = (
+  llmProvider: string,
+): llmProvider is LLMProvider =>
+  Object.values(LLMProvider).includes(llmProvider as any);
+
+export const getLLMProviderApiKeyEnvName = (llmProvider: LLMProvider) => {
+  switch (llmProvider) {
+    case LLMProvider.OpenAI:
+      return "OPENAI_API_KEY";
+    case LLMProvider.Groq:
+      return "GROQ_API_KEY";
+    case LLMProvider.Anthropic:
+      return "ANTHROPIC_API_KEY";
+    case LLMProvider.GoogleGenAI:
+      return "GOOGLE_API_KEY";
+    case LLMProvider.MistralAI:
+      return "MISTRAL_API_KEY";
+    case LLMProvider.Ollama:
+      return null;
+    default:
+      throw new Error(`Unsupported LLM provider: ${llmProvider}`);
+  }
 };
 
-export const llmProvider = () => {
+const llmProviderFromEnv = async () => {
+  const provider = process.env.LLM_PROVIDER;
+  if (!isValidLLMProvider(provider)) {
+    throw new Error(`Unsupported LLM provider: ${provider}`);
+  }
+  const model = process.env.LLM_MODEL;
+  const temperature = Number(process.env.LLM_TEMPERATURE);
+  if (isNaN(temperature)) {
+    throw new Error(`Invalid LLM temperature: ${temperature}`);
+  }
+
+  switch (provider) {
+    case LLMProvider.Groq:
+      return import("@langchain/groq").then(
+        ({ ChatGroq }) => new ChatGroq({ model, temperature }),
+      );
+    case LLMProvider.Anthropic:
+      return import("@langchain/anthropic").then(
+        ({ ChatAnthropic }) => new ChatAnthropic({ model, temperature }),
+      );
+    case LLMProvider.GoogleGenAI:
+      return import("@langchain/google-genai").then(
+        ({ ChatGoogleGenerativeAI }) =>
+          new ChatGoogleGenerativeAI({ model, temperature }),
+      );
+    case LLMProvider.MistralAI:
+      return import("@langchain/mistralai").then(
+        ({ ChatMistralAI }) => new ChatMistralAI({ model, temperature }),
+      );
+    case LLMProvider.Ollama:
+      return import("@langchain/ollama").then(
+        ({ ChatOllama }) => new ChatOllama({ model, temperature }),
+      );
+    case LLMProvider.OpenAI:
+    default:
+      return import("@langchain/openai").then(
+        ({ ChatOpenAI }) => new ChatOpenAI({ model, temperature }),
+      );
+  }
+};
+
+export const llmProvider = async () => {
   const s = globalThis as typeof globalThis & {
-    llmProvider?: ReturnType<typeof llmProviderFromEnv>;
+    llmProvider?: Awaited<ReturnType<typeof llmProviderFromEnv>>;
   };
 
-  if (!s.llmProvider) s.llmProvider = llmProviderFromEnv();
+  if (!s.llmProvider) s.llmProvider = await llmProviderFromEnv();
   return s.llmProvider;
 };
 
 export const processCompletionRequest = async (req: Request) => {
   const body: CompletionRequest = await req.json();
-  const res = await llmProvider().invoke(body.messages, {
+  const provider = await llmProvider();
+  const res = await provider.invoke(body.messages, {
     ...body.options,
     tools: body.tools,
   });

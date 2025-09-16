@@ -1,10 +1,14 @@
+import type { LLMProvider } from "@/shared/chat";
+
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
       EXPO_PUBLIC_APP_URL: string;
       EXPO_PUBLIC_MCP_URL: string;
       DATABASE_URL: string;
-      OPENAI_API_KEY: string;
+      LLM_PROVIDER: LLMProvider;
+      LLM_MODEL: string;
+      LLM_TEMPERATURE: string;
       PORT: string;
       DKG_PUBLISH_WALLET: string;
       DKG_BLOCKCHAIN: string;
