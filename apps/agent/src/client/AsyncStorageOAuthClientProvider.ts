@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetch } from "expo/fetch";
 
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import {
@@ -61,10 +60,17 @@ export default class AsyncStorageOAuthClientProvider
         new URL(this._uri.toString()).origin +
           "/authorize?client_id=" +
           clientId,
+        { redirect: "manual" },
       )
-        .then((r) => r.json())
+        .then((r) => {
+          if (r.status < 400) return {};
+          return r.json();
+        })
         .then((err: any) => err?.error === "invalid_client")
-        .catch(() => true);
+        .catch((err) => {
+          console.log("Error when checking client_id:", err);
+          return false;
+        });
 
       if (isInvalidClient) {
         await AsyncStorage.multiRemove([
