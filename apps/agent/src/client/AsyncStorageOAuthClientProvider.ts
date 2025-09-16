@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetch } from "expo/fetch";
 
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
 import {
@@ -52,8 +53,30 @@ export default class AsyncStorageOAuthClientProvider
     return JSON.parse(str);
   }
 
-  clientInformation(): Promise<OAuthClientInformation | undefined> {
-    return this._load("clientInfo");
+  async clientInformation(): Promise<OAuthClientInformation | undefined> {
+    const info = await this._load("clientInfo");
+    const clientId = (info as OAuthClientInformation | undefined)?.client_id;
+    if (clientId) {
+      const isInvalidClient = await fetch(
+        new URL(this._uri.toString()).origin +
+          "/authorize?client_id=" +
+          clientId,
+      )
+        .then((r) => r.json())
+        .then((err: any) => err?.error === "invalid_client")
+        .catch(() => true);
+
+      if (isInvalidClient) {
+        await AsyncStorage.multiRemove([
+          this._transformKey("clientInfo"),
+          this._transformKey("tokens"),
+          this._transformKey("codeVerifier"),
+        ]);
+
+        return undefined;
+      }
+    }
+    return info;
   }
 
   async saveClientInformation(
