@@ -1,5 +1,5 @@
 import { defineDkgPlugin } from "@dkg/plugins";
-import { openAPIRoute, z } from "@dkg/plugin-swagger";
+import { z } from "@dkg/plugin-swagger";
 import { chromium, Browser, BrowserContext, Page } from "playwright";
 import * as cheerio from "cheerio";
 import { DataFactory, Writer, Quad, Parser } from "n3";
@@ -7,9 +7,6 @@ import * as jsonld from "jsonld";
 import * as fs from "fs";
 import path from "path";
 import { createHash } from "crypto";
-import { ChatOpenAI } from "@langchain/openai";
-
-
 
 export type DownloadPageContentOptions = {
   url: string;
@@ -74,7 +71,9 @@ export async function downloadPageContent(
         if (abs.startsWith("http://") || abs.startsWith("https://")) {
           linksSet.add(abs);
         }
-      } catch {}
+      } catch {
+        // TODO: Ignore invalid URLs
+      }
     });
     const links = Array.from(linksSet);
 
@@ -99,58 +98,6 @@ export async function downloadPageContent(
       }
     }
   }
-}
-
-// TODO: This is currently unused - and ideally is not used if needed
-const llm = new ChatOpenAI({
-  model: "gpt-5",
-  temperature: 0,
-  openAIApiKey: process.env.OPENAI_API_KEY,
-});
-
-async function neuralReasoning(jsonLd: any,reasoningType: string): Promise<any> {
-  //TODO: currently unused - use this function later to expand the JSON-LD with neural reasoning after download. 
-  //TODO: implement symbolic reasoner into ctx, so that we can use it here as well
-  if(reasoningType === "neural" || reasoningType === "neurosymbolic"){
-    // Create a comprehensive system prompt for JSON-LD conversion
-    const systemPrompt = `You are an expert in enriching JSON-LD (JSON for Linked Data) with additional information. Your task is to enrich the JSON-LD with additional information that you infer from the content of the JSON-LD.
-    
-    Key requirements:
-    0. Do not remove any existing information from the JSON-LD.
-    1. Always include a proper @context that defines the vocabulary and namespaces.
-    2. Use appropriate @type properties to specify the class/type of entities
-    3. Ensure all properties have semantic meaning and are properly linked
-    4. Follow JSON-LD best practices for structuring data
-    5. Make the output valid and parseable JSON-LD
-    6. If a custom context is provided, use it; otherwise, create an appropriate one
-    7. If a custom type is provided, use it as the main entity type
-    8. Use the ontologies provided below to enrich the JSON-LD, and if not provided, use the most applicable ontologies such as schema.org, dcterms.org, etc.
-    
-    The output should be valid JSON-LD that can be used for:
-    - Semantic web applications
-    - Knowledge graphs
-    - Machine learning and AI systems
-    - Data interoperability
-    
-    Return ONLY the JSON-LD output, no explanations or markdown formatting.`;
-    
-    // Create the user message with the conversion request
-    const userMessage = `Enrich the following JSON-LD with additional information that you infer from the content of the JSON-LD: ${JSON.stringify(jsonLd, null, 2)}`;
-    
-    // Call the LLM to perform the conversion
-    const response = await llm.invoke([
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userMessage }
-    ]);
-    console.log(response);
-    const enrichedRaw = typeof (response as any).content === "string"
-    ? (response as any).content
-    : JSON.stringify((response as any).content, null, 2);
-    
-    return enrichedRaw;
-  }
-
-
 }
 
 async function crawlWebsite(startUrl: string): Promise<Map<string, DownloadedPageContent>> {
@@ -185,14 +132,15 @@ async function crawlWebsite(startUrl: string): Promise<Map<string, DownloadedPag
         const canon = canonicalize(link);
         if (!visited.has(canon)) toVisit.push(canon);
       }
-    } catch {}
+    } catch {
+      // TODO: Ignore failed page downloads
+    }
   }
 
   return contents;
 }
 
-  export default defineDkgPlugin((ctx, mcp, api) => {
-    
+  export default defineDkgPlugin((ctx, mcp) => {
     // Example MCP Tool definition, using @modelcontextprotocol/sdk
     mcp.registerTool(
       "webpage-to-dkg",
@@ -201,7 +149,7 @@ async function crawlWebsite(startUrl: string): Promise<Map<string, DownloadedPag
         description: "Snapshot a single webpage content into the OriginTrail Decentralized Knowledge Graph (DKG), using its native semantics",
         inputSchema: { url: z.string(), outputFormat: z.enum(["rdf", "json-ld"]), reasoningType: z.enum(["none", "symbolic", "neural","neurosymbolic"]) },
       },
-      async ({ url, outputFormat, reasoningType }) => { 
+      async ({ url, outputFormat }) => { 
         // TODO: move this to a separate function, so we can use it in the API as well
         const [content] = await downloadPageContent({ url });
         const start = new URL(url);
@@ -222,7 +170,7 @@ async function crawlWebsite(startUrl: string): Promise<Map<string, DownloadedPag
             content: [
               { type: "text", text: String(content.finalUrl) },
               { type: "text", text: rdf },
-            ] as any,
+            ],
           };
         } else {
           const jsonLd = await buildJsonLdFromPage(content);
@@ -233,7 +181,7 @@ async function crawlWebsite(startUrl: string): Promise<Map<string, DownloadedPag
             content: [
               { type: "text", text: String(content.finalUrl) },
               { type: "text", text: jsonLdStr },
-            ] as any,
+            ],
           };
         }
       }
@@ -247,8 +195,7 @@ async function crawlWebsite(startUrl: string): Promise<Map<string, DownloadedPag
       description: "Snapshot a entire website content into the OriginTrail Decentralized Knowledge Graph (DKG), using its native semantics",
       inputSchema: { url: z.string(), reasoningType: z.enum(["none", "symbolic", "neural","neurosymbolic"]) },
     },
-    async ({ url, reasoningType }) => {
-      reasoningType = "none"; //TODO: add support for reasoning later
+    async ({ url }) => {
       const pages = await crawlWebsite(url);
       const start = new URL(url);
       const dateStr = new Date().toISOString().slice(0, 10);
@@ -259,7 +206,7 @@ async function crawlWebsite(startUrl: string): Promise<Map<string, DownloadedPag
         encodeURIComponent(start.origin),
       );
       if (!fs.existsSync(runDir)) fs.mkdirSync(runDir, { recursive: true });
-      for (const [pageUrl, content] of pages) {
+      for (const [, content] of pages) {
         const jsonLd = await buildJsonLdFromPage(content);
         const jsonLdStr = typeof jsonLd === "string" ? jsonLd : JSON.stringify(jsonLd, null, 2);
         const hash = createHash("sha256").update(jsonLdStr).digest("hex");
@@ -268,7 +215,7 @@ async function crawlWebsite(startUrl: string): Promise<Map<string, DownloadedPag
       return {
         content: [
           { type: "text", text: `Entire website content snapshotted into the DKG. Output folder: ${runDir}` },
-        ] as any,
+        ],
       };
     }
   );
@@ -313,9 +260,7 @@ export async function buildRdfFromPage(page: DownloadedPageContent): Promise<str
   const $ = cheerio.load(page.content);
   
   const quads: Quad[] = [];
-  const { namedNode, literal, quad, defaultGraph } = DataFactory as typeof DataFactory & {
-    defaultGraph: () => any;
-  };
+  const { namedNode, literal, quad, defaultGraph } = DataFactory;
   const pageNode = namedNode(base);
   
   // Title
@@ -374,35 +319,37 @@ export async function buildRdfFromPage(page: DownloadedPageContent): Promise<str
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) jsonLdBlocks.push(...parsed);
       else jsonLdBlocks.push(parsed);
-    } catch {}
+    } catch {
+      // TODO: Ignore invalid JSON-LD blocks
+    }
   });
   
   // Microdata extraction to JSON-LD via cheerio traversal
   // Simple microdata -> JSON-LD conversion (limited but practical)
-  const microdataItems: any[] = [];
+  const microdataItems: unknown[] = [];
   $("*[itemscope]").each((_, scope) => {
     const type = $(scope).attr("itemtype") || undefined;
-    const item: any = { "@context": "http://schema.org" };
+    const item: Record<string, unknown> = { "@context": "http://schema.org" };
     if (type) item["@type"] = Array.isArray(type) ? type[0] : type;
     $(scope)
     .find("[itemprop]")
     .each((__, propEl) => {
       const prop = $(propEl).attr("itemprop");
       if (!prop) return;
-      let value: any = $(propEl).attr("content") || $(propEl).attr("src") || $(propEl).text();
+      let value: string = $(propEl).attr("content") || $(propEl).attr("src") || $(propEl).text();
       value = (value || "").trim();
       if (!value) return;
       if (item[prop]) {
         if (!Array.isArray(item[prop])) item[prop] = [item[prop]];
-        item[prop].push(value);
+        (item[prop] as string[]).push(value);
       } else item[prop] = value;
     });
     microdataItems.push(item);
   });
   
   // Convert JSON-LD and microdata JSON-LD to RDF quads
-  async function jsonLdToQuads(doc: any): Promise<Quad[]> {
-    const dataset = await jsonld.toRDF(doc, { base, format: "application/n-quads" } as any);
+  async function jsonLdToQuads(doc: unknown): Promise<Quad[]> {
+    const dataset = await jsonld.toRDF(doc as jsonld.JsonLdDocument, { base, format: "application/n-quads" });
     const parser = new Parser({ baseIRI: base });
     return parser.parse(dataset as unknown as string);
   }
@@ -411,13 +358,17 @@ export async function buildRdfFromPage(page: DownloadedPageContent): Promise<str
     try {
       const q = await jsonLdToQuads(block);
       quads.push(...q);
-    } catch {}
+    } catch {
+      // TODO: Ignore invalid JSON-LD conversion
+    }
   }
   for (const item of microdataItems) {
     try {
       const q = await jsonLdToQuads(item);
       quads.push(...q);
-    } catch {}
+    } catch { 
+      // TODO: Ignore invalid microdata conversion
+    }
   }
   
   // Serialize quads to Turtle
@@ -441,7 +392,7 @@ export type ConvertRdfToJsonLdOptions = {
 export async function buildJsonLdFromPage(
   page: DownloadedPageContent,
   context?: Record<string, unknown> | string,
-): Promise<any> {
+): Promise<jsonld.JsonLdDocument | string> {
   const base = page.finalUrl || page.initialUrl;
   const $ = cheerio.load(page.content);
   
@@ -455,10 +406,11 @@ export async function buildJsonLdFromPage(
     rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
   };
   
-  const graph: any[] = [];
+  type GraphEntry = { "@id"?: string; "@type"?: string; contentUrl?: string; caption?: string; [key: string]: unknown }
+  const graph: GraphEntry[] = [];
   
   // Page node
-  const pageNode: any = { "@id": base, "@type": "WebPage" };
+  const pageNode: GraphEntry = { "@id": base, "@type": "WebPage" };
   
   // Title
   const titleText = ($("title").first().text() || "").trim();
@@ -483,14 +435,14 @@ export async function buildJsonLdFromPage(
   if (paragraphs.length) pageNode["text"] = paragraphs.length === 1 ? paragraphs[0] : paragraphs;
   
   // Images
-  const imageRefs: any[] = [];
+  const imageRefs: { "@id": string }[] = [];
   $("img[src]").each((_, el) => {
     const src = $(el).attr("src");
     if (!src) return;
     const url = new URL(src, base).toString();
     const alt = ($(el).attr("alt") || "").trim();
     imageRefs.push({ "@id": url });
-    const imgNode: any = {
+    const imgNode: GraphEntry = {
       "@id": url,
       "@type": "ImageObject",
       contentUrl: url,
@@ -501,7 +453,7 @@ export async function buildJsonLdFromPage(
   if (imageRefs.length) pageNode["image"] = imageRefs.length === 1 ? imageRefs[0] : imageRefs;
   
   // Videos
-  const videoRefs: any[] = [];
+  const videoRefs: { "@id": string }[] = [];
   $("video, source[type^='video']").each((_, el) => {
     const src = $(el).attr("src");
     if (!src) return;
@@ -518,13 +470,15 @@ export async function buildJsonLdFromPage(
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) graph.push(...parsed);
       else graph.push(parsed);
-    } catch {}
+    } catch {
+      // Ignore invalid JSON-LD blocks
+    }
   });
   
   // Microdata -> JSON-LD (basic mapping)
   $("*[itemscope]").each((_, scope) => {
     const type = $(scope).attr("itemtype") || undefined;
-    const item: any = {};
+    const item: GraphEntry = {};
     if (type) item["@type"] = Array.isArray(type) ? type[0] : type;
     const id = $(scope).attr("itemid");
     if (id) item["@id"] = new URL(id, base).toString();
@@ -533,7 +487,7 @@ export async function buildJsonLdFromPage(
     .each((__, propEl) => {
       const prop = $(propEl).attr("itemprop");
       if (!prop) return;
-      let value: any =
+      let value: string =
       $(propEl).attr("content") ||
       $(propEl).attr("src") ||
       $(propEl).attr("href") ||
@@ -543,40 +497,45 @@ export async function buildJsonLdFromPage(
       if (/(src|href)/.test(Object.keys($(propEl).attr() || {}).join(" "))) {
         try {
           value = new URL(value, base).toString();
-        } catch {}
+        } catch {
+          // TODO: Ignore invalid URLs in microdata
+        }
       }
       if (item[prop]) {
         if (!Array.isArray(item[prop])) item[prop] = [item[prop]];
-        item[prop].push(value);
+        (item[prop] as string[]).push(value);
       } else item[prop] = value;
     });
     graph.push(item);
   });
   
   // Build adjacency and hierarchy by crawling DOM and connecting elements at the same depth
-  const idIndex = new Map<string, any>();
+  const idIndex = new Map<string, GraphEntry>();
   idIndex.set(base, pageNode);
   for (const node of graph) {
-    if (node && typeof node === "object" && node["@id"]) idIndex.set(node["@id"], node);
+    if (node && typeof node === "object" && node["@id"]) idIndex.set(node["@id"] as string, node);
   }
   
   // Map DOM elements to created node IDs for immediate sibling linking
-  const elementToNodeId = new Map<any, string>();
-  
-  function addRef(subject: any, prop: string, targetId: string) {
+  const elementToNodeId = new Map<unknown, string>();
+
+  function addRef(subject: GraphEntry, prop: string, targetId: string) {
     if (!subject[prop]) {
       subject[prop] = { "@id": targetId };
       return;
     }
-    const val = subject[prop];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const val = subject[prop] as any;
     if (Array.isArray(val)) {
-      if (!val.some((v) => v && v["@id"] === targetId)) val.push({ "@id": targetId });
+      if (!val.some((v) => v && v["@id"] === targetId)) val.push({ "@id": targetId } as GraphEntry);
     } else {
       if (val && val["@id"] === targetId) return;
       subject[prop] = [val, { "@id": targetId }];
     }
   }
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function getDepth(el: any): number {
     let d = 0;
     let p = el.parent;
@@ -587,7 +546,8 @@ export async function buildJsonLdFromPage(
     return d;
   }
   
-  function getPrevTagElement(el: any): any {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function getPrevTagElement(el: any) {
     let prev = el.prev;
     while (prev && prev.type !== "tag") prev = prev.prev;
     return prev;
@@ -600,13 +560,13 @@ export async function buildJsonLdFromPage(
   const headingTags = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
   
   $("body *").each((_, el) => {
-    const name = (el as any).name || (el as any).tagName || "";
+    const name = el.name || el.tagName || "";
     const tag = String(name).toLowerCase();
     if (!tag) return;
     
     const depth = getDepth(el);
     let currentId: string | undefined;
-    let currentNode: any | undefined;
+    let currentNode: GraphEntry | undefined;
     
     if (headingTags.has(tag)) {
       const text = ($(el).text() || "").trim();
@@ -628,7 +588,7 @@ export async function buildJsonLdFromPage(
       // If the immediate previous sibling is a heading, link heading -> paragraph
       const prevTagEl = getPrevTagElement(el);
       if (prevTagEl) {
-        const prevTagName = String((prevTagEl as any).name || "").toLowerCase();
+        const prevTagName = String(prevTagEl.name || "").toLowerCase();
         if (headingTags.has(prevTagName)) {
           const headingId = elementToNodeId.get(prevTagEl);
           if (headingId) {
@@ -706,5 +666,5 @@ export async function buildJsonLdFromPage(
   
   // Caller is responsible for persistence; return the document only
   
-  return doc;
+  return doc as jsonld.JsonLdDocument;
 }

@@ -9,7 +9,6 @@ import {
   createMockDkgClient,
 } from "@dkg/plugins/testing";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import express from "express";
 // import request from "supertest";
 
@@ -21,16 +20,14 @@ const mockDkgContext = {
 
 describe("@dkg/webpage2dkg checks", function () {
   let mockMcpServer: McpServer;
-  let mockMcpClient: Client;
   let apiRouter: express.Router;
   let app: express.Application;
 
   this.timeout(5000);
 
   beforeEach(async () => {
-    const { server, client, connect } = await createMcpServerClientPair();
+    const { server, connect } = await createMcpServerClientPair();
     mockMcpServer = server;
-    mockMcpClient = client;
     apiRouter = express.Router();
     app = createExpressApp();
 
