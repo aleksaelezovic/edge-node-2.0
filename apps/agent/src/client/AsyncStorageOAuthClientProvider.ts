@@ -58,7 +58,9 @@ export default class AsyncStorageOAuthClientProvider
     const clientId = (info as OAuthClientInformation | undefined)?.client_id;
     if (clientId) {
       const isInvalidClient = await fetch(
-        this._uri.toString() + "/authorize?client_id=" + clientId,
+        new URL(this._uri.toString()).origin +
+          "/authorize?client_id=" +
+          clientId,
       )
         .then((r) => r.json())
         .then((err: any) => err?.error === "invalid_client")
