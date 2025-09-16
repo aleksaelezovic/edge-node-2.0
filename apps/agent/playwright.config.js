@@ -105,15 +105,14 @@ module.exports = defineConfig({
   webServer: {
     command: "turbo dev",
     url: "http://localhost:8081",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false, // Always start fresh - prevents session persistence
     timeout: process.env.CI ? 300 * 1000 : 120 * 1000, // 5 minutes in CI, 2 minutes locally
     ignoreHTTPSErrors: true,
     stderr: "pipe",
     stdout: "pipe",
-    // Gracefully shutdown servers when tests finish
     gracefulShutdown: {
-      timeout: 2000,
-      signal: "SIGINT",
+      timeout: 10000, // 10 seconds for complete cleanup
+      signal: "SIGTERM", // Graceful termination signal
     },
   },
 });
