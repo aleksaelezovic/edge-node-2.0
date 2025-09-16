@@ -38,7 +38,7 @@ const { oauthPlugin, openapiSecurityScheme } = createOAuthPlugin({
     const isValid = await verify(user.password, credentials.password);
     if (!isValid) throw new Error("Invalid credentials");
 
-    return { scopes: user.scope.split(" ") };
+    return { scopes: user.scope.split(" "), extra: { userId: user.id } };
   },
 });
 
