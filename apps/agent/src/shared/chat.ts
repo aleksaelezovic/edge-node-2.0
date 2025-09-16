@@ -78,12 +78,12 @@ export const getLLMProviderApiKeyEnvName = (llmProvider: LLMProvider) => {
 };
 
 const llmProviderFromEnv = async () => {
-  const provider = process.env.LLM_PROVIDER;
+  const provider = process.env.LLM_PROVIDER || LLMProvider.OpenAI;
   if (!isValidLLMProvider(provider)) {
     throw new Error(`Unsupported LLM provider: ${provider}`);
   }
-  const model = process.env.LLM_MODEL;
-  const temperature = Number(process.env.LLM_TEMPERATURE);
+  const model = process.env.LLM_MODEL || "gpt-4o-mini";
+  const temperature = Number(process.env.LLM_TEMPERATURE || "0");
   if (isNaN(temperature)) {
     throw new Error(`Invalid LLM temperature: ${temperature}`);
   }
