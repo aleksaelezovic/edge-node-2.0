@@ -34,51 +34,48 @@ SplashScreen.preventAutoHideAsync();
 const McpProvider = ({ children }: PropsWithChildren) => {
   const params = useGlobalSearchParams<{ code?: string; error?: string }>();
   const isLogin = usePathname() === "/login";
-
   const { showAlert } = useAlerts();
 
-  const onConnectedChange = useCallback((connected: boolean) => {
-    if (connected) {
-      SplashScreen.hide();
-      router.setParams({ code: undefined });
-    }
-  }, []);
-
-  const onError = useCallback(
-    (error: Error) => {
+  const callback = useCallback(
+    (error?: Error) => {
       SplashScreen.hide();
 
-      showAlert({
-        type: "error",
-        title: "MCP Error",
-        message: error.message,
-        timeout: 5000,
-      });
+      if (!error) router.setParams({ code: undefined });
+      else
+        showAlert({
+          type: "error",
+          title: "MCP Error",
+          message: error.message,
+          timeout: 5000,
+        });
     },
     [showAlert],
   );
 
   const errorCode = params.error;
   useEffect(() => {
-    if (!errorCode) return;
-    SplashScreen.hide();
+    if (errorCode)
+      callback(
+        new Error(
+          `Connection to the MCP Server failed with error code: "${errorCode}"\n` +
+            "Try cleaning localStorage and going to the login page.",
+        ),
+      );
+  }, [errorCode, callback]);
 
-    showAlert({
-      type: "error",
-      title: "MCP Error",
-      message:
-        `Connection to the MCP Server failed with error code: "${errorCode}"\n` +
-        "Try cleaning localStorage and going to the login page.",
-      timeout: 5000,
-    });
-  }, [errorCode, showAlert]);
+  const disableAutoConnect = params.error || (isLogin && params.code);
 
   return (
     <McpContextProvider
-      authorizationCode={!isLogin && params.code ? params.code : null}
-      onConnectedChange={onConnectedChange}
-      onError={onError}
-      autoconnect={!errorCode && (!isLogin || (isLogin && !params.code))}
+      autoconnect={
+        disableAutoConnect
+          ? false
+          : {
+              authorizationCode: params.code,
+              callback,
+            }
+      }
+      onMcpError={callback}
     >
       {children}
     </McpContextProvider>

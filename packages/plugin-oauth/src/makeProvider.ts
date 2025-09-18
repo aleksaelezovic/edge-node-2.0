@@ -37,7 +37,6 @@ export default function makeProvider({
 }): OAuthServerProvider & {
   authorizeConfirm: (
     authorizationCode: string,
-    allowedScope: string[],
     confirmationData: CodeConfirmationData,
   ) => Promise<URL>;
 } {
@@ -46,6 +45,7 @@ export default function makeProvider({
     scopes: string[],
     resource?: URL,
     includeRefreshToken?: boolean,
+    extra?: Record<string, unknown>,
   ): Promise<OAuthTokens> {
     const token = uuidv4();
     try {
@@ -55,7 +55,7 @@ export default function makeProvider({
         scopes,
         expiresAt: Math.floor(Date.now() / 1000) + tokenExpirationInSeconds,
         resource,
-        extra: { type: "access" },
+        extra: { ...extra, type: "access" },
       });
     } catch (err) {
       throw new ServerError("Error saving token: " + String(err));
@@ -72,7 +72,7 @@ export default function makeProvider({
           expiresAt:
             Math.floor(Date.now() / 1000) + refreshTokenExpirationInSeconds,
           resource,
-          extra: { type: "refresh" },
+          extra: { ...extra, type: "refresh" },
         });
       } catch (err) {
         throw new ServerError("Error saving refresh token: " + String(err));
@@ -105,7 +105,7 @@ export default function makeProvider({
         return client;
       },
     },
-    async authorizeConfirm(authorizationCode, allowedScope, confirmationData) {
+    async authorizeConfirm(authorizationCode, confirmationData) {
       const codeData = await storage.getCodeData(authorizationCode);
       if (!codeData)
         throw new InvalidRequestError("Invalid authorization code");
@@ -115,7 +115,7 @@ export default function makeProvider({
       if (!redirectUri)
         throw new InvalidClientError("No redirect URIs provided");
 
-      if (!params.scopes?.every((s) => allowedScope.includes(s))) {
+      if (!params.scopes?.every((s) => confirmationData.scopes.includes(s))) {
         throw new InsufficientScopeError("Scope not allowed");
       }
 
@@ -196,6 +196,7 @@ export default function makeProvider({
         codeData.params.scopes ?? [],
         codeData.params.resource,
         codeData.confirmation.includeRefreshToken,
+        codeData.confirmation.extra,
       );
     },
     async exchangeRefreshToken(
@@ -233,6 +234,7 @@ export default function makeProvider({
         allowedScopes,
         resource,
         true,
+        tokenData.extra,
       );
     },
     async verifyAccessToken(token: string): Promise<AuthInfo> {
@@ -251,6 +253,7 @@ export default function makeProvider({
         scopes: tokenData.scopes,
         expiresAt: tokenData.expiresAt,
         resource: tokenData.resource,
+        extra: tokenData.extra,
       };
     },
     async revokeToken(client, request) {
@@ -273,7 +276,9 @@ export default function makeProvider({
 }
 
 export type CodeConfirmationData = {
+  scopes: string[];
   includeRefreshToken: boolean;
+  extra?: Record<string, unknown>;
 };
 
 export type OAuthStorageProvider = {

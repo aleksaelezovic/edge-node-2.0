@@ -3,7 +3,7 @@ import { Text, TouchableOpacity, View, ViewProps } from "react-native";
 import useColors from "@/hooks/useColors";
 import KAIcon from "@/components/icons/KAIcon";
 
-export default function MoreChip({
+export default function ChatMessageSourceKAsMoreChip({
   moreNumber,
   zeroVisible,
   onPress,

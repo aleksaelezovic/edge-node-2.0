@@ -3,7 +3,7 @@
 import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
-import authPlugin, { authorized } from "../src/index.js";
+import authPlugin, { authorized } from "../dist/index.js";
 import { z } from "@dkg/plugins/helpers";
 import {
   createExpressApp,

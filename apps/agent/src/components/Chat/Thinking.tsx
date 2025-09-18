@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import ChatMessage from "./ChatMessage";
+import ChatMessage from "./Message";
 
 export default function ChatThinking({ speed = 250 }: { speed?: number }) {
   const [state, setState] = useState(0);

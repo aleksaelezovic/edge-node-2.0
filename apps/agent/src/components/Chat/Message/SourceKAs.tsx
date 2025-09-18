@@ -2,11 +2,12 @@ import { useState } from "react";
 import { View, ViewProps } from "react-native";
 import type { SourceKA } from "@dkg/plugin-dkg-essentials/utils";
 
-import SourceKAsCollapsible from "./SourceKAs/SourceKAsCollapsible";
-import SourceKAsChip from "./SourceKAs/SourceKAsChip";
-import SourceKAsModal from "./SourceKAs/SourceKAsModal";
-import MoreChip from "./SourceKAs/MoreChip";
-import { SourceKAResolver } from "./SourceKAs/SourceKAsCollapsibleItem";
+import ChatMessageSourceKAsCollapsible from "./SourceKAs/Collapsible";
+import ChatMessageSourceKAsChip from "./SourceKAs/Chip";
+import ChatMessageSourceKAsModal from "./SourceKAs/Modal";
+import ChatMessageSourceKAsMoreChip from "./SourceKAs/MoreChip";
+import ChatMessageSourceKAsProfileCard from "./SourceKAs/ProfileCard";
+import type { SourceKAResolver } from "./SourceKAs/CollapsibleItem";
 
 const minChipWidth = 225;
 const chipGap = 8;
@@ -16,7 +17,7 @@ const minLastChipWidth = 80;
 //   ComponentProps<typeof SourceKAsChip>
 // >;
 
-export default function SourceKAs({
+export default function ChatMessageSourceKAs({
   kas,
   resolver,
   style,
@@ -56,7 +57,7 @@ export default function SourceKAs({
       {kas.map(
         (ka, i) =>
           i < numberOfVisibleChips && (
-            <SourceKAsChip
+            <ChatMessageSourceKAsChip
               key={i}
               title={ka.title}
               issuer={ka.issuer}
@@ -66,7 +67,7 @@ export default function SourceKAs({
           ),
       )}
       {numberOfHiddenChips > 0 && (
-        <MoreChip
+        <ChatMessageSourceKAsMoreChip
           moreNumber={numberOfHiddenChips}
           zeroVisible={numberOfVisibleChips === 0}
           style={{ minWidth: minLastChipWidth }}
@@ -74,7 +75,7 @@ export default function SourceKAs({
         />
       )}
 
-      <SourceKAsModal
+      <ChatMessageSourceKAsModal
         kas={kas}
         resolver={resolver}
         visible={modalVisible}
@@ -84,7 +85,8 @@ export default function SourceKAs({
   );
 }
 
-SourceKAs.Chip = SourceKAsChip;
-SourceKAs.MoreChip = MoreChip;
-SourceKAs.Modal = SourceKAsModal;
-SourceKAs.Collapsible = SourceKAsCollapsible;
+ChatMessageSourceKAs.Chip = ChatMessageSourceKAsChip;
+ChatMessageSourceKAs.MoreChip = ChatMessageSourceKAsMoreChip;
+ChatMessageSourceKAs.Modal = ChatMessageSourceKAsModal;
+ChatMessageSourceKAs.Collapsible = ChatMessageSourceKAsCollapsible;
+ChatMessageSourceKAs.ProfileCard = ChatMessageSourceKAsProfileCard;

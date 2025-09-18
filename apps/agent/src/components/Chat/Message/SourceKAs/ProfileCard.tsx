@@ -5,9 +5,9 @@ import useColors from "@/hooks/useColors";
 import KAIcon from "@/components/icons/KAIcon";
 import ExternalLink from "@/components/ExternalLink";
 
-import { SourceKAResolved } from "./SourceKAsCollapsibleItem";
+import type { SourceKAResolved } from "./CollapsibleItem";
 
-export default function KAProfileCard({
+export default function ChatMessageSourceKAsProfileCard({
   ual,
   lastUpdated,
   txHash,

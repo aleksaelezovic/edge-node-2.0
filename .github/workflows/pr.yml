@@ -16,7 +16,7 @@ jobs:
   validate:
     name: Check Code Quality on Node.js ${{ matrix.node-version }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45
     env:
       TURBO_TELEMETRY_DISABLED: 1
 
@@ -40,6 +40,107 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Create environment files for tests
+        run: |
+          # Create main .env file for agent
+          cat > apps/agent/.env << 'EOF'
+          PORT=9200
+          EXPO_PUBLIC_MCP_URL="http://localhost:9200"
+          EXPO_PUBLIC_APP_URL="http://localhost:9200"
+          DATABASE_URL="./test.db"
+          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+          DKG_PUBLISH_WALLET="${{ secrets.DKG_Node_Private_key }}"
+          DKG_BLOCKCHAIN="otp:2043"
+          DKG_OTNODE_URL="https://positron.origin-trail.network"
+          EOF
+
+          # Create development override file
+          cat > apps/agent/.env.development.local << 'EOF'
+          # These values will override the .env file during the development
+          EXPO_PUBLIC_APP_URL="http://localhost:8081"
+          EOF
+
+          # Create testnet environment file
+          mkdir -p apps/agent/tests
+          cat > apps/agent/tests/.env.testing.testnet.local << 'EOF'
+          PORT=9200
+          EXPO_PUBLIC_MCP_URL="http://localhost:9200"
+          EXPO_PUBLIC_APP_URL="http://localhost:9200"
+          DATABASE_URL="test.db"
+          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+          DKG_PUBLISH_WALLET="${{ secrets.DKG_Node_Private_key }}"
+          DKG_BLOCKCHAIN="otp:20430"
+          DKG_OTNODE_URL="https://v6-pegasus-node-02.origin-trail.network"
+          EOF
+
+          # Create mainnet environment file
+          cat > apps/agent/tests/.env.testing.mainnet.local << 'EOF'
+          PORT=9200
+          EXPO_PUBLIC_MCP_URL="http://localhost:9200"
+          EXPO_PUBLIC_APP_URL="http://localhost:9200"
+          DATABASE_URL="test.db"
+          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
+          DKG_PUBLISH_WALLET="${{ secrets.DKG_Node_Private_key }}"
+          DKG_BLOCKCHAIN="otp:2043"
+          DKG_OTNODE_URL="https://positron.origin-trail.network"
+          EOF
+
+          echo "Environment files created successfully!"
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Create admin user for tests
+        run: |
+          cd apps/agent
+          # Build the scripts first
+          npm run build:server
+          npm run build:scripts
+
+          # Run database migrations
+          npm run build:migrations
+
+          # Create temporary admin creation script
+          cat > create-admin-temp.mjs << 'EOF'
+          import { configDatabase, configEnv, createUser } from "./dist/helpers.js";
+
+          configEnv();
+
+          (async () => {
+            try {
+              console.log("Creating admin user for automated testing...");
+              const db = configDatabase();
+              
+              // Create admin user with hardcoded credentials for testing
+              const userId = await createUser(
+                db,
+                { username: "admin", password: "admin123" },
+                ["mcp", "llm", "blob", "scope123"]
+              );
+              
+              console.log("Admin user created successfully!");
+              console.log(" ID: " + userId);
+              console.log(" Username: admin");
+              console.log(" Password: admin123");
+              console.log(" Scope: mcp, llm, blob, scope123");
+              process.exit(0);
+            } catch (error) {
+              if (error.message && error.message.includes("UNIQUE constraint failed")) {
+                console.log("Admin user already exists, skipping creation");
+                process.exit(0);
+              } else {
+                console.error("Error creating admin user:", error);
+                process.exit(1);
+              }
+            }
+          })();
+          EOF
+
+          # Run the script and then delete it
+          node create-admin-temp.mjs
+          rm -f create-admin-temp.mjs
+          echo "Admin user setup completed!"
+
       - name: Check code quality
         run: npm run check
 
@@ -48,3 +149,5 @@ jobs:
 
       - name: Run tests from all packages
         run: npm run test
+        env:
+          CI: true

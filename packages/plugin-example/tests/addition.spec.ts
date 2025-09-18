@@ -2,7 +2,7 @@
 
 import { describe, it } from "mocha";
 import { expect } from "chai";
-import examplePlugin from "../src/index.js";
+import examplePlugin from "../dist/index.js";
 import express from "express";
 import request from "supertest";
 import {

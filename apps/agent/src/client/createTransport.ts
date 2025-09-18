@@ -5,6 +5,8 @@ import { fetch } from "expo/fetch";
 import { Platform } from "react-native";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
+import { StreamableHTTPClientTransportWithTokenRetrieval } from "@/hooks/useMcpClientConnection";
+
 import AsyncStorageOAuthClientProvider from "./AsyncStorageOAuthClientProvider";
 
 export const clientUri =
@@ -14,7 +16,9 @@ export const clientUri =
       ? "exp://127.0.0.1:8081/--"
       : `${Constants.expoConfig?.scheme}://`;
 
-const createTransport = (mcpUrl: string) => {
+const createTransport = (
+  mcpUrl: string,
+): StreamableHTTPClientTransportWithTokenRetrieval => {
   const authProvider = new AsyncStorageOAuthClientProvider(
     mcpUrl,
     clientUri + "/chat",
@@ -46,7 +50,9 @@ const createTransport = (mcpUrl: string) => {
     fetch: (url, opts) => fetch(url.toString(), opts as any),
     authProvider,
   });
-  return { transport, authProvider };
+  return Object.assign(transport, {
+    getToken: () => authProvider.tokens().then((t) => t?.access_token),
+  });
 };
 
 export default createTransport;

@@ -2,7 +2,7 @@ import Svg, { SvgProps, Rect, Path } from "react-native-svg";
 
 import useColors from "@/hooks/useColors";
 
-export default function UserIcon(props: SvgProps) {
+export default function ChatMessageIconUser(props: SvgProps) {
   const colors = useColors();
 
   return (

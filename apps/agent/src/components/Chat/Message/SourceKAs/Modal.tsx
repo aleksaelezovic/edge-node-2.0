@@ -7,13 +7,13 @@ import Animated, {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import type { SourceKA } from "@dkg/plugin-dkg-essentials/utils";
 
-import Background from "@/components/layout/Background";
 import useColors from "@/hooks/useColors";
+import Background from "@/components/layout/Background";
 
-import SourceKAsCollapsible from "./SourceKAsCollapsible";
-import { SourceKAResolver } from "./SourceKAsCollapsibleItem";
+import ChatMessageSourceKAsCollapsible from "./Collapsible";
+import type { SourceKAResolver } from "./CollapsibleItem";
 
-export default function SourceKAsModal(props: {
+export default function ChatMessageSourceKAsModal(props: {
   kas: SourceKA[];
   resolver: SourceKAResolver;
   visible?: boolean;
@@ -86,18 +86,18 @@ export default function SourceKAsModal(props: {
                 }}
                 onPress={props.onClose}
               />
-              <SourceKAsCollapsible
+              <ChatMessageSourceKAsCollapsible
                 style={{ gap: 24, paddingHorizontal: 24 }}
                 onExpandChange={handleExpand}
               >
                 {props.kas.map((ka, index) => (
-                  <SourceKAsCollapsible.Item
+                  <ChatMessageSourceKAsCollapsible.Item
                     key={index}
                     {...ka}
                     resolver={props.resolver}
                   />
                 ))}
-              </SourceKAsCollapsible>
+              </ChatMessageSourceKAsCollapsible>
             </View>
           </Background>
         </Animated.View>
