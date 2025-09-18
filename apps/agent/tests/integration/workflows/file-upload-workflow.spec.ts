@@ -1,4 +1,3 @@
-import { describe, it, beforeEach, afterEach } from "mocha";
 import { expect } from "chai";
 import request from "supertest";
 import { startTestServer } from "../setup/test-server";
@@ -350,6 +349,87 @@ describe("File Upload Workflow Integration", () => {
         );
         expect(retrievedAsset.public.hasPart).to.have.length(4);
       }
+    });
+
+    it("should handle blob deletion workflow", async function () {
+      this.timeout(15000);
+
+      // Step 1: Upload a file to blob storage
+      const uploadResponse = await request(testServer.app)
+        .post("/blob")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .field("filename", "delete-test.txt")
+        .attach("file", Buffer.from("Content to be deleted"), "delete-test.txt")
+        .expect(201);
+
+      const blobId = uploadResponse.body.id;
+      expect(blobId).to.exist;
+
+      // Step 2: Verify file exists and can be retrieved
+      await request(testServer.app)
+        .get(`/blob/${blobId}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .expect(200);
+
+      // Step 3: Delete the blob
+      await request(testServer.app)
+        .delete(`/blob/${blobId}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .expect(200);
+
+      // Step 4: Verify file is no longer accessible
+      await request(testServer.app)
+        .get(`/blob/${blobId}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .expect(404);
+    });
+
+    it("should handle unauthorized blob deletion", async function () {
+      this.timeout(15000);
+
+      // Step 1: Upload a file
+      const uploadResponse = await request(testServer.app)
+        .post("/blob")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .field("filename", "protected-delete-test.txt")
+        .attach("file", Buffer.from("Protected content"), "protected-delete-test.txt")
+        .expect(201);
+
+      const blobId = uploadResponse.body.id;
+
+      // Step 2: Try to delete without authorization
+      await request(testServer.app)
+        .delete(`/blob/${blobId}`)
+        .expect(401);
+
+      // Step 3: Try to delete with insufficient scope
+      const limitedToken = "test-limited-delete-token";
+      await testServer.testDatabase.oauthStorage.saveToken(limitedToken, {
+        token: limitedToken,
+        clientId: testServer.testDatabase.testClient.client_id,
+        scopes: ["mcp"], // No blob scope
+        expiresAt: Math.floor(Date.now() / 1000) + 3600,
+        extra: { type: "access" },
+      });
+
+      await request(testServer.app)
+        .delete(`/blob/${blobId}`)
+        .set("Authorization", `Bearer ${limitedToken}`)
+        .expect(403);
+
+      // Step 4: Verify file still exists (deletion was blocked)
+      await request(testServer.app)
+        .get(`/blob/${blobId}`)
+        .set("Authorization", `Bearer ${accessToken}`)
+        .expect(200);
+    });
+
+    it("should handle deletion of nonexistent blob", async function () {
+      // Try to delete a blob that doesn't exist - should be idempotent (return 200)
+      await request(testServer.app)
+        .delete("/blob/nonexistent-blob-id")
+        .set("Authorization", `Bearer ${accessToken}`)
+        .expect(200);
     });
   });
 

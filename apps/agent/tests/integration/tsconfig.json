@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "module": "ES2020",
-    "moduleResolution": "bundler",
-    "target": "ES2022",
-    "lib": ["ES2022"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "target": "ES2020",
+    "lib": ["ES2020"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": false,
@@ -12,13 +12,19 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "noEmit": true,
     "allowJs": true,
     "declaration": false,
     "typeRoots": ["../../../../node_modules/@types"],
-    "types": ["node"]
+    "types": ["node", "mocha", "chai"]
   },
   "include": ["**/*.ts", "**/*.spec.ts"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist"],
+  "ts-node": {
+    "esm": false,
+    "experimentalSpecifierResolution": "node",
+    "transpileOnly": true,
+    "files": false
+  }
 }

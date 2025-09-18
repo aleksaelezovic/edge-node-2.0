@@ -4,16 +4,16 @@
   "private": true,
   "description": "Integration tests for DKG Agent application",
   "scripts": {
-    "test": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha '**/*.spec.ts' --timeout 60000",
-    "test:workflows": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha 'workflows/**/*.spec.ts' --timeout 60000",
-    "test:cross-plugin": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha 'cross-plugin/**/*.spec.ts' --timeout 60000",
-    "test:performance": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha 'performance/**/*.spec.ts' --timeout 120000",
-    "test:error-handling": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha 'workflows/error-handling.spec.ts' --timeout 60000",
-    "test:watch": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha '**/*.spec.ts' --watch --timeout 60000",
-    "test:verbose": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha '**/*.spec.ts' --timeout 60000 --reporter spec",
-    "test:quick": "../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha 'workflows/file-upload-workflow.spec.ts workflows/oauth-flow.spec.ts' --timeout 30000",
+    "test": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000 --reporter spec",
+    "test:workflows": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/**/*.spec.ts' --timeout 60000 --reporter spec",
+    "test:cross-plugin": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'cross-plugin/**/*.spec.ts' --timeout 60000 --reporter spec",
+    "test:performance": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'performance/**/*.spec.ts' --timeout 120000 --reporter spec",
+    "test:error-handling": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/error-handling.spec.ts' --timeout 60000 --reporter spec",
+    "test:watch": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --watch --timeout 60000 --reporter spec",
+    "test:verbose": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000 --reporter spec",
+    "test:quick": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/file-upload-workflow.spec.ts workflows/oauth-flow.spec.ts' --timeout 30000 --reporter spec",
     "clean": "rm -rf coverage .nyc_output test-*.db test-data-*",
-    "coverage": "nyc --reporter=html --reporter=text ../../../../node_modules/.bin/tsx ../../../../node_modules/.bin/mocha '**/*.spec.ts' --timeout 60000"
+    "coverage": "nyc --reporter=html --reporter=text ../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000"
   },
   "dependencies": {
     "@dkg/plugins": "*",
