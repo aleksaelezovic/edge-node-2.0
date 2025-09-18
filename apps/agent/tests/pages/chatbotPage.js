@@ -59,15 +59,19 @@ class ChatbotPage {
   "name": "Hello DKG",
   "description": "My first Knowledge Asset on the Decentralized Knowledge Graph!"
 }`);
+    
+    // Wait for any success message about Knowledge Asset creation (flexible regex)
     await this.page.waitForSelector(
-      'text="Your Knowledge Asset has been successfully created on the Decentralized Knowledge Graph (DKG). Here are the details:"',
+      'text=/.*Knowledge Asset.*successfully.*created.*DKG.*/',
       { timeout: 120000 },
     );
+    
+    // Use regex to match various AI responses for successful KA creation
+    const successMessageRegex = /(Your Knowledge Asset has been successfully created|Successfully created.*Knowledge Asset|The Knowledge Asset.*has been created|Knowledge Asset.*created successfully)/;
     await expect(
-      this.page.locator(".css-textHasAncestor-1jxf684").nth(1),
-    ).toHaveText(
-      "Your Knowledge Asset has been successfully created on the Decentralized Knowledge Graph (DKG). Here are the details:",
-    );
+      this.page.locator(".css-textHasAncestor-1jxf684").filter({ hasText: successMessageRegex }).first(),
+    ).toBeVisible();
+    
     const UAL = await this.page
       .locator(".css-textHasAncestor-1jxf684")
       .nth(4)
@@ -78,11 +82,11 @@ class ChatbotPage {
     await this.sendMessage(
       `Get this Knowledge Asset from the DKG and summarize it for me: ${UAL}`,
     );
-    // Accept both text variations for Knowledge Asset retrieval
+    // Accept multiple text variations for Knowledge Asset retrieval
     await expect(
       this.page.locator(".css-textHasAncestor-1jxf684").nth(12),
     ).toHaveText(
-      /(The Knowledge Asset you requested has been retrieved from the Decentralized Knowledge Graph \(DKG\)\. Here's a summary of its key components:|Here is a summary of the Knowledge Asset retrieved from the Decentralized Knowledge Graph \(DKG\)):?/
+      /(The Knowledge Asset you requested has been retrieved from the Decentralized Knowledge Graph \(DKG\)\. Here's a summary of its (key components|content|key details):|Here is a summary of the Knowledge Asset (you )?retrieved from the Decentralized Knowledge Graph \(DKG\)|The Knowledge Asset you requested has the following details):?/
     );
   }
 }
