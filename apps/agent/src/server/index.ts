@@ -31,7 +31,7 @@ const { oauthPlugin, openapiSecurityScheme } = createOAuthPlugin({
     const user = await db
       .select()
       .from(users)
-      .where(eq(users.username, credentials.username))
+      .where(eq(users.email, credentials.email))
       .then((r) => r.at(0));
     if (!user) throw new Error("Invalid credentials");
 

@@ -18,7 +18,7 @@ import Footer from "@/components/layout/Footer";
 export default function Login() {
   SplashScreen.hide();
   const { code } = useLocalSearchParams<{ code?: string }>();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
@@ -33,7 +33,7 @@ export default function Login() {
 
     login({
       code: code ?? "",
-      credentials: { username, password },
+      credentials: { email, password },
       rememberMe,
       fetch: (url, opts) => fetch(url.toString(), opts as any),
     })
@@ -86,10 +86,12 @@ export default function Login() {
                   styles.input,
                   { backgroundColor: colors.input, color: colors.text },
                 ]}
-                value={username}
-                onChangeText={setUsername}
-                placeholder="Username"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Email"
                 placeholderTextColor={colors.placeholder}
+                keyboardType="email-address"
+                textContentType="emailAddress"
                 autoCapitalize="none"
               />
               <TextInput
@@ -124,7 +126,7 @@ export default function Login() {
               color="primary"
               text="Login"
               onPress={submit}
-              disabled={!username || !password}
+              disabled={!email || !password}
             />
 
             <View

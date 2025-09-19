@@ -55,16 +55,19 @@ EXPO_PUBLIC_APP_URL="http://localhost:8081"
   const userId = await createUser(
     db,
     {
-      username: "admin",
+      email: "admin",
       password: "admin123",
     },
     ["mcp", "llm", "blob", "scope123"],
   );
   console.log(`Created admin user:
   ID: ${userId}
-  Username: admin
+  Email: admin
   Password: admin123
-  Scope: mcp, llm, blob, scope123`);
+  Scope: mcp, llm, blob, scope123
+
+To create new users, run 'npm run script:createUser' inside of the agent directory.
+`);
 }
 
 setup()
