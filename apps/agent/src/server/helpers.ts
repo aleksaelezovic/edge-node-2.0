@@ -35,11 +35,13 @@ export async function createFileWithContent(filePath: string, content: string) {
 
 export function configEnv() {
   dotenv.config();
-  if (process.argv.includes("--dev"))
+  if (process.argv.includes("--dev")) {
     dotenv.config({
       path: path.resolve(process.cwd(), ".env.development.local"),
       override: true,
     });
+    process.env = { ...process.env, NODE_ENV: "development" };
+  }
 }
 
 export function configDatabase() {
