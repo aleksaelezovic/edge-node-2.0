@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Text, View, StyleSheet, TextInput } from "react-native";
 import { fetch } from "expo/fetch";
-import { useGlobalSearchParams } from "expo-router";
+import { router, useGlobalSearchParams } from "expo-router";
 
 import Container from "@/components/layout/Container";
 import Header from "@/components/layout/Header";
@@ -12,12 +12,14 @@ import useColors from "@/hooks/useColors";
 import { toError } from "@/shared/errors";
 
 import { styles as loginStyles } from "./login";
+import { useDialog } from "@/components/Dialog";
 
 export default function PasswordResetPage() {
   const colors = useColors();
 
   const { code } = useGlobalSearchParams<{ code?: string }>();
   const { showAlert } = useAlerts();
+  const { showDialog } = useDialog();
 
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -53,7 +55,13 @@ export default function PasswordResetPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);
-        //... showDialog
+        showDialog({
+          type: "success",
+          title: "Email sent!",
+          message:
+            "If an account exists with this email, you’ll receive a password reset link shortly.",
+        });
+        setEmail("");
       })
       .catch((error) => {
         showAlert({
@@ -93,15 +101,46 @@ export default function PasswordResetPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.error) throw new Error(data.error);
-        //... showDialog
+
+        showDialog({
+          type: "success",
+          title: "Updated password",
+          message:
+            "Your password has been updated. You can now log in with your new credentials.",
+          button: {
+            text: "Go to Login",
+            onPress: () => {
+              router.push("/login");
+            },
+            hideCloseButton: true,
+          },
+        });
+        setNewPassword("");
+        setConfirmNewPassword("");
       })
       .catch((error) => {
-        showAlert({
-          type: "error",
-          title: "Error sending reset link",
-          message: toError(error).message,
-          timeout: 5000,
-        });
+        if (error instanceof TypeError) {
+          showAlert({
+            type: "error",
+            title: "Error sending reset link",
+            message: toError(error).message + "\n" + "Try again later.",
+            timeout: 5000,
+          });
+        } else {
+          showDialog({
+            type: "error",
+            title: "Expired or used link",
+            message:
+              "This reset link is no longer valid. Please request a new one.",
+            button: {
+              text: "Request new link",
+              onPress: () => {
+                router.setParams({ code: undefined });
+              },
+              hideCloseButton: true,
+            },
+          });
+        }
       })
       .finally(() => setLoading(false));
   }
