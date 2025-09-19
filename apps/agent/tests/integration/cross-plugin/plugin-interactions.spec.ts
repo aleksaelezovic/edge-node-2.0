@@ -108,6 +108,7 @@ describe("Cross-Plugin Integration", () => {
 
       expect(initResponse.status).to.equal(200);
       const sessionId = initResponse.headers["mcp-session-id"];
+      if (!sessionId) throw new Error("Session ID is required");
 
       // Create DKG asset that references the blob
       const assetData = {
@@ -149,6 +150,7 @@ describe("Cross-Plugin Integration", () => {
       // Parse SSE response
       const sseLines = createResponse.text.split("\n");
       const dataLine = sseLines.find((line) => line.startsWith("data: "));
+      if (!dataLine) throw new Error("No data line found in SSE response");
       const responseData = JSON.parse(dataLine.substring(6));
 
       expect(responseData.result.content[0].text).to.include(
@@ -224,6 +226,7 @@ describe("Cross-Plugin Integration", () => {
 
       expect(initResponse.status).to.equal(200);
       const sessionId = initResponse.headers["mcp-session-id"];
+      if (!sessionId) throw new Error("Session ID is required");
 
       // List tools with authentication
       const toolsResponse = await request(testServer.app)
@@ -243,6 +246,7 @@ describe("Cross-Plugin Integration", () => {
       // Parse SSE response
       const sseLines = toolsResponse.text.split("\n");
       const dataLine = sseLines.find((line) => line.startsWith("data: "));
+      if (!dataLine) throw new Error("No data line found in tools SSE response");
       const responseData = JSON.parse(dataLine.substring(6));
 
       expect(responseData.result.tools).to.be.an("array");

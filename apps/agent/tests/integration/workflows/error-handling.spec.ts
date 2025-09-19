@@ -73,7 +73,7 @@ describe("Error Handling & Edge Cases", () => {
 
         // Should either succeed or fail gracefully (not crash)
         expect([201, 413, 400]).to.include(response.status);
-      } catch (error) {
+      } catch (error: any) {
         // EPIPE errors are acceptable for oversized payload testing
         if (error.code === "EPIPE" || error.message?.includes("EPIPE")) {
           // This is expected behavior for truly oversized payloads
@@ -286,6 +286,7 @@ describe("Error Handling & Edge Cases", () => {
 
       expect(initResponse.status).to.equal(200);
       const sessionId = initResponse.headers["mcp-session-id"];
+      if (!sessionId) throw new Error("Session ID is required");
 
       // Try invalid method
       const invalidResponse = await request(testServer.app)
@@ -305,6 +306,7 @@ describe("Error Handling & Edge Cases", () => {
       // Parse SSE response to check for error
       const sseLines = invalidResponse.text.split("\n");
       const dataLine = sseLines.find((line) => line.startsWith("data: "));
+      if (!dataLine) throw new Error("No data line found in error SSE response");
       const responseData = JSON.parse(dataLine.substring(6));
 
       expect(responseData.error).to.exist;

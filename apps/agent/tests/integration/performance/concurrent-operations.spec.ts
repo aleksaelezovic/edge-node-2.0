@@ -135,6 +135,7 @@ describe("Concurrent Operations Performance", () => {
 
       expect(initResponse.status).to.equal(200);
       const sessionId = initResponse.headers["mcp-session-id"];
+      if (!sessionId) throw new Error("Session ID is required");
 
       const operations: Promise<any>[] = [];
 
@@ -209,7 +210,7 @@ describe("Concurrent Operations Performance", () => {
         } else if (response.text?.includes("data: ")) {
           // Parse SSE response for MCP calls
           const sseLines = response.text.split("\n");
-          const dataLine = sseLines.find((line) => line.startsWith("data: "));
+          const dataLine = sseLines.find((line: string) => line.startsWith("data: "));
           if (dataLine) {
             try {
               const responseData = JSON.parse(dataLine.substring(6));
@@ -264,6 +265,7 @@ describe("Concurrent Operations Performance", () => {
 
       expect(initResponse.status).to.equal(200);
       const sessionId = initResponse.headers["mcp-session-id"];
+      if (!sessionId) throw new Error("Session ID is required");
 
       // Perform many sequential uploads and tool calls
       for (let i = 0; i < 20; i++) {

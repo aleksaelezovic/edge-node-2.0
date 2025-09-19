@@ -16,7 +16,7 @@ import { eq } from "drizzle-orm";
 import { createTestDatabase } from "./test-database";
 import { Express } from "express";
 import fs from "fs";
-import DKG from "dkg.js";
+// DKG imported dynamically only when needed
 
 export interface TestServerConfig {
   useRealDkg?: boolean;
@@ -95,7 +95,8 @@ export async function createTestServer(config: TestServerConfig = {}): Promise<{
   // Set up DKG client
   let dkgClient;
   if (useRealDkg) {
-    // Use real DKG for network integration tests
+    // Use real DKG for network integration tests - import dynamically to avoid TypeScript issues
+    const DKG = (await import("dkg.js" as any)).default;
     dkgClient = new DKG({
       endpoint: process.env.DKG_OTNODE_URL || "http://localhost:8900",
       port: "8900",

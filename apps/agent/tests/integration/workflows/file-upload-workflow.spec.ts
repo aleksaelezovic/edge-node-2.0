@@ -114,6 +114,7 @@ describe("File Upload Workflow Integration", () => {
       expect(initResponse.status).to.equal(200);
       const sessionId = initResponse.headers["mcp-session-id"];
       expect(sessionId).to.not.be.undefined;
+      if (!sessionId) throw new Error("Session ID is required");
 
       // Now call the dkg-create tool with the session ID
       const mcpResponse = await request(testServer.app)
@@ -144,6 +145,7 @@ describe("File Upload Workflow Integration", () => {
       // Parse SSE response format: "event: message\ndata: {...}"
       const sseLines = mcpResponse.text.split("\n");
       const dataLine = sseLines.find((line) => line.startsWith("data: "));
+      if (!dataLine) throw new Error("No data line found in SSE response");
       const responseData = JSON.parse(dataLine.substring(6)); // Remove "data: " prefix
 
       expect(responseData).to.have.property("result");
@@ -194,6 +196,7 @@ describe("File Upload Workflow Integration", () => {
         const getAssetDataLine = getAssetLines.find((line) =>
           line.startsWith("data: "),
         );
+        if (!getAssetDataLine) throw new Error("No data line found in get asset SSE response");
         const getAssetData = JSON.parse(getAssetDataLine.substring(6));
 
         const retrievedAsset = JSON.parse(getAssetData.result.content[0].text);
@@ -259,6 +262,7 @@ describe("File Upload Workflow Integration", () => {
 
       expect(initResponse.status).to.equal(200);
       const sessionId = initResponse.headers["mcp-session-id"];
+      if (!sessionId) throw new Error("Session ID is required");
 
       const createResponse = await request(testServer.app)
         .post("/mcp")
@@ -286,6 +290,7 @@ describe("File Upload Workflow Integration", () => {
       const createDataLine = createSseLines.find((line) =>
         line.startsWith("data: "),
       );
+      if (!createDataLine) throw new Error("No data line found in create SSE response");
       const createResponseData = JSON.parse(createDataLine.substring(6));
 
       const responseText = createResponseData.result.content[0].text;
@@ -317,6 +322,7 @@ describe("File Upload Workflow Integration", () => {
 
         expect(getInitResponse.status).to.equal(200);
         const getSessionId = getInitResponse.headers["mcp-session-id"];
+        if (!getSessionId) throw new Error("Get session ID is required");
 
         // Retrieve and verify the asset has all file references
         const getResponse = await request(testServer.app)
@@ -342,6 +348,7 @@ describe("File Upload Workflow Integration", () => {
         const getDataLine = getSseLines.find((line) =>
           line.startsWith("data: "),
         );
+        if (!getDataLine) throw new Error("No data line found in get SSE response");
         const getResponseData = JSON.parse(getDataLine.substring(6));
 
         const retrievedAsset = JSON.parse(
@@ -492,6 +499,7 @@ describe("File Upload Workflow Integration", () => {
 
       expect(initResponse.status).to.equal(200);
       const sessionId = initResponse.headers["mcp-session-id"];
+      if (!sessionId) throw new Error("Session ID is required");
 
       // Try to create asset with invalid JSON-LD (should fail gracefully)
       const createResponse = await request(testServer.app)
@@ -517,6 +525,7 @@ describe("File Upload Workflow Integration", () => {
       expect(createResponse.status).to.equal(200);
       const sseLines = createResponse.text.split("\n");
       const dataLine = sseLines.find((line) => line.startsWith("data: "));
+      if (!dataLine) throw new Error("No data line found in error SSE response");
       const responseData = JSON.parse(dataLine.substring(6));
 
       // Check if it's an error response format (could be result.isError or direct error)
@@ -573,6 +582,7 @@ describe("File Upload Workflow Integration", () => {
 
       expect(initResponse.status).to.equal(200);
       const sessionId = initResponse.headers["mcp-session-id"];
+      if (!sessionId) throw new Error("Session ID is required");
 
       // Access blob via MCP resource endpoint
       const resourceResponse = await request(testServer.app)
@@ -594,6 +604,7 @@ describe("File Upload Workflow Integration", () => {
       // Parse SSE response for MCP resource access
       const sseLines = resourceResponse.text.split("\n");
       const dataLine = sseLines.find((line) => line.startsWith("data: "));
+      if (!dataLine) throw new Error("No data line found in resource SSE response");
       const responseData = JSON.parse(dataLine.substring(6));
 
       expect(responseData.result).to.have.property("contents");
