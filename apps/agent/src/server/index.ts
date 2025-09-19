@@ -21,6 +21,7 @@ import {
   SqlitePasswordResetProvider,
 } from "./database/sqlite";
 import mailer from "./mailer";
+import { getTestMessageUrl } from "nodemailer";
 
 configEnv();
 const db = configDatabase();
@@ -60,12 +61,15 @@ const passwordResetPlugin = createPasswordResetPlugin({
         subject: "Password reset request | DKG Node",
         text:
           `Your password reset code is ${code}.` +
-          `Link: ${process.env.APP_URL}/password-reset?code=${code}`,
+          `Link: ${process.env.EXPO_PUBLIC_APP_URL}/password-reset?code=${code}`,
         html:
           `<p>Your password reset code is <strong>${code}</strong>.</p>` +
-          `<p>Please click <a href="${process.env.APP_URL}/password-reset?code=${code}">here</a> to reset your password.</p>`,
+          `<p>Please click <a href="${process.env.EXPO_PUBLIC_APP_URL}/password-reset?code=${code}">here</a> to reset your password.</p>`,
       })
-      .then(console.debug);
+      .then((info) => {
+        console.debug(info);
+        console.debug(getTestMessageUrl(info));
+      });
   },
 });
 
