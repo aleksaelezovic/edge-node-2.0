@@ -15,8 +15,10 @@
     "test:e2e": "turbo run test:e2e --filter=@dkg/agent --force",
     "test:api": "turbo run test --filter='@dkg/plugin-*' --force",
     "test:integration": "cd apps/agent/tests/integration && npm test",
+    "test:integration:console": "cd apps/agent/tests/integration && npm run test:console",
     "test:ui:report": "node report-UI-Tests-config.js",
-    "test:api:report": "node report-API-Tests-config.js"
+    "test:api:report": "node report-API-Tests-config.js",
+    "test:integration:report": "node report-Integration-Tests-config.js"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",

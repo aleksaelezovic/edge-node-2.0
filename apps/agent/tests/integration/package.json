@@ -4,15 +4,16 @@
   "private": true,
   "description": "Integration tests for DKG Agent application",
   "scripts": {
-    "test": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000 --reporter spec",
-    "test:workflows": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/**/*.spec.ts' --timeout 60000 --reporter spec",
-    "test:cross-plugin": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'cross-plugin/**/*.spec.ts' --timeout 60000 --reporter spec",
-    "test:performance": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'performance/**/*.spec.ts' --timeout 120000 --reporter spec",
-    "test:error-handling": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/error-handling.spec.ts' --timeout 60000 --reporter spec",
+    "test": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000 --reporter mochawesome --reporter-options reportDir=../../../../mochawesome-report,reportFilename=DKG_Node_Integration_Tests,reportTitle='DKG Node Integration Tests',reportPageTitle='Integration Tests Report'",
+    "test:console": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000 --reporter spec",
+    "test:workflows": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/**/*.spec.ts' --timeout 60000 --reporter mochawesome --reporter-options reportDir=../../../../mochawesome-report,reportFilename=DKG_Node_Integration_Workflows_Tests,reportTitle='DKG Node Integration Workflows Tests'",
+    "test:cross-plugin": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'cross-plugin/**/*.spec.ts' --timeout 60000 --reporter mochawesome --reporter-options reportDir=../../../../mochawesome-report,reportFilename=DKG_Node_Integration_CrossPlugin_Tests,reportTitle='DKG Node Integration Cross-Plugin Tests'",
+    "test:performance": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'performance/**/*.spec.ts' --timeout 120000 --reporter mochawesome --reporter-options reportDir=../../../../mochawesome-report,reportFilename=DKG_Node_Integration_Performance_Tests,reportTitle='DKG Node Integration Performance Tests'",
+    "test:error-handling": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/error-handling.spec.ts' --timeout 60000 --reporter mochawesome --reporter-options reportDir=../../../../mochawesome-report,reportFilename=DKG_Node_Integration_ErrorHandling_Tests,reportTitle='DKG Node Integration Error Handling Tests'",
     "test:watch": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --watch --timeout 60000 --reporter spec",
     "test:verbose": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000 --reporter spec",
     "test:quick": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/file-upload-workflow.spec.ts workflows/oauth-flow.spec.ts' --timeout 30000 --reporter spec",
-    "clean": "rm -rf coverage .nyc_output test-*.db test-data-*",
+    "clean": "rm -rf coverage .nyc_output test-*.db test-data-* ../../../../mochawesome-report/DKG_Node_Integration_*.json ../../../../mochawesome-report/DKG_Node_Integration_*.html",
     "coverage": "nyc --reporter=html --reporter=text ../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000"
   },
   "dependencies": {
