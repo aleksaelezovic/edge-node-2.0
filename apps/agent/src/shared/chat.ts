@@ -127,13 +127,24 @@ export const llmProvider = async () => {
   return s.llmProvider;
 };
 
+export const DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant.";
+
 export const processCompletionRequest = async (req: Request) => {
   const body: CompletionRequest = await req.json();
   const provider = await llmProvider();
-  const res = await provider.invoke(body.messages, {
-    ...body.options,
-    tools: body.tools,
-  });
+  const res = await provider.invoke(
+    [
+      {
+        role: "system",
+        content: process.env.LLM_SYSTEM_PROMPT || DEFAULT_SYSTEM_PROMPT,
+      },
+      ...body.messages,
+    ],
+    {
+      ...body.options,
+      tools: body.tools,
+    },
+  );
   return Response.json({
     role: "assistant",
     content: res.content,

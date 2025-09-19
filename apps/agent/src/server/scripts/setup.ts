@@ -10,6 +10,7 @@ import {
   getLLMProviderApiKeyEnvName,
   isValidLLMProvider,
   LLMProvider,
+  DEFAULT_SYSTEM_PROMPT,
 } from "@/shared/chat";
 
 async function setup() {
@@ -29,6 +30,9 @@ async function setup() {
   const LLM_TEMPERATURE = await ask(`LLM Temperature (default: 0): `).then(
     (s) => s || "0",
   );
+  const LLM_SYSTEM_PROMPT = await ask(
+    `LLM System Prompt (optional, there is a default): `,
+  ).then((s) => s || DEFAULT_SYSTEM_PROMPT);
 
   const DKG_OTNODE_URL = await ask(
     "OT-node URL (default: http://localhost:8900): ",
@@ -55,6 +59,7 @@ DATABASE_URL="${DB_FILENAME}"
 LLM_PROVIDER="${LLM_PROVIDER}"
 LLM_MODEL="${LLM_MODEL}"
 LLM_TEMPERATURE="${LLM_TEMPERATURE}"
+LLM_SYSTEM_PROMPT="${LLM_SYSTEM_PROMPT}"
 ${
   LLM_PROVIDER_API_KEY_ENV_NAME
     ? `${LLM_PROVIDER_API_KEY_ENV_NAME}="${LLM_PROVIDER_API_KEY}"`

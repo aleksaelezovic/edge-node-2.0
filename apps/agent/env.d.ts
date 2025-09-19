@@ -9,6 +9,7 @@ declare global {
       LLM_PROVIDER: LLMProvider;
       LLM_MODEL: string;
       LLM_TEMPERATURE: string;
+      LLM_SYSTEM_PROMPT: string;
       PORT: string;
       DKG_PUBLISH_WALLET: string;
       DKG_BLOCKCHAIN: string;
