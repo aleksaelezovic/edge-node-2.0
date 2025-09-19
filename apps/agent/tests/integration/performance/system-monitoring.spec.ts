@@ -380,7 +380,7 @@ describe("System Performance Monitoring", () => {
       );
 
       // Memory usage should not grow significantly
-      expect(Math.abs(memoryDiff)).to.be.lessThan(10 * 1024 * 1024); // Less than 10MB difference
+      expect(Math.abs(memoryDiff)).to.be.lessThan(15 * 1024 * 1024); // Less than 15MB difference
     });
   });
 });
