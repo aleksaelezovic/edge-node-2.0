@@ -7,7 +7,7 @@ import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/typ
 export interface StreamableHTTPClientTransportWithTokenRetrieval
   extends StreamableHTTPClientTransport {
   getToken: () => Promise<string | undefined>;
-  logout?: () => void;
+  logout?: () => Promise<void>;
 }
 
 export type ToolInfo = {
@@ -134,10 +134,11 @@ export default function useMcpClientConnection({
 
   const disconnect = useCallback(async () => {
     await mcp.close().catch(handleError);
-    transport.current.logout?.();
+    await transport.current.logout?.();
+    transport.current = transportFactory(url);
     setConnected(false);
     console.debug("[MCP] Disconnected");
-  }, [mcp, handleError]);
+  }, [mcp, handleError, url, transportFactory]);
 
   return useMemo(
     () =>

@@ -52,6 +52,14 @@ export default class AsyncStorageOAuthClientProvider
     return JSON.parse(str);
   }
 
+  async logout() {
+    await AsyncStorage.multiRemove([
+      this._transformKey("clientInfo"),
+      this._transformKey("tokens"),
+      this._transformKey("codeVerifier"),
+    ]);
+  }
+
   async clientInformation(): Promise<OAuthClientInformation | undefined> {
     const info = await this._load("clientInfo");
     const clientId = (info as OAuthClientInformation | undefined)?.client_id;
@@ -73,12 +81,7 @@ export default class AsyncStorageOAuthClientProvider
         });
 
       if (isInvalidClient) {
-        await AsyncStorage.multiRemove([
-          this._transformKey("clientInfo"),
-          this._transformKey("tokens"),
-          this._transformKey("codeVerifier"),
-        ]);
-
+        await this.logout();
         return undefined;
       }
     }
