@@ -1,4 +1,3 @@
-import { View } from "react-native";
 import LayoutPill from "./LayoutPill";
 import HeaderLogo from "./Header/HeaderLogo";
 import HeaderNav from "./Header/HeaderNav";
