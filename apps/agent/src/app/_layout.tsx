@@ -26,6 +26,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import Background from "@/components/layout/Background";
 import Alerts from "@/components/Alerts";
 import Container from "@/components/layout/Container";
+import Dialog from "@/components/Dialog";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,31 +49,34 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Alerts.Provider>
-        <Background>
-          <View
-            style={{
-              position: "absolute",
-              top: 100,
-              width: "100%",
-              zIndex: 10000,
-            }}
-          >
-            <Container>
-              <Alerts
-                style={{
-                  flex: 1,
-                  width: "100%",
-                  height: "100%",
-                  alignItems: "flex-end",
-                }}
-              />
-            </Container>
-          </View>
-          <Slot />
-        </Background>
-        <StatusBar style="auto" />
-      </Alerts.Provider>
+      <Dialog.Provider>
+        <Alerts.Provider>
+          <Dialog />
+          <Background>
+            <View
+              style={{
+                position: "absolute",
+                top: 100,
+                width: "100%",
+                zIndex: 10000,
+              }}
+            >
+              <Container>
+                <Alerts
+                  style={{
+                    flex: 1,
+                    width: "100%",
+                    height: "100%",
+                    alignItems: "flex-end",
+                  }}
+                />
+              </Container>
+            </View>
+            <Slot />
+          </Background>
+          <StatusBar style="auto" />
+        </Alerts.Provider>
+      </Dialog.Provider>
     </ThemeProvider>
   );
 }
