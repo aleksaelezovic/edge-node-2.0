@@ -33,5 +33,5 @@ export function useColorScheme() {
     return prefColorScheme;
   }
 
-  return "light";
+  return "dark";
 }
