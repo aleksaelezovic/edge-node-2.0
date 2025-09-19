@@ -1,11 +1,11 @@
-import { Redirect, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Text, View, TextInput, StyleSheet } from "react-native";
 import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
 
-import { clientUri, useMcpClient } from "@/client";
+import { clientUri } from "@/client";
 import { AuthError, login } from "@/shared/auth";
 import useColors from "@/hooks/useColors";
 import Checkbox from "@/components/Checkbox";
@@ -24,9 +24,6 @@ export default function Login() {
   const [error, setError] = useState("");
 
   const colors = useColors();
-
-  const mcp = useMcpClient();
-  if (mcp.connected) return <Redirect href="/" />;
 
   function submit() {
     setError("");
