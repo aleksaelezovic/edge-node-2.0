@@ -1,19 +1,24 @@
 import { useState } from "react";
 import { Text, View, StyleSheet, TextInput } from "react-native";
+import { fetch } from "expo/fetch";
 import { useGlobalSearchParams } from "expo-router";
 
 import Container from "@/components/layout/Container";
 import Header from "@/components/layout/Header";
 import Page from "@/components/layout/Page";
+import Button from "@/components/Button";
+import { useAlerts } from "@/components/Alerts";
+import useColors from "@/hooks/useColors";
+import { toError } from "@/shared/errors";
 
 import { styles as loginStyles } from "./login";
-import useColors from "@/hooks/useColors";
-import Button from "@/components/Button";
 
 export default function PasswordResetPage() {
   const colors = useColors();
 
   const { code } = useGlobalSearchParams<{ code?: string }>();
+  const { showAlert } = useAlerts();
+
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -31,9 +36,34 @@ export default function PasswordResetPage() {
     !!newPassword &&
     passwordChecks.every((check) => check.regex.test(newPassword));
   const [error, setError] = useState<string>();
+  const [loading, setLoading] = useState(false);
 
   function sendResetLink() {
-    //...
+    setLoading(true);
+    fetch(
+      new URL(process.env.EXPO_PUBLIC_MCP_URL + "/password-reset").toString(),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      },
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) throw new Error(data.error);
+        //... showDialog
+      })
+      .catch((error) => {
+        showAlert({
+          type: "error",
+          title: "Error sending reset link",
+          message: toError(error).message,
+          timeout: 5000,
+        });
+      })
+      .finally(() => setLoading(false));
   }
 
   function resetPassword() {
@@ -47,7 +77,33 @@ export default function PasswordResetPage() {
       return;
     }
 
-    //...
+    setLoading(true);
+    fetch(
+      new URL(
+        process.env.EXPO_PUBLIC_MCP_URL + "/password-reset/confirm",
+      ).toString(),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newPassword, code }),
+      },
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) throw new Error(data.error);
+        //... showDialog
+      })
+      .catch((error) => {
+        showAlert({
+          type: "error",
+          title: "Error sending reset link",
+          message: toError(error).message,
+          timeout: 5000,
+        });
+      })
+      .finally(() => setLoading(false));
   }
 
   return (
@@ -82,7 +138,7 @@ export default function PasswordResetPage() {
                 color="primary"
                 text="Send reset link"
                 onPress={sendResetLink}
-                disabled={!email}
+                disabled={!email || loading}
               />
             </View>
           ) : (
@@ -150,7 +206,7 @@ export default function PasswordResetPage() {
                   color="primary"
                   text="Confirm new password"
                   onPress={resetPassword}
-                  disabled={!validPassword}
+                  disabled={!validPassword || loading}
                 />
                 <View
                   style={[
