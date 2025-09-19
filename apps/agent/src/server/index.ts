@@ -7,14 +7,20 @@ import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
 //@ts-expect-error No types for dkg.js ...
 import DKG from "dkg.js";
+import { eq } from "drizzle-orm";
 
 import { userCredentialsSchema } from "@/shared/auth";
 import { verify } from "@node-rs/argon2";
 
 import { configDatabase, configEnv } from "./helpers";
 import webInterfacePlugin from "./webInterfacePlugin";
-import { users, SqliteOAuthStorageProvider } from "./database/sqlite";
-import { eq } from "drizzle-orm";
+import createPasswordResetPlugin from "./passwordResetPlugin";
+import {
+  users,
+  SqliteOAuthStorageProvider,
+  SqlitePasswordResetProvider,
+} from "./database/sqlite";
+import mailer from "./mailer";
 
 configEnv();
 const db = configDatabase();
@@ -39,6 +45,27 @@ const { oauthPlugin, openapiSecurityScheme } = createOAuthPlugin({
     if (!isValid) throw new Error("Invalid credentials");
 
     return { scopes: user.scope.split(" "), extra: { userId: user.id } };
+  },
+});
+
+const passwordResetPlugin = createPasswordResetPlugin({
+  provider: new SqlitePasswordResetProvider(db),
+  async sendMail(toEmail, code) {
+    const m = await mailer();
+    if (!m) throw new Error("No SMTP transport available");
+
+    await m
+      .sendMail({
+        to: toEmail,
+        subject: "Password reset request | DKG Node",
+        text:
+          `Your password reset code is ${code}.` +
+          `Link: ${process.env.APP_URL}/password-reset?code=${code}`,
+        html:
+          `<p>Your password reset code is <strong>${code}</strong>.</p>` +
+          `<p>Please click <a href="${process.env.APP_URL}/password-reset?code=${code}">here</a> to reset your password.</p>`,
+      })
+      .then(console.debug);
   },
 });
 
@@ -67,6 +94,7 @@ const app = createPluginServer({
   plugins: [
     defaultPlugin,
     oauthPlugin,
+    passwordResetPlugin,
     (_, __, api) => {
       api.use("/mcp", authorized(["mcp"]));
       api.use("/llm", authorized(["llm"]));
