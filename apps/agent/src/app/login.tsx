@@ -144,7 +144,7 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
@@ -152,8 +152,8 @@ const styles = StyleSheet.create({
   },
   loginCard: {
     width: "100%",
-    maxWidth: 420,
-    padding: 30,
+    maxWidth: 450,
+    padding: 15,
   },
   title: {
     fontSize: 40,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: "Manrope_400Regular",
     textAlign: "center",
     marginBottom: 30,
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorContainer: {
-    marginVertical: 0,
+    marginVertical: 8,
     marginHorizontal: 8,
     height: 40,
   },
