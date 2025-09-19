@@ -1,7 +1,11 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { v7 as uuid_v7 } from "uuid";
 
 export const users = sqliteTable("users", {
-  id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+  id: text("id")
+    .primaryKey()
+    .notNull()
+    .$default(() => uuid_v7()),
   username: text("username").unique().notNull(),
   password: text("password").notNull(),
   scope: text("scope").notNull(),
