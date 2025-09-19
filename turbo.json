@@ -11,7 +11,7 @@
     "//#format": {},
     "//#check-format": {},
     "lint": {
-      "dependsOn": ["//#format", "^check-types", "^lint"]
+      "dependsOn": ["//#check-format", "^check-types", "^lint"]
     },
     "check-types": {
       "dependsOn": ["^build", "^check-types"]
