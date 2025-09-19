@@ -392,15 +392,17 @@ describe("File Upload Workflow Integration", () => {
         .post("/blob")
         .set("Authorization", `Bearer ${accessToken}`)
         .field("filename", "protected-delete-test.txt")
-        .attach("file", Buffer.from("Protected content"), "protected-delete-test.txt")
+        .attach(
+          "file",
+          Buffer.from("Protected content"),
+          "protected-delete-test.txt",
+        )
         .expect(201);
 
       const blobId = uploadResponse.body.id;
 
       // Step 2: Try to delete without authorization
-      await request(testServer.app)
-        .delete(`/blob/${blobId}`)
-        .expect(401);
+      await request(testServer.app).delete(`/blob/${blobId}`).expect(401);
 
       // Step 3: Try to delete with insufficient scope
       const limitedToken = "test-limited-delete-token";
