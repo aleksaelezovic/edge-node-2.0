@@ -36,6 +36,7 @@ const oauthPlugin =
     schema: z.Schema<Credentials>;
     login: (credentials: Credentials) => Promise<{
       scopes: string[];
+      extra?: Record<string, unknown>;
     }>;
     logout?: () => Promise<void>;
     loginPageUrl: URL;
@@ -91,9 +92,10 @@ const oauthPlugin =
 
             const targetUrl = await provider.authorizeConfirm(
               authorizationCode,
-              user.scopes,
               {
                 includeRefreshToken: req.query.includeRefreshToken === "1",
+                scopes: user.scopes,
+                extra: user.extra,
               },
             );
 
@@ -173,6 +175,15 @@ export const createOAuthPlugin = <Credentials>(
   };
 };
 
+/**
+ * Middleware to check if the user is authorized for a given scope.
+ *
+ * It will also expose the `AuthInfo` object for the logged-in user
+ * in the response locals, `res.locals.auth`
+ *
+ * @param scope {string[]} - The scope to check for authorization.
+ * @returns {express.Handler} An Express middleware function.
+ */
 export const authorized =
   (scope: string[]): express.Handler =>
   (req, res, next) => {
@@ -184,5 +195,8 @@ export const authorized =
         verifyAccessToken: provider.verifyAccessToken,
       },
       requiredScopes: scope,
-    })(req, res, next);
+    })(req, res, (arg) => {
+      res.locals.auth = req.auth;
+      next(arg);
+    });
   };

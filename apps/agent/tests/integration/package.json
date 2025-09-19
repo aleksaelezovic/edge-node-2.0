@@ -1,0 +1,66 @@
+{
+  "name": "@dkg/agent-integration-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Integration tests for DKG Agent application",
+  "scripts": {
+    "test": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000 --reporter mochawesome --reporter-options reportDir=../../../../mochawesome-report,reportFilename=DKG_Node_Integration_Tests,reportTitle='DKG Node Integration Tests',reportPageTitle='Integration Tests Report'",
+    "test:console": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000 --reporter spec",
+    "test:workflows": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/**/*.spec.ts' --timeout 60000 --reporter mochawesome --reporter-options reportDir=../../../../mochawesome-report,reportFilename=DKG_Node_Integration_Workflows_Tests,reportTitle='DKG Node Integration Workflows Tests'",
+    "test:cross-plugin": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'cross-plugin/**/*.spec.ts' --timeout 60000 --reporter mochawesome --reporter-options reportDir=../../../../mochawesome-report,reportFilename=DKG_Node_Integration_CrossPlugin_Tests,reportTitle='DKG Node Integration Cross-Plugin Tests'",
+    "test:performance": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'performance/**/*.spec.ts' --timeout 120000 --reporter mochawesome --reporter-options reportDir=../../../../mochawesome-report,reportFilename=DKG_Node_Integration_Performance_Tests,reportTitle='DKG Node Integration Performance Tests'",
+    "test:error-handling": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/error-handling.spec.ts' --timeout 60000 --reporter mochawesome --reporter-options reportDir=../../../../mochawesome-report,reportFilename=DKG_Node_Integration_ErrorHandling_Tests,reportTitle='DKG Node Integration Error Handling Tests'",
+    "test:watch": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --watch --timeout 60000 --reporter spec",
+    "test:verbose": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000 --reporter spec",
+    "test:quick": "../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register 'workflows/file-upload-workflow.spec.ts workflows/oauth-flow.spec.ts' --timeout 30000 --reporter spec",
+    "clean": "rm -rf coverage .nyc_output test-*.db test-data-* ../../../../mochawesome-report/DKG_Node_Integration_*.json ../../../../mochawesome-report/DKG_Node_Integration_*.html",
+    "coverage": "nyc --reporter=html --reporter=text ../../../../node_modules/.bin/mocha --require ../../../../node_modules/ts-node/register '**/*.spec.ts' --timeout 60000"
+  },
+  "dependencies": {
+    "@dkg/plugins": "*",
+    "@dkg/plugin-oauth": "*",
+    "@dkg/plugin-dkg-essentials": "*",
+    "@dkg/plugin-example": "*",
+    "@dkg/plugin-swagger": "*",
+    "@node-rs/argon2": "^1.8.3",
+    "better-sqlite3": "^9.6.0",
+    "drizzle-orm": "^0.33.0",
+    "dkg.js": "^8.0.14"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^10.0.0",
+    "@types/supertest": "^6.0.0",
+    "@types/node": "^20.0.0",
+    "chai": "^4.3.0",
+    "mocha": "^10.0.0",
+    "nyc": "^15.1.0",
+    "supertest": "^6.3.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "tsx": "^4.0.0"
+  },
+  "mocha": {
+    "extensions": [
+      "ts"
+    ],
+    "spec": "**/*.spec.ts",
+    "timeout": 60000,
+    "exit": true
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "exclude": [
+      "**/*.spec.ts",
+      "**/*.test.ts"
+    ],
+    "reporter": [
+      "html",
+      "text"
+    ],
+    "all": true
+  }
+}

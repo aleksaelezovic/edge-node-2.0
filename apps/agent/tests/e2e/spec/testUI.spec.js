@@ -55,14 +55,14 @@ test("Test send message and get answer @gh_actions", async ({ page }) => {
   await chatbotPage.sendMessage("3+7");
   // Accept both formats: "The result of (3 + 7) is (10)." or "The result of 3 + 7 is 10."
   await expect(page.locator(".css-textHasAncestor-1jxf684").last()).toHaveText(
-    /The result of \(?3 \+ 7\)? is \(?10\)?\./
+    /The result of \(?3 \+ 7\)? is \(?10\)?\./,
   );
 });
 
 test.skip("Test if importing files and summarizing works", async ({ page }) => {
   await loginPage.successfullLogin();
 
-  const filePath = "./tests/TestCourseforUKSAP1000.pdf";
+  const filePath = "./tests/e2e/TestCourseforUKSAP1000.pdf";
   await chatbotPage.importFiles(filePath);
 
   await page.waitForTimeout(3000);

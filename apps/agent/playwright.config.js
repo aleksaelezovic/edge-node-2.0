@@ -5,7 +5,7 @@ const { defineConfig, devices } = require("@playwright/test");
  * @see https://playwright.dev/docs/test-configuration
  */
 module.exports = defineConfig({
-  testDir: "./tests",
+  testDir: "./tests/e2e",
   testMatch: "**/*.spec.js",
   retries: 2,
   workers: 1,
@@ -53,7 +53,7 @@ module.exports = defineConfig({
     //viewport: { width: 1920, height: 1080 },
     video: {
       // GitHub Actions: No video (saves storage/time), Jenkins: Video on failure
-      mode: process.env.GITHUB_ACTIONS === 'true' ? "off" : "retain-on-failure",
+      mode: process.env.GITHUB_ACTIONS === "true" ? "off" : "retain-on-failure",
       size: { width: 1920, height: 1080 }, // Specify the video size
     },
   },
@@ -105,15 +105,14 @@ module.exports = defineConfig({
   webServer: {
     command: "turbo dev",
     url: "http://localhost:8081",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false, // Always start fresh - prevents session persistence
     timeout: process.env.CI ? 300 * 1000 : 120 * 1000, // 5 minutes in CI, 2 minutes locally
     ignoreHTTPSErrors: true,
     stderr: "pipe",
     stdout: "pipe",
-    // Gracefully shutdown servers when tests finish
     gracefulShutdown: {
-      timeout: 2000,
-      signal: "SIGINT",
+      timeout: 10000, // 10 seconds for complete cleanup
+      signal: "SIGTERM", // Graceful termination signal
     },
   },
 });

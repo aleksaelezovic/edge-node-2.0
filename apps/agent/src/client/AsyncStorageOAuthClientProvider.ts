@@ -52,8 +52,37 @@ export default class AsyncStorageOAuthClientProvider
     return JSON.parse(str);
   }
 
-  clientInformation(): Promise<OAuthClientInformation | undefined> {
-    return this._load("clientInfo");
+  async clientInformation(): Promise<OAuthClientInformation | undefined> {
+    const info = await this._load("clientInfo");
+    const clientId = (info as OAuthClientInformation | undefined)?.client_id;
+    if (clientId) {
+      const isInvalidClient = await fetch(
+        new URL(this._uri.toString()).origin +
+          "/authorize?client_id=" +
+          clientId,
+        { redirect: "manual" },
+      )
+        .then((r) => {
+          if (r.status < 400) return {};
+          return r.json();
+        })
+        .then((err: any) => err?.error === "invalid_client")
+        .catch((err) => {
+          console.log("Error when checking client_id:", err);
+          return false;
+        });
+
+      if (isInvalidClient) {
+        await AsyncStorage.multiRemove([
+          this._transformKey("clientInfo"),
+          this._transformKey("tokens"),
+          this._transformKey("codeVerifier"),
+        ]);
+
+        return undefined;
+      }
+    }
+    return info;
   }
 
   async saveClientInformation(

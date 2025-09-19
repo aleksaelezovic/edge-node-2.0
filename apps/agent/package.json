@@ -19,8 +19,8 @@
     "script:setup": "node dist/scripts/setup.js",
     "script:createUser": "node dist/scripts/createUser.js",
     "script:createToken": "node dist/scripts/createToken.js",
-    "test": "PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml playwright test tests/spec/testUI.spec.js --grep '@gh_actions' --reporter=list,html,junit",
-    "test:e2e": "PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml playwright test tests/spec/testUI.spec.js --reporter=list,html,junit",
+    "test": "PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml playwright test spec/testUI.spec.js --grep '@gh_actions' --reporter=list,html,junit",
+    "test:e2e": "PLAYWRIGHT_JUNIT_OUTPUT_NAME=DKG_Node_UI_Tests.xml playwright test spec/testUI.spec.js --reporter=list,junit",
     "postinstall": "node fix-uuid.js"
   },
   "dependencies": {
