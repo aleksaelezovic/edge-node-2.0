@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { router, Slot, useGlobalSearchParams } from "expo-router";
+import { router, Slot, useGlobalSearchParams, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 
 import { McpContextProvider } from "@/client";
@@ -36,10 +36,12 @@ export default function ProtectedLayout() {
       );
   }, [errorCode, callback]);
 
+  const isLoginFlow = usePathname() === "/login" && !!params.code;
+
   return (
     <McpContextProvider
       autoconnect={
-        errorCode
+        errorCode || isLoginFlow
           ? false
           : {
               authorizationCode: params.code,

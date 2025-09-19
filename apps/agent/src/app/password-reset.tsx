@@ -11,7 +11,7 @@ import { useAlerts } from "@/components/Alerts";
 import useColors from "@/hooks/useColors";
 import { toError } from "@/shared/errors";
 
-import { styles as loginStyles } from "./login";
+import { styles as loginStyles } from "./(protected)/login";
 import { useDialog } from "@/components/Dialog";
 
 export default function PasswordResetPage() {
