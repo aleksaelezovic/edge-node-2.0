@@ -4,10 +4,11 @@
   "scripts": {
     "build": "turbo run build",
     "build:check": "turbo run format lint check-types build",
-    "check": "turbo run format check-types lint",
+    "check": "turbo run check-format check-types lint",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,json,md,yml}\"",
+    "check-format": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,json,md,yml}\"",
     "check-types": "turbo run check-types",
     "test": "turbo run test --force",
     "test:e2e": "turbo run test:e2e --filter=@dkg/agent --force",
