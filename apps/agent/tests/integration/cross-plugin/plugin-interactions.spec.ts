@@ -246,7 +246,8 @@ describe("Cross-Plugin Integration", () => {
       // Parse SSE response
       const sseLines = toolsResponse.text.split("\n");
       const dataLine = sseLines.find((line) => line.startsWith("data: "));
-      if (!dataLine) throw new Error("No data line found in tools SSE response");
+      if (!dataLine)
+        throw new Error("No data line found in tools SSE response");
       const responseData = JSON.parse(dataLine.substring(6));
 
       expect(responseData.result.tools).to.be.an("array");

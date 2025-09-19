@@ -306,7 +306,8 @@ describe("Error Handling & Edge Cases", () => {
       // Parse SSE response to check for error
       const sseLines = invalidResponse.text.split("\n");
       const dataLine = sseLines.find((line) => line.startsWith("data: "));
-      if (!dataLine) throw new Error("No data line found in error SSE response");
+      if (!dataLine)
+        throw new Error("No data line found in error SSE response");
       const responseData = JSON.parse(dataLine.substring(6));
 
       expect(responseData.error).to.exist;

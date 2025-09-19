@@ -196,7 +196,8 @@ describe("File Upload Workflow Integration", () => {
         const getAssetDataLine = getAssetLines.find((line) =>
           line.startsWith("data: "),
         );
-        if (!getAssetDataLine) throw new Error("No data line found in get asset SSE response");
+        if (!getAssetDataLine)
+          throw new Error("No data line found in get asset SSE response");
         const getAssetData = JSON.parse(getAssetDataLine.substring(6));
 
         const retrievedAsset = JSON.parse(getAssetData.result.content[0].text);
@@ -290,7 +291,8 @@ describe("File Upload Workflow Integration", () => {
       const createDataLine = createSseLines.find((line) =>
         line.startsWith("data: "),
       );
-      if (!createDataLine) throw new Error("No data line found in create SSE response");
+      if (!createDataLine)
+        throw new Error("No data line found in create SSE response");
       const createResponseData = JSON.parse(createDataLine.substring(6));
 
       const responseText = createResponseData.result.content[0].text;
@@ -348,7 +350,8 @@ describe("File Upload Workflow Integration", () => {
         const getDataLine = getSseLines.find((line) =>
           line.startsWith("data: "),
         );
-        if (!getDataLine) throw new Error("No data line found in get SSE response");
+        if (!getDataLine)
+          throw new Error("No data line found in get SSE response");
         const getResponseData = JSON.parse(getDataLine.substring(6));
 
         const retrievedAsset = JSON.parse(
@@ -525,7 +528,8 @@ describe("File Upload Workflow Integration", () => {
       expect(createResponse.status).to.equal(200);
       const sseLines = createResponse.text.split("\n");
       const dataLine = sseLines.find((line) => line.startsWith("data: "));
-      if (!dataLine) throw new Error("No data line found in error SSE response");
+      if (!dataLine)
+        throw new Error("No data line found in error SSE response");
       const responseData = JSON.parse(dataLine.substring(6));
 
       // Check if it's an error response format (could be result.isError or direct error)
@@ -604,7 +608,8 @@ describe("File Upload Workflow Integration", () => {
       // Parse SSE response for MCP resource access
       const sseLines = resourceResponse.text.split("\n");
       const dataLine = sseLines.find((line) => line.startsWith("data: "));
-      if (!dataLine) throw new Error("No data line found in resource SSE response");
+      if (!dataLine)
+        throw new Error("No data line found in resource SSE response");
       const responseData = JSON.parse(dataLine.substring(6));
 
       expect(responseData.result).to.have.property("contents");

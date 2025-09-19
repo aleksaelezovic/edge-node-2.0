@@ -210,7 +210,9 @@ describe("Concurrent Operations Performance", () => {
         } else if (response.text?.includes("data: ")) {
           // Parse SSE response for MCP calls
           const sseLines = response.text.split("\n");
-          const dataLine = sseLines.find((line: string) => line.startsWith("data: "));
+          const dataLine = sseLines.find((line: string) =>
+            line.startsWith("data: "),
+          );
           if (dataLine) {
             try {
               const responseData = JSON.parse(dataLine.substring(6));
