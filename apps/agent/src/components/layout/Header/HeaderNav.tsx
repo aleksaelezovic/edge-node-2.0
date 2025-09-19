@@ -7,15 +7,18 @@ import type { SvgProps } from "react-native-svg";
 import useThemeColor from "@/hooks/useThemeColor";
 
 function HeaderNavLink(props: {
-  icon: (props: SvgProps) => ReactNode;
   text: string;
+  icon?: (props: SvgProps) => ReactNode;
   href?: Href;
+  onPress?: () => void;
 }) {
   const cardTextColor = useThemeColor("cardText");
 
   return (
     <Pressable
-      onPress={() => (props.href ? router.navigate(props.href) : undefined)}
+      onPress={() =>
+        props.href ? router.navigate(props.href) : props.onPress?.()
+      }
       style={{
         display: "flex",
         flexDirection: "row",
@@ -25,7 +28,9 @@ function HeaderNavLink(props: {
         userSelect: "none",
       }}
     >
-      <props.icon height={18} width={18} stroke={cardTextColor} />
+      {props.icon && (
+        <props.icon height={18} width={18} stroke={cardTextColor} />
+      )}
       <Text
         style={{
           color: cardTextColor,

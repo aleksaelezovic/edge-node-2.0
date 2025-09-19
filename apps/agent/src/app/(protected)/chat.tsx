@@ -225,7 +225,7 @@ export default function ChatPage() {
               isLandingScreen && { flex: null as any },
             ]}
           >
-            <Header />
+            <Header handleLogout={() => mcp.disconnect()} />
             <Chat.Messages
               style={[
                 {
