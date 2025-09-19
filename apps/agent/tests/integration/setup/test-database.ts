@@ -12,7 +12,13 @@ import { hash } from "@node-rs/argon2";
 /**
  * Creates a test database with sample users and OAuth storage
  */
-export async function createTestDatabase() {
+export async function createTestDatabase(): Promise<{
+  db: ReturnType<typeof drizzle>;
+  sqlite: Database.Database;
+  oauthStorage: SqliteOAuthStorageProvider;
+  testClient: any;
+  cleanup: () => void;
+}> {
   // Create temporary database file
   const tempDbPath = path.join(process.cwd(), `test-${Date.now()}.db`);
 
