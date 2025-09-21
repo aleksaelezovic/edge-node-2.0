@@ -1,4 +1,4 @@
-import { Redirect, router, useLocalSearchParams } from "expo-router";
+import { Link, Redirect, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Text, View, TextInput, StyleSheet } from "react-native";
 import * as Linking from "expo-linking";
@@ -127,6 +127,18 @@ export default function Login() {
               onPress={submit}
               disabled={!email || !password}
             />
+            <Link
+              href="/password-reset"
+              style={{
+                color: colors.secondary,
+                fontSize: 16,
+                fontFamily: "Manrope_600SemiBold",
+                textAlign: "center",
+                marginVertical: 16,
+              }}
+            >
+              Forgot password?
+            </Link>
 
             <View
               style={[
