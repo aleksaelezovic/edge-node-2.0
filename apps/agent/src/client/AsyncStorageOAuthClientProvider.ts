@@ -54,7 +54,6 @@ export default class AsyncStorageOAuthClientProvider
 
   async logout() {
     await AsyncStorage.multiRemove([
-      this._transformKey("clientInfo"),
       this._transformKey("tokens"),
       this._transformKey("codeVerifier"),
     ]);
@@ -81,6 +80,7 @@ export default class AsyncStorageOAuthClientProvider
         });
 
       if (isInvalidClient) {
+        await AsyncStorage.removeItem(this._transformKey("clientInfo"));
         await this.logout();
         return undefined;
       }
