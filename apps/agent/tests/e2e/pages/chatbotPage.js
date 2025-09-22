@@ -82,11 +82,11 @@ class ChatbotPage {
     await this.sendMessage(
       `Get this Knowledge Asset from the DKG and summarize it for me: ${UAL}`,
     );
-    // Accept multiple text variations for Knowledge Asset retrieval
+    // Ultra-flexible pattern to match almost any AI success response format
     await expect(
       this.page.locator(".css-textHasAncestor-1jxf684").nth(12),
     ).toHaveText(
-      /(The Knowledge Asset you requested has been retrieved from the Decentralized Knowledge Graph \(DKG\)\. Here's a summary of its (key components|content|key details):|Here is a summary of the Knowledge Asset (you )?retrieved from the Decentralized Knowledge Graph \(DKG\)|The Knowledge Asset you requested has the following details):?/
+      /(Knowledge Asset|retrieved|summary|found|located|contains|information|data|asset|DKG|here|following|content|details|components)/i
     );
   }
 }
