@@ -10,7 +10,6 @@ import {
   getLLMProviderApiKeyEnvName,
   isValidLLMProvider,
   LLMProvider,
-  DEFAULT_SYSTEM_PROMPT,
 } from "@/shared/chat";
 
 async function setup() {
@@ -32,7 +31,7 @@ async function setup() {
   );
   const LLM_SYSTEM_PROMPT = await ask(
     `LLM System Prompt (optional, there is a default): `,
-  ).then((s) => s || DEFAULT_SYSTEM_PROMPT);
+  ).then((s) => s || "");
 
   const DKG_OTNODE_URL = await ask(
     "OT-node URL (default: http://localhost:8900): ",
