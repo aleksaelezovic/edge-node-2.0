@@ -78,7 +78,10 @@ const app = createPluginServer({
     }),
     swaggerPlugin({
       version,
-      securitySchemes: { oauth2: openapiSecurityScheme },
+      securitySchemes: {
+        oauth2: openapiSecurityScheme,
+        bearer: { type: "http", scheme: "bearer" },
+      },
       servers: [
         {
           url: process.env.EXPO_PUBLIC_MCP_URL,
