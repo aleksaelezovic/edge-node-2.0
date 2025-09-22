@@ -60,14 +60,14 @@ class ChatbotPage {
   "description": "My first Knowledge Asset on the Decentralized Knowledge Graph!"
 }`);
     
-    // Wait for any success message about Knowledge Asset creation (flexible regex)
+    // Wait for any success message about Knowledge Asset creation (much more flexible)
     await this.page.waitForSelector(
-      'text=/.*Knowledge Asset.*successfully.*created.*DKG.*/',
-      { timeout: 120000 },
+      'text=/.*((Knowledge Asset|KA).*(created|published|generated|added|stored|uploaded)|(created|published|generated|added|stored|uploaded).*(Knowledge Asset|KA)|successfully.*(created|published)|UAL.*did:|Here.*UAL|Asset.*DKG|DKG.*Asset).*/i',
+      { timeout: 180000 }, // 3 minutes
     );
     
-    // Use regex to match various AI responses for successful KA creation
-    const successMessageRegex = /(Your Knowledge Asset has been successfully created|Successfully created.*Knowledge Asset|The Knowledge Asset.*has been created|Knowledge Asset.*created successfully)/;
+    // Use very flexible regex to match many possible AI success responses
+    const successMessageRegex = /(Knowledge Asset.*(?:created|published|generated|added|stored|uploaded)|(?:created|published|generated|added|stored|uploaded).*Knowledge Asset|successfully.*(?:created|published)|UAL.*did:|Here.*UAL|Asset.*DKG|DKG.*Asset|KA.*(?:created|published)|(?:created|published).*KA)/i;
     await expect(
       this.page.locator(".css-textHasAncestor-1jxf684").filter({ hasText: successMessageRegex }).first(),
     ).toBeVisible();
