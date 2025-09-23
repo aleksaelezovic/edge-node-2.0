@@ -68,8 +68,8 @@ export default function useMcpClientConnection({
     async (authorizationCode?: string) => {
       console.debug("[MCP] Connecting...");
       try {
+        transport.current = transportFactory(url);
         if (authorizationCode) {
-          transport.current = transportFactory(url);
           await transport.current.finishAuth(authorizationCode);
           console.debug("[MCP] Authorization successful.");
         }
