@@ -64,9 +64,8 @@ export default function ChangePasswordForm<M extends ChangePasswordFormMode>({
       setConfirmNewPassword("");
     } catch (error) {
       setError(toError(error).message);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   }, [onSubmit, currentPassword, newPassword, passwordsMatch, validPassword]);
 
   return (

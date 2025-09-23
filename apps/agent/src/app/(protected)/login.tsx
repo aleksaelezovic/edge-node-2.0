@@ -1,155 +1,83 @@
-import { Link, Redirect, router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { Text, View, TextInput, StyleSheet } from "react-native";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
+import { useCallback } from "react";
+import { View } from "react-native";
 import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
 import { fetch } from "expo/fetch";
 
 import { clientUri, useMcpClient } from "@/client";
 import { AuthError, login } from "@/shared/auth";
-import useColors from "@/hooks/useColors";
-import Checkbox from "@/components/Checkbox";
-import Button from "@/components/Button";
 import Page from "@/components/layout/Page";
 import Container from "@/components/layout/Container";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import FormTitle from "@/components/forms/FormTitle";
+import LoginForm from "@/components/forms/LoginForm";
+
+const getErrorMessage = (err: any) => {
+  if (!(err instanceof AuthError)) return "Unknown error occurred!";
+  switch (err.code) {
+    case AuthError.Code.INVALID_CREDENTIALS:
+      return "Invalid username or password";
+    case AuthError.Code.NO_REDIRECT_URL:
+      return "No redirect URL provided";
+    case AuthError.Code.INTERNAL_ERROR:
+      return "Internal server error";
+    default:
+      return "Unknown auth error occurred!";
+  }
+};
 
 export default function Login() {
   SplashScreen.hide();
   const { code } = useLocalSearchParams<{ code?: string }>();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState("");
-  const colors = useColors();
 
-  const { connected } = useMcpClient();
-  if (connected) return <Redirect href="/" />;
-
-  function submit() {
-    setError("");
-
-    login({
-      code: code ?? "",
-      credentials: { email, password },
+  const tryLogin = useCallback(
+    async ({
+      email,
+      password,
       rememberMe,
-      fetch: (url, opts) => fetch(url.toString(), opts as any),
-    })
-      .then((url) => {
+    }: {
+      email: string;
+      password: string;
+      rememberMe: boolean;
+    }) => {
+      try {
+        const url = await login({
+          code: code ?? "",
+          credentials: { email, password },
+          rememberMe,
+          fetch: (url, opts) => fetch(url.toString(), opts as any),
+        });
         if (url.startsWith(clientUri))
           router.navigate({
             pathname: url.substring(clientUri.length) as any,
           });
         else Linking.openURL(url);
-      })
-      .catch((err: Error) => {
-        if (!(err instanceof AuthError)) {
-          setError("Unknown error occurred!");
-          return;
-        }
+      } catch (error) {
+        const errorMessage = getErrorMessage(error);
+        throw new Error(errorMessage);
+      }
+    },
+    [code],
+  );
 
-        switch (err.code) {
-          case AuthError.Code.INVALID_CREDENTIALS:
-            setError("Invalid username or password");
-            break;
-          case AuthError.Code.NO_REDIRECT_URL:
-            setError("No redirect URL provided");
-            break;
-          case AuthError.Code.INTERNAL_ERROR:
-            setError("Internal server error");
-            break;
-          default:
-            setError("Unknown auth error occurred!");
-            break;
-        }
-      });
-  }
+  const { connected } = useMcpClient();
+  if (connected) return <Redirect href="/" />;
 
   return (
     <Page>
       <Container>
         <Header mode="login" />
-        <View style={styles.container}>
-          <View style={styles.loginCard}>
-            <Text style={[styles.title, { color: colors.secondary }]}>
-              Login
-            </Text>
-            <Text style={[styles.subtitle, { color: colors.text }]}>
-              Enter your details to get started.
-            </Text>
-
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: colors.input, color: colors.text },
-                ]}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Email"
-                placeholderTextColor={colors.placeholder}
-                keyboardType="email-address"
-                textContentType="emailAddress"
-                autoCapitalize="none"
-              />
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: colors.input, color: colors.text },
-                ]}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Password"
-                placeholderTextColor={colors.placeholder}
-                secureTextEntry
-              />
-              <Checkbox
-                value={rememberMe}
-                onValueChange={setRememberMe}
-                style={{ marginBottom: 16 }}
-              >
-                <Text
-                  style={{
-                    color: colors.placeholder,
-                    fontFamily: "Manrope_400Regular",
-                    marginLeft: 8,
-                  }}
-                >
-                  Remember me
-                </Text>
-              </Checkbox>
-            </View>
-
-            <Button
-              color="primary"
-              text="Login"
-              onPress={submit}
-              disabled={!email || !password}
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <View style={{ width: "100%", maxWidth: 450, padding: 15 }}>
+            <FormTitle
+              title="Login"
+              subtitle="Enter your details to get started."
             />
-            <Link
-              href="/password-reset"
-              style={{
-                color: colors.secondary,
-                fontSize: 16,
-                fontFamily: "Manrope_600SemiBold",
-                textAlign: "center",
-                marginVertical: 16,
-              }}
-            >
-              Forgot password?
-            </Link>
-
-            <View
-              style={[
-                styles.errorContainer,
-                { visibility: error ? "visible" : "hidden" },
-              ]}
-            >
-              <Text style={[styles.errorText, { color: colors.error }]}>
-                {error}
-              </Text>
-            </View>
+            <LoginForm onSubmit={tryLogin} />
           </View>
         </View>
         <Footer mode="login" />
@@ -157,47 +85,3 @@ export default function Login() {
     </Page>
   );
 }
-
-export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loginCard: {
-    width: "100%",
-    maxWidth: 450,
-    padding: 15,
-  },
-  title: {
-    fontSize: 40,
-    fontWeight: 700,
-    fontFamily: "SpaceGrotesk_700Bold",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontFamily: "Manrope_400Regular",
-    textAlign: "center",
-    marginBottom: 30,
-  },
-  inputContainer: {},
-  input: {
-    borderRadius: 50,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    height: 45,
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  errorContainer: {
-    marginVertical: 8,
-    marginHorizontal: 8,
-    height: 40,
-  },
-  errorText: {
-    fontSize: 16,
-    textAlign: "center",
-  },
-});

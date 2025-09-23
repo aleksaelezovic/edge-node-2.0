@@ -19,8 +19,8 @@ export default function RequestPasswordResetForm({
   const [loading, setLoading] = useState(false);
 
   const submit = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       await onSubmit({ email });
       setEmail("");
     } finally {

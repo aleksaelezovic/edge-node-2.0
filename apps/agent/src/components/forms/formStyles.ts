@@ -1,11 +1,6 @@
 import { StyleSheet } from "react-native";
 
 const formStyles = StyleSheet.create({
-  // loginCard: {
-  //   width: "100%",
-  //   maxWidth: 450,
-  //   padding: 15,
-  // },
   title: {
     fontSize: 40,
     fontWeight: 700,
@@ -19,7 +14,6 @@ const formStyles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 30,
   },
-  inputContainer: {},
   input: {
     borderRadius: 50,
     paddingHorizontal: 20,
