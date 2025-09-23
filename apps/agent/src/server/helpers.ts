@@ -1,7 +1,7 @@
 import path from "path";
 import { promises as fs } from "fs";
 import dotenv from "dotenv";
-import { drizzle, migrate, users } from "@/server/database/sqlite";
+import { drizzle, migrate, users, clients } from "@/server/database/sqlite";
 import { hash } from "@node-rs/argon2";
 import type { UserCredentials } from "@/shared/auth";
 import { eq } from "drizzle-orm";
@@ -49,6 +49,23 @@ export function configDatabase() {
   migrate(db, {
     migrationsFolder: path.resolve(process.cwd(), "./drizzle/sqlite"),
   });
+  db.insert(clients)
+    .values({
+      client_id: "swagger-client",
+      client_info: JSON.stringify({
+        redirect_uris: ["http://localhost:9200/swagger/oauth2-redirect.html"],
+        client_name: "Swagger Client",
+        client_uri: "http://localhost:9200/swagger",
+        scope: "mcp llm scope123 blob",
+        client_secret: "swagger-secret",
+        client_secret_expires_at:
+          Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+        client_id: "swagger-client",
+        client_id_issued_at: Date.now(),
+      }),
+    })
+    .onConflictDoNothing()
+    .then(() => null);
   return db;
 }
 
