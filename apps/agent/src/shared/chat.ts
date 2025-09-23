@@ -50,6 +50,7 @@ export enum LLMProvider {
   Anthropic = "anthropic",
   GoogleGenAI = "google-genai",
   MistralAI = "mistralai",
+  XAI = "xai",
   Ollama = "ollama",
 }
 
@@ -70,6 +71,8 @@ export const getLLMProviderApiKeyEnvName = (llmProvider: LLMProvider) => {
       return "GOOGLE_API_KEY";
     case LLMProvider.MistralAI:
       return "MISTRAL_API_KEY";
+    case LLMProvider.XAI:
+      return "XAI_API_KEY";
     case LLMProvider.Ollama:
       return null;
     default:
@@ -105,6 +108,10 @@ const llmProviderFromEnv = async () => {
     case LLMProvider.MistralAI:
       return import("@langchain/mistralai").then(
         ({ ChatMistralAI }) => new ChatMistralAI({ model, temperature }),
+      );
+    case LLMProvider.XAI:
+      return import("@langchain/xai").then(
+        ({ ChatXAI }) => new ChatXAI({ model, temperature }),
       );
     case LLMProvider.Ollama:
       return import("@langchain/ollama").then(

@@ -40,6 +40,7 @@
     "@langchain/mistralai": "^0.2.1",
     "@langchain/ollama": "^0.2.4",
     "@langchain/openai": "^0.6.3",
+    "@langchain/xai": "^0.1.0",
     "@modelcontextprotocol/sdk": "^1.16.0",
     "@node-rs/argon2": "^2.0.2",
     "@react-native-async-storage/async-storage": "2.1.2",
