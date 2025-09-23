@@ -3,7 +3,7 @@ import { z } from "zod";
 import { ErrorWithCode } from "./errors";
 
 export const userCredentialsSchema = z.object({
-  username: z.string(),
+  email: z.string(),
   password: z.string(),
 });
 

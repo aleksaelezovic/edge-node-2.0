@@ -225,7 +225,7 @@ export default function ChatPage() {
               isLandingScreen && { flex: null as any },
             ]}
           >
-            <Header />
+            <Header handleLogout={() => mcp.disconnect()} />
             <Chat.Messages
               style={[
                 {
@@ -380,7 +380,7 @@ export default function ChatPage() {
             >
               {isLandingScreen && (
                 <Image
-                  source={require("../assets/logo.svg")}
+                  source={require("@/assets/logo.svg")}
                   style={{ width: 100, height: 100, marginBottom: 24 }}
                 />
               )}

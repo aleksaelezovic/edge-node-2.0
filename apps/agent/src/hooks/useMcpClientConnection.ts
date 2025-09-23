@@ -3,11 +3,15 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  InvalidGrantError,
+  InvalidTokenError,
+} from "@modelcontextprotocol/sdk/server/auth/errors.js";
 
 export interface StreamableHTTPClientTransportWithTokenRetrieval
   extends StreamableHTTPClientTransport {
   getToken: () => Promise<string | undefined>;
-  logout?: () => void;
+  logout?: () => Promise<void>;
 }
 
 export type ToolInfo = {
@@ -52,12 +56,20 @@ export default function useMcpClientConnection({
     [onError],
   );
 
+  const disconnect = useCallback(async () => {
+    await mcp.close().catch(handleError);
+    await transport.current.logout?.();
+    transport.current = transportFactory(url);
+    setConnected(false);
+    console.debug("[MCP] Disconnected");
+  }, [mcp, handleError, url, transportFactory]);
+
   const connect = useCallback(
     async (authorizationCode?: string) => {
       console.debug("[MCP] Connecting...");
       try {
+        transport.current = transportFactory(url);
         if (authorizationCode) {
-          transport.current = transportFactory(url);
           await transport.current.finishAuth(authorizationCode);
           console.debug("[MCP] Authorization successful.");
         }
@@ -74,10 +86,18 @@ export default function useMcpClientConnection({
           console.debug("[MCP] Unauthorized, trying to authorize...");
           return;
         }
+        if (
+          error instanceof InvalidGrantError ||
+          error instanceof InvalidTokenError
+        ) {
+          await disconnect();
+          console.debug("[MCP] Invalid grant or token, trying to authorize...");
+          return connect();
+        }
         throw error;
       }
     },
-    [mcp, transportFactory, url],
+    [mcp, transportFactory, url, disconnect],
   );
 
   const [token, setToken] = useState<string>();
@@ -86,8 +106,11 @@ export default function useMcpClientConnection({
       mcp
         .ping()
         .then(() => transport.current.getToken())
-        .catch(() => undefined),
-    [mcp],
+        .catch(() => {
+          disconnect();
+          return undefined;
+        }),
+    [mcp, disconnect],
   );
 
   const [tools, setTools] = useState<ToolInfo[]>([]);
@@ -131,13 +154,6 @@ export default function useMcpClientConnection({
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [connected, mcp, ping, fetchToken]);
-
-  const disconnect = useCallback(async () => {
-    await mcp.close().catch(handleError);
-    transport.current.logout?.();
-    setConnected(false);
-    console.debug("[MCP] Disconnected");
-  }, [mcp, handleError]);
 
   return useMemo(
     () =>

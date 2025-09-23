@@ -100,45 +100,8 @@ jobs:
           # Run database migrations
           npm run build:migrations
 
-          # Create temporary admin creation script
-          cat > create-admin-temp.mjs << 'EOF'
-          import { configDatabase, configEnv, createUser } from "./dist/helpers.js";
-
-          configEnv();
-
-          (async () => {
-            try {
-              console.log("Creating admin user for automated testing...");
-              const db = configDatabase();
-              
-              // Create admin user with hardcoded credentials for testing
-              const userId = await createUser(
-                db,
-                { username: "admin", password: "admin123" },
-                ["mcp", "llm", "blob", "scope123"]
-              );
-              
-              console.log("Admin user created successfully!");
-              console.log(" ID: " + userId);
-              console.log(" Username: admin");
-              console.log(" Password: admin123");
-              console.log(" Scope: mcp, llm, blob, scope123");
-              process.exit(0);
-            } catch (error) {
-              if (error.message && error.message.includes("UNIQUE constraint failed")) {
-                console.log("Admin user already exists, skipping creation");
-                process.exit(0);
-              } else {
-                console.error("Error creating admin user:", error);
-                process.exit(1);
-              }
-            }
-          })();
-          EOF
-
-          # Run the script and then delete it
-          node create-admin-temp.mjs
-          rm -f create-admin-temp.mjs
+          # Create admin user
+          npm run script:createUser admin admin123 mcp,llm,blob,scope123
           echo "Admin user setup completed!"
 
       - name: Check code quality

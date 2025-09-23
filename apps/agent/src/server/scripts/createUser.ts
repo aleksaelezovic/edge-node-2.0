@@ -5,14 +5,17 @@ configEnv();
 (async () => {
   try {
     const db = configDatabase();
-    const username = await ask("Username: ", { required: true });
-    const password = await ask("Password: ", { required: true });
-    const scope = await ask("Scope (space-separated): ", {
-      required: true,
-    }).then((s) => s.split(" "));
-    const userId = await createUser(db, { username, password }, scope);
+    const args = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
+    const email = args[0] ?? (await ask("Email: ", { required: true }));
+    const password = args[1] ?? (await ask("Password: ", { required: true }));
+    let scope = args[2]
+      ? args[2].split(",")
+      : await ask("Scope (space-separated): ", {
+          required: true,
+        }).then((s) => s.split(" "));
+    const user = await createUser(db, { email, password }, scope);
 
-    console.log(`User '${username}' created successfully with id ${userId}`);
+    console.log(`User '${user.email}' created successfully with id ${user.id}`);
     process.exit(0);
   } catch (error) {
     console.error("An error occurred:", error);

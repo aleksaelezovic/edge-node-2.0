@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "build:check": "turbo run format lint check-types build",
+    "build:check": "turbo format && turbo run lint check-types build",
     "check": "turbo run check-format check-types lint",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
