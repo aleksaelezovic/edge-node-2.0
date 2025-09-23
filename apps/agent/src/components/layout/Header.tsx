@@ -35,6 +35,7 @@ export default function Header({
         <HeaderNav
           style={{ flex: 1, justifyContent: "flex-end", paddingRight: 32 }}
         >
+          <HeaderNav.Link text="Settings" href="/settings" />
           {handleLogout && (
             <HeaderNav.Link text="Logout" onPress={handleLogout} />
           )}
