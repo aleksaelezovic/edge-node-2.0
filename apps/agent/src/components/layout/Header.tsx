@@ -27,7 +27,7 @@ export default function Header({
 
       {mode === "default" && (
         <HeaderNav style={{ flex: 1 }}>
-          <HeaderNav.Link href="/chat" text="Chat" icon={StarsIcon} />
+          <HeaderNav.Link href="/chat" text="Agent" icon={StarsIcon} />
         </HeaderNav>
       )}
 
