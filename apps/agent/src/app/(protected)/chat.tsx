@@ -35,6 +35,7 @@ import {
   uploadFiles,
 } from "@/shared/files";
 import { toError } from "@/shared/errors";
+import useSettings from "@/hooks/useSettings";
 
 export default function ChatPage() {
   const colors = useColors();
@@ -42,6 +43,7 @@ export default function ChatPage() {
   const safeAreaInsets = useSafeAreaInsets();
   const { showAlert } = useAlerts();
 
+  const settings = useSettings();
   const mcp = useMcpClient();
   const tools = useMcpToolsSession(mcp.tools);
 
@@ -319,7 +321,9 @@ export default function ChatPage() {
                         : tc.name;
                       const description = toolInfo?.description;
                       const autoconfirm =
-                        tools.isAllowedForSession(tc.name) && !tc.info;
+                        (settings.autoApproveMcpTools ||
+                          tools.isAllowedForSession(tc.name)) &&
+                        !tc.info;
 
                       return (
                         <Chat.Message.ToolCall
