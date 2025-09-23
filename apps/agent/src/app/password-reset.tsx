@@ -120,7 +120,14 @@ export default function PasswordResetPage() {
     <Page>
       <Container>
         <Header mode="login" />
-        <View style={{ flex: 1, justifyContent: "flex-start", marginTop: 60 }}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "flex-start",
+            marginTop: 60,
+          }}
+        >
           {!code ? (
             <View style={{ width: "100%", padding: 15, maxWidth: 450 }}>
               <FormTitle

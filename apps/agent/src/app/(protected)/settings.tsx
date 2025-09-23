@@ -10,6 +10,7 @@ import Footer from "@/components/layout/Footer";
 import Checkbox from "@/components/Checkbox";
 import Button from "@/components/Button";
 import useColors from "@/hooks/useColors";
+import ChangePasswordForm from "@/components/forms/ChangePasswordForm";
 
 const sections = [
   {
@@ -21,10 +22,21 @@ const sections = [
     title: "Security",
     description: "Change your password and secure your account.",
     Component: () => {
+      const submit = async ({
+        newPassword,
+        currentPassword,
+      }: {
+        newPassword: string;
+        currentPassword: string;
+      }) => {
+        console.log(newPassword, currentPassword);
+      };
+
       return (
-        <View>
-          <Text>Security</Text>
-        </View>
+        <ChangePasswordForm
+          mode={ChangePasswordForm.Mode.PASSWORD}
+          onSubmit={submit}
+        />
       );
     },
   },

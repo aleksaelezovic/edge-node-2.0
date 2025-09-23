@@ -23,9 +23,8 @@ const formStyles = StyleSheet.create({
     marginBottom: 16,
   },
   errorContainer: {
-    marginVertical: 8,
+    marginVertical: 12,
     marginHorizontal: 8,
-    height: 40,
   },
   errorText: {
     fontSize: 16,

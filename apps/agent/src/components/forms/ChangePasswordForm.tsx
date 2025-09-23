@@ -139,16 +139,18 @@ export default function ChangePasswordForm<M extends ChangePasswordFormMode>({
         onPress={submit}
         disabled={!validPassword || loading}
       />
-      <View
-        style={[
-          formStyles.errorContainer,
-          { visibility: error ? "visible" : "hidden" },
-        ]}
-      >
-        <Text style={[formStyles.errorText, { color: colors.error }]}>
-          {error}
-        </Text>
-      </View>
+      {error && (
+        <View
+          style={[
+            formStyles.errorContainer,
+            { visibility: error ? "visible" : "hidden" },
+          ]}
+        >
+          <Text style={[formStyles.errorText, { color: colors.error }]}>
+            {error}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
