@@ -1,4 +1,4 @@
-import { Redirect, router, useLocalSearchParams } from "expo-router";
+import { Link, Redirect, router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Text, View, TextInput, StyleSheet } from "react-native";
 import * as Linking from "expo-linking";
@@ -18,22 +18,21 @@ import Footer from "@/components/layout/Footer";
 export default function Login() {
   SplashScreen.hide();
   const { code } = useLocalSearchParams<{ code?: string }>();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
-
   const colors = useColors();
 
-  const mcp = useMcpClient();
-  if (mcp.connected) return <Redirect href="/" />;
+  const { connected } = useMcpClient();
+  if (connected) return <Redirect href="/" />;
 
   function submit() {
     setError("");
 
     login({
       code: code ?? "",
-      credentials: { username, password },
+      credentials: { email, password },
       rememberMe,
       fetch: (url, opts) => fetch(url.toString(), opts as any),
     })
@@ -86,10 +85,12 @@ export default function Login() {
                   styles.input,
                   { backgroundColor: colors.input, color: colors.text },
                 ]}
-                value={username}
-                onChangeText={setUsername}
-                placeholder="Username"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Email"
                 placeholderTextColor={colors.placeholder}
+                keyboardType="email-address"
+                textContentType="emailAddress"
                 autoCapitalize="none"
               />
               <TextInput
@@ -124,8 +125,20 @@ export default function Login() {
               color="primary"
               text="Login"
               onPress={submit}
-              disabled={!username || !password}
+              disabled={!email || !password}
             />
+            <Link
+              href="/password-reset"
+              style={{
+                color: colors.secondary,
+                fontSize: 16,
+                fontFamily: "Manrope_600SemiBold",
+                textAlign: "center",
+                marginVertical: 16,
+              }}
+            >
+              Forgot password?
+            </Link>
 
             <View
               style={[
@@ -145,7 +158,7 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
@@ -153,8 +166,8 @@ const styles = StyleSheet.create({
   },
   loginCard: {
     width: "100%",
-    maxWidth: 420,
-    padding: 30,
+    maxWidth: 450,
+    padding: 15,
   },
   title: {
     fontSize: 40,
@@ -164,7 +177,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: "Manrope_400Regular",
     textAlign: "center",
     marginBottom: 30,
@@ -179,7 +192,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorContainer: {
-    marginVertical: 0,
+    marginVertical: 8,
     marginHorizontal: 8,
     height: 40,
   },

@@ -52,6 +52,7 @@ const createTransport = (
   });
   return Object.assign(transport, {
     getToken: () => authProvider.tokens().then((t) => t?.access_token),
+    logout: () => authProvider.logout(),
   });
 };
 
