@@ -64,12 +64,12 @@ export async function createTestServer(config: TestServerConfig = {}): Promise<{
     scopesSupported: ["mcp", "llm", "scope123", "blob"],
     loginPageUrl: new URL(oauthUrls.loginPageUrl),
     schema: userCredentialsSchema,
-    async login(credentials: { username: string; password: string }) {
+    async login(credentials: { email: string; password: string }) {
       // Use the exact same login logic as the real app
       const user = await testDatabase.db
         .select()
         .from(users)
-        .where(eq(users.username, credentials.username))
+        .where(eq(users.email, credentials.email))
         .then((r) => r.at(0));
       if (!user) throw new Error("Invalid credentials");
 
