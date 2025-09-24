@@ -114,8 +114,16 @@ const llmProviderFromEnv = async () => {
         ({ ChatXAI }) => new ChatXAI({ model, temperature }),
       );
     case LLMProvider.Ollama:
-      return import("@langchain/ollama").then(
-        ({ ChatOllama }) => new ChatOllama({ model, temperature }),
+      return import("@langchain/openai").then(
+        ({ ChatOpenAI }) =>
+          new ChatOpenAI({
+            model,
+            temperature,
+            configuration: {
+              baseURL: "http://localhost:11434/v1",
+              apiKey: "ollama",
+            },
+          }),
       );
     case LLMProvider.OpenAI:
     default:
