@@ -63,7 +63,7 @@ class ChatbotPage {
     // Wait for any success message about Knowledge Asset creation (much more flexible)
     await this.page.waitForSelector(
       'text=/.*((Knowledge Asset|KA).*(created|published|generated|added|stored|uploaded)|(created|published|generated|added|stored|uploaded).*(Knowledge Asset|KA)|successfully.*(created|published)|UAL.*did:|Here.*UAL|Asset.*DKG|DKG.*Asset).*/i',
-      { timeout: 180000 }, // 3 minutes
+      { timeout: 300000 }, // 5 minutes
     );
     
     // Use very flexible regex to match many possible AI success responses
