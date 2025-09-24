@@ -1,5 +1,5 @@
 import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import { hash } from "@node-rs/argon2";
+import { hash, verify } from "@node-rs/argon2";
 import { v4 as uuid_v4 } from "uuid";
 import { eq } from "drizzle-orm";
 
@@ -15,6 +15,12 @@ export default class SqlitePasswordResetProvider
     const password = await hash(plainPassword);
     await this.db.update(users).set({ password }).where(eq(users.id, userId));
     await this.db.delete(pwResets).where(eq(pwResets.userId, userId));
+  }
+
+  async verifyPassword(userId: string, plainPassword: string) {
+    const u = await this.db.select().from(users).where(eq(users.id, userId));
+    if (!u[0]) return false;
+    return verify(u[0].password, plainPassword);
   }
 
   async generateCode(email: string) {

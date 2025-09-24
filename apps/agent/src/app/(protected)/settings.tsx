@@ -11,6 +11,10 @@ import Checkbox from "@/components/Checkbox";
 import Button from "@/components/Button";
 import useColors from "@/hooks/useColors";
 import ChangePasswordForm from "@/components/forms/ChangePasswordForm";
+import { useAlerts } from "@/components/Alerts";
+import { useDialog } from "@/components/Dialog";
+import { fetch } from "expo/fetch";
+import { toError } from "@/shared/errors";
 
 const sections = [
   {
@@ -22,6 +26,9 @@ const sections = [
     title: "Security",
     description: "Change your password and secure your account.",
     Component: () => {
+      const { showAlert } = useAlerts();
+      const { showDialog } = useDialog();
+      const mcp = useMcpClient();
       const submit = async ({
         newPassword,
         currentPassword,
@@ -29,7 +36,39 @@ const sections = [
         newPassword: string;
         currentPassword: string;
       }) => {
-        console.log(newPassword, currentPassword);
+        try {
+          const response = await fetch(
+            new URL(
+              process.env.EXPO_PUBLIC_MCP_URL + "/change-password",
+            ).toString(),
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${mcp.token}`,
+              },
+              body: JSON.stringify({
+                newPassword,
+                currentPassword,
+              }),
+            },
+          );
+          const data = await response.json();
+          if (data.error) throw new Error(data.error);
+          showDialog({
+            type: "success",
+            title: "Password changed successfully",
+            message: "Your password has been changed.",
+          });
+        } catch (error) {
+          console.error(error);
+          showAlert({
+            type: "error",
+            title: "Failed to change password",
+            message: toError(error).message,
+          });
+          throw error;
+        }
       };
 
       return (
