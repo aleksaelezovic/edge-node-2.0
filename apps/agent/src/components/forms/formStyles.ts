@@ -22,9 +22,16 @@ const formStyles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 16,
   },
+  label: {
+    fontSize: 16,
+    fontFamily: "Manrope_400Regular",
+    lineHeight: 24,
+    marginBottom: 8,
+  },
   errorContainer: {
     marginVertical: 12,
     marginHorizontal: 8,
+    height: 20,
   },
   errorText: {
     fontSize: 16,

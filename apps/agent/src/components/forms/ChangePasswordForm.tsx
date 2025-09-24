@@ -30,12 +30,16 @@ enum ChangePasswordFormMode {
 export default function ChangePasswordForm<M extends ChangePasswordFormMode>({
   mode,
   onSubmit,
+  cardBackground,
+  showLabels,
   style,
 }: {
   mode: M;
   onSubmit: M extends ChangePasswordFormMode.CODE
     ? (data: { newPassword: string }) => Promise<void>
     : (data: { newPassword: string; currentPassword: string }) => Promise<void>;
+  cardBackground?: boolean;
+  showLabels?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   const colors = useColors();
@@ -85,22 +89,50 @@ export default function ChangePasswordForm<M extends ChangePasswordFormMode>({
   return (
     <View style={style}>
       {mode === ChangePasswordFormMode.PASSWORD && (
-        <TextInput
-          style={[
-            formStyles.input,
-            { backgroundColor: colors.input, color: colors.text },
-          ]}
-          value={currentPassword}
-          onChangeText={setCurrentPassword}
-          placeholder="Current password"
-          placeholderTextColor={colors.placeholder}
-          secureTextEntry
-        />
+        <>
+          {showLabels && (
+            <Text style={[formStyles.label, { color: colors.placeholder }]}>
+              Current password
+            </Text>
+          )}
+          <TextInput
+            style={[
+              formStyles.input,
+              cardBackground
+                ? {
+                    backgroundColor: colors.card2,
+                    color: colors.text,
+                  }
+                : {
+                    backgroundColor: colors.input,
+                    color: colors.text,
+                  },
+            ]}
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            placeholder="Current password"
+            placeholderTextColor={colors.placeholder}
+            secureTextEntry
+          />
+        </>
+      )}
+      {showLabels && (
+        <Text style={[formStyles.label, { color: colors.placeholder }]}>
+          New password
+        </Text>
       )}
       <TextInput
         style={[
           formStyles.input,
-          { backgroundColor: colors.input, color: colors.text },
+          cardBackground
+            ? {
+                backgroundColor: colors.card2,
+                color: colors.text,
+              }
+            : {
+                backgroundColor: colors.input,
+                color: colors.text,
+              },
         ]}
         value={newPassword}
         onChangeText={setNewPassword}
@@ -136,10 +168,23 @@ export default function ChangePasswordForm<M extends ChangePasswordFormMode>({
           ))}
         </Text>
       </Animated.View>
+      {showLabels && (
+        <Text style={[formStyles.label, { color: colors.placeholder }]}>
+          Confirm new password
+        </Text>
+      )}
       <TextInput
         style={[
           formStyles.input,
-          { backgroundColor: colors.input, color: colors.text },
+          cardBackground
+            ? {
+                backgroundColor: colors.card2,
+                color: colors.text,
+              }
+            : {
+                backgroundColor: colors.input,
+                color: colors.text,
+              },
         ]}
         value={confirmNewPassword}
         onChangeText={setConfirmNewPassword}

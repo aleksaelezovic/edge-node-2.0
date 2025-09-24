@@ -75,6 +75,8 @@ const sections = [
         <ChangePasswordForm
           mode={ChangePasswordForm.Mode.PASSWORD}
           onSubmit={submit}
+          showLabels
+          cardBackground
         />
       );
     },
