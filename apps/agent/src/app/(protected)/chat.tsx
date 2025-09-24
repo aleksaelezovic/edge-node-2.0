@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { View, Platform, KeyboardAvoidingView } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { View, Platform, KeyboardAvoidingView, ScrollView } from "react-native";
 import { Image } from "expo-image";
 import * as Clipboard from "expo-clipboard";
 import { fetch } from "expo/fetch";
@@ -49,6 +49,8 @@ export default function ChatPage() {
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const chatMessagesRef = useRef<ScrollView>(null);
 
   async function callTool(tc: ToolCall & { id: string }) {
     tools.saveCallInfo(tc.id, { input: tc.args, status: "loading" });
@@ -132,6 +134,7 @@ export default function ChatPage() {
 
     setMessages((prevMessages) => [...prevMessages, completion]);
     setIsGenerating(false);
+    setTimeout(() => chatMessagesRef.current?.scrollToEnd(), 100);
   }
 
   const kaResolver = useCallback<SourceKAResolver>(
@@ -229,6 +232,7 @@ export default function ChatPage() {
           >
             <Header handleLogout={() => mcp.disconnect()} />
             <Chat.Messages
+              ref={chatMessagesRef}
               style={[
                 {
                   width: "100%",
