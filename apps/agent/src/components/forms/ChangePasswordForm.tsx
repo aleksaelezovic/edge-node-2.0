@@ -1,5 +1,9 @@
 import { useCallback, useState } from "react";
 import { Text, TextInput, View, ViewStyle, StyleProp } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 
 import Button from "@/components/Button";
 import useColors from "@/hooks/useColors";
@@ -45,6 +49,16 @@ export default function ChangePasswordForm<M extends ChangePasswordFormMode>({
     passwordChecks.every((check) => check.regex.test(newPassword));
   const [error, setError] = useState<string>();
   const [loading, setLoading] = useState(false);
+
+  const passwordChecksStyle = useAnimatedStyle(
+    () => ({
+      height: withTiming(!newPassword || validPassword ? 0 : 115, {
+        duration: 500,
+      }),
+      overflow: "hidden",
+    }),
+    [newPassword, validPassword],
+  );
 
   const submit = useCallback(async () => {
     setError("");
@@ -94,7 +108,7 @@ export default function ChangePasswordForm<M extends ChangePasswordFormMode>({
         placeholderTextColor={colors.placeholder}
         secureTextEntry
       />
-      <View style={{ marginBottom: 16 }}>
+      <Animated.View style={passwordChecksStyle}>
         <Text
           style={{
             color: colors.placeholder,
@@ -121,7 +135,7 @@ export default function ChangePasswordForm<M extends ChangePasswordFormMode>({
             </Text>
           ))}
         </Text>
-      </View>
+      </Animated.View>
       <TextInput
         style={[
           formStyles.input,
