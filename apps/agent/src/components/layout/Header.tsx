@@ -27,7 +27,7 @@ export default function Header({
 
       {mode === "default" && (
         <HeaderNav style={{ flex: 1 }}>
-          <HeaderNav.Link href="/chat" text="Chat" icon={StarsIcon} />
+          <HeaderNav.Link href="/chat" text="Agent" icon={StarsIcon} />
         </HeaderNav>
       )}
 
@@ -35,6 +35,7 @@ export default function Header({
         <HeaderNav
           style={{ flex: 1, justifyContent: "flex-end", paddingRight: 32 }}
         >
+          <HeaderNav.Link text="Settings" href="/settings" />
           {handleLogout && (
             <HeaderNav.Link text="Logout" onPress={handleLogout} />
           )}

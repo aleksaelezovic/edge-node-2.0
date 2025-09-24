@@ -5,6 +5,7 @@ export type PasswordResetProvider = {
   generateCode: (email: string) => Promise<string | null>;
   verifyCode: (code: string) => Promise<{ userId: string } | null>;
   setPassword: (userId: string, newPassword: string) => Promise<void>;
+  verifyPassword: (userId: string, currentPassword: string) => Promise<boolean>;
 };
 
 export type PasswordResetPluginConfig = {
@@ -88,6 +89,41 @@ export default ({ sendMail, provider }: PasswordResetPluginConfig) =>
             .then(() => res.status(200).json({ error: null }))
             .catch((err) =>
               res.status(400).json({ error: `${err?.message || err}` }),
+            );
+        },
+      ),
+    );
+
+    api.post(
+      "/change-password",
+      openAPIRoute(
+        {
+          tag: "Auth",
+          summary: "Change password",
+          description:
+            "Changes the password for the user. " +
+            "Fails if the old password is incorrect.",
+          body: z.object({
+            currentPassword: z.string(),
+            newPassword: z.string(),
+          }),
+        },
+        async (req, res) => {
+          const { currentPassword, newPassword } = req.body;
+          const userId = res.locals.auth?.extra?.userId;
+          if (!userId) {
+            return res.status(401).json({ error: "Unauthorized" });
+          }
+
+          provider
+            .verifyPassword(userId, currentPassword)
+            .then((valid) => {
+              if (!valid) throw new Error("Wrong password.");
+              return provider.setPassword(userId, newPassword);
+            })
+            .then(() => res.status(200).json({ error: null }))
+            .catch((err) =>
+              res.status(500).json({ error: `${err?.message || err}` }),
             );
         },
       ),

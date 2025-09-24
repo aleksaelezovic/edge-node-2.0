@@ -55,6 +55,7 @@ function HeaderNav(props: PropsWithChildren<{ style?: StyleProp<ViewStyle> }>) {
           flexDirection: "row",
           justifyContent: "center",
           alignItems: "center",
+          gap: 24,
         },
         props.style,
       ]}
