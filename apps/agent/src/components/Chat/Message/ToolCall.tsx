@@ -5,6 +5,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import useColors from "@/hooks/useColors";
 import Button from "@/components/Button";
 import Checkbox from "@/components/Checkbox";
+import { Collapsible } from "react-native-fast-collapsible";
 
 export default function ChatMessageToolCall({
   title,
@@ -26,6 +27,7 @@ export default function ChatMessageToolCall({
   onCancel: () => void;
 }) {
   const colors = useColors();
+  const [seeMore, setSeeMore] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
   const [allowForSession, setAllowForSession] = useState(false);
 
@@ -50,6 +52,20 @@ export default function ChatMessageToolCall({
           Note that MCP servers or malicious conversation content may attempt to
           missuse ‘Code’ through tools.
         </Text>
+        {!!input && (
+          <View>
+            <TouchableOpacity onPress={() => setSeeMore(!seeMore)}>
+              <Text style={[styles.link, { color: colors.secondary }]}>
+                {seeMore ? "See less" : "See more"}
+              </Text>
+            </TouchableOpacity>
+            <Collapsible isVisible={seeMore}>
+              <Text style={styles.codeText}>
+                {JSON.stringify(input, null, 2)}
+              </Text>
+            </Collapsible>
+          </View>
+        )}
         <View />
         {status === "init" && (
           <View
@@ -163,5 +179,11 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     fontSize: 11,
     color: "#ffffff",
+  },
+  link: {
+    fontFamily: "Manrope_500Medium",
+    fontSize: 14,
+    color: "#ffffff",
+    textDecorationLine: "underline",
   },
 });

@@ -334,7 +334,7 @@ export default function ChatPage() {
                           title={title}
                           description={description}
                           status={tc.info?.status ?? "init"}
-                          input={tc.info?.input}
+                          input={tc.info?.input ?? _tc.args}
                           output={tc.info?.output ?? tc.info?.error}
                           autoconfirm={autoconfirm}
                           onConfirm={(allowForSession) => {
