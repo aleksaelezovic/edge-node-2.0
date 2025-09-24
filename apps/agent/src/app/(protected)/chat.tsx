@@ -303,7 +303,10 @@ export default function ChatPage() {
 
                     {/* Text (markdown) */}
                     {text.map((c, i) => (
-                      <Chat.Message.Content.Text key={i} text={c} />
+                      <Chat.Message.Content.Text
+                        key={i}
+                        text={c.replaceAll(/<think>.*?<\/think>/gs, "")}
+                      />
                     ))}
 
                     {/* Tool calls */}
