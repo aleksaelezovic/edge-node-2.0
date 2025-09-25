@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { View, Platform, KeyboardAvoidingView } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { View, Platform, KeyboardAvoidingView, ScrollView } from "react-native";
 import { Image } from "expo-image";
 import * as Clipboard from "expo-clipboard";
 import { fetch } from "expo/fetch";
@@ -35,6 +35,7 @@ import {
   uploadFiles,
 } from "@/shared/files";
 import { toError } from "@/shared/errors";
+import useSettings from "@/hooks/useSettings";
 
 export default function ChatPage() {
   const colors = useColors();
@@ -42,11 +43,14 @@ export default function ChatPage() {
   const safeAreaInsets = useSafeAreaInsets();
   const { showAlert } = useAlerts();
 
+  const settings = useSettings();
   const mcp = useMcpClient();
   const tools = useMcpToolsSession(mcp.tools);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const chatMessagesRef = useRef<ScrollView>(null);
 
   async function callTool(tc: ToolCall & { id: string }) {
     tools.saveCallInfo(tc.id, { input: tc.args, status: "loading" });
@@ -130,6 +134,7 @@ export default function ChatPage() {
 
     setMessages((prevMessages) => [...prevMessages, completion]);
     setIsGenerating(false);
+    setTimeout(() => chatMessagesRef.current?.scrollToEnd(), 100);
   }
 
   const kaResolver = useCallback<SourceKAResolver>(
@@ -227,6 +232,7 @@ export default function ChatPage() {
           >
             <Header handleLogout={() => mcp.disconnect()} />
             <Chat.Messages
+              ref={chatMessagesRef}
               style={[
                 {
                   width: "100%",
@@ -301,7 +307,10 @@ export default function ChatPage() {
 
                     {/* Text (markdown) */}
                     {text.map((c, i) => (
-                      <Chat.Message.Content.Text key={i} text={c} />
+                      <Chat.Message.Content.Text
+                        key={i}
+                        text={c.replaceAll(/<think>.*?<\/think>/gs, "")}
+                      />
                     ))}
 
                     {/* Tool calls */}
@@ -319,7 +328,9 @@ export default function ChatPage() {
                         : tc.name;
                       const description = toolInfo?.description;
                       const autoconfirm =
-                        tools.isAllowedForSession(tc.name) && !tc.info;
+                        (settings.autoApproveMcpTools ||
+                          tools.isAllowedForSession(tc.name)) &&
+                        !tc.info;
 
                       return (
                         <Chat.Message.ToolCall
@@ -327,7 +338,7 @@ export default function ChatPage() {
                           title={title}
                           description={description}
                           status={tc.info?.status ?? "init"}
-                          input={tc.info?.input}
+                          input={tc.info?.input ?? _tc.args}
                           output={tc.info?.output ?? tc.info?.error}
                           autoconfirm={autoconfirm}
                           onConfirm={(allowForSession) => {

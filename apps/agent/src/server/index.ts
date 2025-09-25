@@ -98,19 +98,23 @@ const app = createPluginServer({
   plugins: [
     defaultPlugin,
     oauthPlugin,
-    passwordResetPlugin,
     (_, __, api) => {
       api.use("/mcp", authorized(["mcp"]));
       api.use("/llm", authorized(["llm"]));
       api.use("/blob", authorized(["blob"]));
+      api.use("/change-password", authorized([]));
     },
+    passwordResetPlugin,
     dkgEssentialsPlugin,
     examplePlugin.withNamespace("protected", {
       middlewares: [authorized(["scope123"])], // Allow only users with the "scope123" scope
     }),
     swaggerPlugin({
       version,
-      securitySchemes: { oauth2: openapiSecurityScheme },
+      securitySchemes: {
+        oauth2: openapiSecurityScheme,
+        bearer: { type: "http", scheme: "bearer" },
+      },
       servers: [
         {
           url: process.env.EXPO_PUBLIC_MCP_URL,

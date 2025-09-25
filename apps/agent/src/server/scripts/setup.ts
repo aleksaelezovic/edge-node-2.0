@@ -6,9 +6,33 @@ import {
   createFileWithContent,
   createUser,
 } from "../helpers";
+import {
+  getLLMProviderApiKeyEnvName,
+  isValidLLMProvider,
+  LLMProvider,
+} from "@/shared/chat";
 
 async function setup() {
-  const OPENAI_API_KEY = await ask("OpenAI API Key: ");
+  const LLM_PROVIDER = await ask(
+    `LLM Provider (${Object.values(LLMProvider).join(", ")}; default: openai): `,
+  ).then((s) => s || "openai");
+  if (!isValidLLMProvider(LLM_PROVIDER)) {
+    console.error(`Invalid LLM Provider: ${LLM_PROVIDER}`);
+    return setup();
+  }
+  const LLM_PROVIDER_API_KEY_ENV_NAME =
+    getLLMProviderApiKeyEnvName(LLM_PROVIDER);
+  const LLM_PROVIDER_API_KEY = LLM_PROVIDER_API_KEY_ENV_NAME
+    ? await ask(`${LLM_PROVIDER_API_KEY_ENV_NAME}: `)
+    : "";
+  const LLM_MODEL = await ask(`LLM Model: `, { required: true });
+  const LLM_TEMPERATURE = await ask(`LLM Temperature (default: 0): `).then(
+    (s) => s || "0",
+  );
+  const LLM_SYSTEM_PROMPT = await ask(
+    `LLM System Prompt (optional, there is a default): `,
+  ).then((s) => s || "");
+
   const DKG_OTNODE_URL = await ask(
     "OT-node URL (default: http://localhost:8900): ",
   ).then((s) => s || "http://localhost:8900");
@@ -19,6 +43,7 @@ async function setup() {
     DKG_BLOCKCHAIN === "hardhat1:31337"
       ? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
       : await ask("Publish wallet (private key): ", { required: true });
+
   const DB_FILENAME = await ask("Database (i.e: example.db): ", {
     required: true,
   });
@@ -30,7 +55,15 @@ async function setup() {
 EXPO_PUBLIC_MCP_URL="http://localhost:9200"
 EXPO_PUBLIC_APP_URL="http://localhost:9200"
 DATABASE_URL="${DB_FILENAME}"
-OPENAI_API_KEY="${OPENAI_API_KEY}"
+LLM_PROVIDER="${LLM_PROVIDER}"
+LLM_MODEL="${LLM_MODEL}"
+LLM_TEMPERATURE="${LLM_TEMPERATURE}"
+LLM_SYSTEM_PROMPT="${LLM_SYSTEM_PROMPT}"
+${
+  LLM_PROVIDER_API_KEY_ENV_NAME
+    ? `${LLM_PROVIDER_API_KEY_ENV_NAME}="${LLM_PROVIDER_API_KEY}"`
+    : ""
+}
 DKG_PUBLISH_WALLET="${DKG_PUBLISH_WALLET}"
 DKG_BLOCKCHAIN="${DKG_BLOCKCHAIN}"
 DKG_OTNODE_URL="${DKG_OTNODE_URL}"

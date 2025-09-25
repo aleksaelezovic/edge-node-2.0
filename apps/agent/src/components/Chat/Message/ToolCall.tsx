@@ -5,6 +5,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import useColors from "@/hooks/useColors";
 import Button from "@/components/Button";
 import Checkbox from "@/components/Checkbox";
+import { Collapsible } from "react-native-fast-collapsible";
+import Spinner from "@/components/Spinner";
 
 export default function ChatMessageToolCall({
   title,
@@ -26,6 +28,7 @@ export default function ChatMessageToolCall({
   onCancel: () => void;
 }) {
   const colors = useColors();
+  const [seeMore, setSeeMore] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
   const [allowForSession, setAllowForSession] = useState(false);
 
@@ -36,7 +39,7 @@ export default function ChatMessageToolCall({
     if (autoconfirm) onConfirm(true);
   }, [autoconfirm, onConfirm]);
 
-  if (status === "init" || status === "loading")
+  if (status === "init")
     return (
       <View style={[styles.card, { backgroundColor: colors.card }]}>
         <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
@@ -50,6 +53,20 @@ export default function ChatMessageToolCall({
           Note that MCP servers or malicious conversation content may attempt to
           missuse ‘Code’ through tools.
         </Text>
+        {!!input && (
+          <View>
+            <TouchableOpacity onPress={() => setSeeMore(!seeMore)}>
+              <Text style={[styles.link, { color: colors.secondary }]}>
+                {seeMore ? "See less" : "See more"}
+              </Text>
+            </TouchableOpacity>
+            <Collapsible isVisible={seeMore}>
+              <Text style={[styles.codeText, { color: colors.text }]}>
+                {JSON.stringify(input, null, 2)}
+              </Text>
+            </Collapsible>
+          </View>
+        )}
         <View />
         {status === "init" && (
           <View
@@ -97,12 +114,14 @@ export default function ChatMessageToolCall({
         <Text style={[styles.title, { flex: 1, color: colors.text }]}>
           {title}
         </Text>
-        <Ionicons
-          name={status === "success" ? "checkmark" : "close"}
-          size={20}
-          style={{ marginLeft: 4 }}
-          color={status === "error" ? colors.error : colors.secondary}
-        />
+        {status !== "loading" && (
+          <Ionicons
+            name={status === "success" ? "checkmark" : "close"}
+            size={20}
+            style={{ marginLeft: 4 }}
+            color={status === "error" ? colors.error : colors.secondary}
+          />
+        )}
       </TouchableOpacity>
 
       {!collapsed && (
@@ -113,24 +132,44 @@ export default function ChatMessageToolCall({
               {JSON.stringify(input, null, 2)}
             </Text>
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>Output</Text>
-          <View style={styles.codeBlock}>
-            {status === "success" && (
-              <Text style={styles.codeText}>
-                {JSON.stringify(output, null, 2)}
-              </Text>
-            )}
-            {status === "error" && (
-              <Text style={[styles.codeText, { color: colors.error }]}>
-                {`${output}`}
-              </Text>
-            )}
-            {status === "cancelled" && (
-              <Text style={[styles.codeText, { color: colors.secondary }]}>
-                Tool call was cancelled by user.
-              </Text>
-            )}
-          </View>
+          {status !== "loading" && (
+            <>
+              <Text style={[styles.title, { color: colors.text }]}>Output</Text>
+              <View style={styles.codeBlock}>
+                {status === "success" && (
+                  <Text style={styles.codeText}>
+                    {JSON.stringify(output, null, 2)}
+                  </Text>
+                )}
+                {status === "error" && (
+                  <Text style={[styles.codeText, { color: colors.error }]}>
+                    {`${output}`}
+                  </Text>
+                )}
+                {status === "cancelled" && (
+                  <Text style={[styles.codeText, { color: colors.secondary }]}>
+                    Tool call was cancelled by user.
+                  </Text>
+                )}
+              </View>
+            </>
+          )}
+        </View>
+      )}
+      {status === "loading" && (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          <Spinner size={20} color="secondary" />
+          <Text
+            style={{ fontFamily: "Manrope_400Regular", color: colors.text }}
+          >
+            Running tool...
+          </Text>
         </View>
       )}
     </View>
@@ -163,5 +202,11 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     fontSize: 11,
     color: "#ffffff",
+  },
+  link: {
+    fontFamily: "Manrope_500Medium",
+    fontSize: 14,
+    color: "#ffffff",
+    textDecorationLine: "underline",
   },
 });
