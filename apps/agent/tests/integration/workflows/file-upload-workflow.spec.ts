@@ -7,6 +7,12 @@ import {
   ASSERTIONS,
 } from "../setup/test-data";
 import { TEST_USERS } from "../setup/test-database";
+import { 
+  callMcpTool, 
+  initializeMcpSession, 
+  uploadTestFile,
+  createDkgAssetWithBlob 
+} from "../setup/test-helpers";
 
 /**
  * Integration test for complete file upload workflows
@@ -95,58 +101,20 @@ describe("File Upload Workflow Integration", () => {
       };
 
       // Initialize MCP session first
-      const initResponse = await request(testServer.app)
-        .post("/mcp")
-        .set("Authorization", `Bearer ${accessToken}`)
-        .set("Accept", "application/json, text/event-stream")
-        .set("Content-Type", "application/json")
-        .send({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "initialize",
-          params: {
-            protocolVersion: "2024-11-05",
-            capabilities: {},
-            clientInfo: { name: "integration-test", version: "1.0.0" },
-          },
-        });
-
-      expect(initResponse.status).to.equal(200);
-      const sessionId = initResponse.headers["mcp-session-id"];
-      expect(sessionId).to.not.be.undefined;
-      if (!sessionId) throw new Error("Session ID is required");
+      const sessionId = await initializeMcpSession(testServer.app, accessToken);
 
       // Now call the dkg-create tool with the session ID
-      const mcpResponse = await request(testServer.app)
-        .post("/mcp")
-        .set("Authorization", `Bearer ${accessToken}`)
-        .set("Accept", "application/json, text/event-stream")
-        .set("Content-Type", "application/json")
-        .set("mcp-session-id", sessionId)
-        .send({
-          jsonrpc: "2.0",
-          id: 2,
-          method: "tools/call",
-          params: {
-            name: "dkg-create",
-            arguments: {
-              jsonld: JSON.stringify(assetData),
-              privacy: "private",
-            },
-          },
-        });
-
-      if (mcpResponse.status !== 200) {
-        throw new Error(
-          `MCP call failed: ${mcpResponse.status} - ${mcpResponse.text}`,
-        );
-      }
-
-      // Parse SSE response format: "event: message\ndata: {...}"
-      const sseLines = mcpResponse.text.split("\n");
-      const dataLine = sseLines.find((line) => line.startsWith("data: "));
-      if (!dataLine) throw new Error("No data line found in SSE response");
-      const responseData = JSON.parse(dataLine.substring(6)); // Remove "data: " prefix
+      const responseData = await callMcpTool(
+        testServer.app,
+        accessToken,
+        sessionId,
+        "dkg-create",
+        {
+          jsonld: JSON.stringify(assetData),
+          privacy: "private",
+        },
+        2
+      );
 
       expect(responseData).to.have.property("result");
       expect(responseData.result).to.have.property("content");
@@ -189,16 +157,14 @@ describe("File Upload Workflow Integration", () => {
             },
           });
 
-        expect(getAssetResponse.status).to.equal(200);
-
-        // Parse SSE response for asset retrieval
-        const getAssetLines = getAssetResponse.text.split("\n");
-        const getAssetDataLine = getAssetLines.find((line) =>
-          line.startsWith("data: "),
+        const getAssetData = await callMcpTool(
+          testServer.app,
+          accessToken,
+          sessionId,
+          "dkg-get",
+          { ual: ual },
+          3
         );
-        if (!getAssetDataLine)
-          throw new Error("No data line found in get asset SSE response");
-        const getAssetData = JSON.parse(getAssetDataLine.substring(6));
 
         const retrievedAsset = JSON.parse(getAssetData.result.content[0].text);
         expect(retrievedAsset).to.have.property("public");
@@ -245,25 +211,7 @@ describe("File Upload Workflow Integration", () => {
       };
 
       // Initialize MCP session
-      const initResponse = await request(testServer.app)
-        .post("/mcp")
-        .set("Authorization", `Bearer ${accessToken}`)
-        .set("Accept", "application/json, text/event-stream")
-        .set("Content-Type", "application/json")
-        .send({
-          jsonrpc: "2.0",
-          id: 5,
-          method: "initialize",
-          params: {
-            protocolVersion: "2024-11-05",
-            capabilities: {},
-            clientInfo: { name: "integration-test", version: "1.0.0" },
-          },
-        });
-
-      expect(initResponse.status).to.equal(200);
-      const sessionId = initResponse.headers["mcp-session-id"];
-      if (!sessionId) throw new Error("Session ID is required");
+      const sessionId = await initializeMcpSession(testServer.app, accessToken);
 
       const createResponse = await request(testServer.app)
         .post("/mcp")
