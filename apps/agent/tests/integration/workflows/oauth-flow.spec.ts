@@ -80,7 +80,7 @@ describe("OAuth Authorization Flow Integration", () => {
       const response = await request(testServer.app)
         .post(`/login?code=${authCode}`)
         .send({
-          username: "invalid",
+          email: "invalid@example.com",
           password: "invalid",
         })
         .expect(401);

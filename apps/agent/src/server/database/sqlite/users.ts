@@ -1,8 +1,21 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { v7 as uuid_v7 } from "uuid";
 
 export const users = sqliteTable("users", {
-  id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-  username: text("username").unique().notNull(),
+  id: text("id")
+    .primaryKey()
+    .notNull()
+    .$default(() => uuid_v7()),
+  email: text("email").unique().notNull(),
   password: text("password").notNull(),
   scope: text("scope").notNull(),
+});
+
+export const passwordResets = sqliteTable("password_resets", {
+  id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
+  code: text("code").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
 });

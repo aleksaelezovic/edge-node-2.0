@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import request from "supertest";
 import { startTestServer } from "../setup/test-server";
+import { initializeMcpSession, callMcpTool, uploadTestFile } from "../setup/test-helpers";
 
 /**
  * Comprehensive error handling and edge case tests

@@ -147,7 +147,7 @@ export function buildOpenAPIDocument(args: {
       path: pathOpenAPIFormat,
       description: description,
       deprecated: deprecated,
-      security: security ? [{ [security]: [] }] : undefined,
+      security: security ? [{ [security]: [] }] : [{ oauth2: [], bearer: [] }],
       request: {
         params: asZodObject(params),
         query: asZodObject(query),

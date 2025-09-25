@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
-    "build:check": "turbo run format lint check-types build",
+    "build:check": "turbo format && turbo run lint check-types build",
     "check": "turbo run check-format check-types lint",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
@@ -14,8 +14,7 @@
     "test": "npm run test:api && npm run test:integration && turbo run test --filter=@dkg/agent --force",
     "test:e2e": "turbo run test:e2e --filter=@dkg/agent --force",
     "test:api": "turbo run test --filter='@dkg/plugin-*' --force",
-    "test:integration": "cd apps/agent/tests/integration && npm test",
-    "test:integration:console": "cd apps/agent/tests/integration && npm run test:console",
+    "test:integration": "cd apps/agent && npm run test:integration",
     "test:ui:report": "node report-UI-Tests-config.js",
     "test:api:report": "node report-API-Tests-config.js",
     "test:integration:report": "node report-Integration-Tests-config.js"

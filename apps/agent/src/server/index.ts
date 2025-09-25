@@ -7,14 +7,21 @@ import examplePlugin from "@dkg/plugin-example";
 import swaggerPlugin from "@dkg/plugin-swagger";
 //@ts-expect-error No types for dkg.js ...
 import DKG from "dkg.js";
+import { eq } from "drizzle-orm";
 
 import { userCredentialsSchema } from "@/shared/auth";
 import { verify } from "@node-rs/argon2";
 
 import { configDatabase, configEnv } from "./helpers";
 import webInterfacePlugin from "./webInterfacePlugin";
-import { users, SqliteOAuthStorageProvider } from "./database/sqlite";
-import { eq } from "drizzle-orm";
+import createPasswordResetPlugin from "./passwordResetPlugin";
+import {
+  users,
+  SqliteOAuthStorageProvider,
+  SqlitePasswordResetProvider,
+} from "./database/sqlite";
+import mailer from "./mailer";
+import { getTestMessageUrl } from "nodemailer";
 
 configEnv();
 const db = configDatabase();
@@ -31,7 +38,7 @@ const { oauthPlugin, openapiSecurityScheme } = createOAuthPlugin({
     const user = await db
       .select()
       .from(users)
-      .where(eq(users.username, credentials.username))
+      .where(eq(users.email, credentials.email))
       .then((r) => r.at(0));
     if (!user) throw new Error("Invalid credentials");
 
@@ -39,6 +46,30 @@ const { oauthPlugin, openapiSecurityScheme } = createOAuthPlugin({
     if (!isValid) throw new Error("Invalid credentials");
 
     return { scopes: user.scope.split(" "), extra: { userId: user.id } };
+  },
+});
+
+const passwordResetPlugin = createPasswordResetPlugin({
+  provider: new SqlitePasswordResetProvider(db),
+  async sendMail(toEmail, code) {
+    const m = await mailer();
+    if (!m) throw new Error("No SMTP transport available");
+
+    await m
+      .sendMail({
+        to: toEmail,
+        subject: "Password reset request | DKG Node",
+        text:
+          `Your password reset code is ${code}.` +
+          `Link: ${process.env.EXPO_PUBLIC_APP_URL}/password-reset?code=${code}`,
+        html:
+          `<p>Your password reset code is <strong>${code}</strong>.</p>` +
+          `<p>Please click <a href="${process.env.EXPO_PUBLIC_APP_URL}/password-reset?code=${code}">here</a> to reset your password.</p>`,
+      })
+      .then((info) => {
+        console.debug(info);
+        console.debug(getTestMessageUrl(info));
+      });
   },
 });
 
@@ -71,14 +102,19 @@ const app = createPluginServer({
       api.use("/mcp", authorized(["mcp"]));
       api.use("/llm", authorized(["llm"]));
       api.use("/blob", authorized(["blob"]));
+      api.use("/change-password", authorized([]));
     },
+    passwordResetPlugin,
     dkgEssentialsPlugin,
     examplePlugin.withNamespace("protected", {
       middlewares: [authorized(["scope123"])], // Allow only users with the "scope123" scope
     }),
     swaggerPlugin({
       version,
-      securitySchemes: { oauth2: openapiSecurityScheme },
+      securitySchemes: {
+        oauth2: openapiSecurityScheme,
+        bearer: { type: "http", scheme: "bearer" },
+      },
       servers: [
         {
           url: process.env.EXPO_PUBLIC_MCP_URL,

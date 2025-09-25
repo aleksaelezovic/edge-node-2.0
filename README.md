@@ -197,11 +197,20 @@ npm run build:migrations # Generate database migrations
 
 ### Testing
 
+The project includes three testing layers for comprehensive coverage:
+
 ```bash
-npm run test:ui          # Run Playwright tests
-npm run test:headed      # Run tests with browser
-npm run test:debug       # Debug test failures
-npm run test:report      # Show test report
+# API Tests - Individual plugin/endpoint testing
+npm run test:api         # Run all plugin API tests
+
+# Integration Tests - Cross-plugin interaction testing  
+npm run test:integration # Run integration tests
+
+# End-to-end user interface testing
+npm run test:e2e         # Run Playwright tests
+
+# Run all tests
+npm test                 # Run API, integration, and E2E tests
 ```
 
 ## 🚀 Production Deployment

@@ -3,6 +3,7 @@ import request from "supertest";
 import { startTestServer } from "../setup/test-server";
 import { generateLargeTestData, PERFORMANCE_CONFIGS } from "../setup/test-data";
 import { TEST_USERS } from "../setup/test-database";
+import { callMcpTool, uploadTestFile } from "../setup/test-helpers";
 
 /**
  * Performance integration tests for the agent under load
@@ -272,36 +273,26 @@ describe("Concurrent Operations Performance", () => {
       // Perform many sequential uploads and tool calls
       for (let i = 0; i < 20; i++) {
         // Upload file
-        const uploadResponse = await request(testServer.app)
-          .post("/blob")
-          .set("Authorization", `Bearer ${accessToken}`)
-          .field("filename", `seq-${i}.txt`)
-          .attach(
-            "file",
-            Buffer.from(`Sequential upload ${i}`),
-            `seq-${i}.txt`,
-          );
+        const { response: uploadResponse } = await uploadTestFile(
+          testServer.app,
+          accessToken,
+          `Sequential upload ${i}`,
+          `seq-${i}.txt`
+        );
 
         expect(uploadResponse.status).to.equal(201); // Blob creation returns 201 Created
 
         // Use MCP tool
-        const toolResponse = await request(testServer.app)
-          .post("/mcp")
-          .set("Authorization", `Bearer ${accessToken}`)
-          .set("Accept", "application/json, text/event-stream")
-          .set("Content-Type", "application/json")
-          .set("mcp-session-id", sessionId)
-          .send({
-            jsonrpc: "2.0",
-            id: i + 2,
-            method: "tools/call",
-            params: {
-              name: "add",
-              arguments: { a: i, b: 1 },
-            },
-          });
+        const toolResponse = await callMcpTool(
+          testServer.app,
+          accessToken,
+          sessionId,
+          "protected__add",
+          { a: i, b: 1 },
+          i + 2
+        );
 
-        expect(toolResponse.status).to.equal(200);
+        expect(toolResponse).to.have.property("result");
 
         // Trigger garbage collection periodically
         if (i % 5 === 0 && global.gc) {

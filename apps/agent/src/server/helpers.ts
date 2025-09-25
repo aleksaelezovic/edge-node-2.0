@@ -1,9 +1,10 @@
 import path from "path";
 import { promises as fs } from "fs";
 import dotenv from "dotenv";
-import { drizzle, migrate, users } from "@/server/database/sqlite";
+import { drizzle, migrate, users, clients } from "@/server/database/sqlite";
 import { hash } from "@node-rs/argon2";
 import type { UserCredentials } from "@/shared/auth";
+import { eq } from "drizzle-orm";
 
 export async function ask(
   question: string,
@@ -34,11 +35,13 @@ export async function createFileWithContent(filePath: string, content: string) {
 
 export function configEnv() {
   dotenv.config();
-  if (process.argv.includes("--dev"))
+  if (process.argv.includes("--dev")) {
     dotenv.config({
       path: path.resolve(process.cwd(), ".env.development.local"),
       override: true,
     });
+    process.env = { ...process.env, NODE_ENV: "development" };
+  }
 }
 
 export function configDatabase() {
@@ -46,18 +49,55 @@ export function configDatabase() {
   migrate(db, {
     migrationsFolder: path.resolve(process.cwd(), "./drizzle/sqlite"),
   });
+  db.insert(clients)
+    .values({
+      client_id: "swagger-client",
+      client_info: JSON.stringify({
+        redirect_uris: ["http://localhost:9200/swagger/oauth2-redirect.html"],
+        client_name: "Swagger Client",
+        client_uri: "http://localhost:9200/swagger",
+        scope: "mcp llm scope123 blob",
+        client_secret: "swagger-secret",
+        client_secret_expires_at:
+          Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+        client_id: "swagger-client",
+        client_id_issued_at: Date.now(),
+      }),
+    })
+    .onConflictDoNothing()
+    .then(() => null);
   return db;
 }
 
 export async function createUser(
   db: ReturnType<typeof configDatabase>,
-  { username, password }: UserCredentials,
+  { email, password }: UserCredentials,
   scope: string[],
 ) {
+  await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .then((r) => {
+      if (r.length > 0) {
+        throw new Error(`User with email ${email} already exists.`);
+      }
+    });
+
   const hashedPassword = await hash(password);
-  const userId = await db
+  await db
     .insert(users)
-    .values({ username, password: hashedPassword, scope: scope.join(" ") })
-    .then((r) => r.lastInsertRowid);
-  return userId;
+    .values({ email, password: hashedPassword, scope: scope.join(" ") });
+
+  return db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .then((r) => r[0])
+    .then((u) => {
+      if (u) return u;
+      throw new Error(
+        `FATAL: User with email ${email} not found. (not created)`,
+      );
+    });
 }

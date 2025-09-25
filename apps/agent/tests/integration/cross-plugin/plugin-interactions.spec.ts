@@ -2,6 +2,7 @@ import { expect } from "chai";
 import request from "supertest";
 import { startTestServer } from "../setup/test-server";
 import { TEST_FILES } from "../setup/test-data";
+import { callMcpTool, initializeMcpSession, uploadTestFile } from "../setup/test-helpers";
 
 /**
  * Cross-plugin integration tests
@@ -34,7 +35,6 @@ describe("Cross-Plugin Integration", () => {
 
   describe("OAuth + Blob Storage Integration", () => {
     it("should properly protect blob endpoints with OAuth scopes", async () => {
-      // Test that OAuth properly protects blob endpoints
 
       // First, verify access works with proper token
       const uploadResponse = await request(testServer.app)
@@ -45,6 +45,7 @@ describe("Cross-Plugin Integration", () => {
         .expect(201);
 
       const blobId = uploadResponse.body.id;
+      expect(blobId).to.exist;
 
       // Verify retrieval works with proper token
       await request(testServer.app)
@@ -90,25 +91,11 @@ describe("Cross-Plugin Integration", () => {
       const blobId = uploadResponse.body.id;
 
       // Initialize MCP session
-      const initResponse = await request(testServer.app)
-        .post("/mcp")
-        .set("Authorization", `Bearer ${accessToken}`)
-        .set("Accept", "application/json, text/event-stream")
-        .set("Content-Type", "application/json")
-        .send({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "initialize",
-          params: {
-            protocolVersion: "2024-11-05",
-            capabilities: {},
-            clientInfo: { name: "cross-plugin-test", version: "1.0.0" },
-          },
-        });
-
-      expect(initResponse.status).to.equal(200);
-      const sessionId = initResponse.headers["mcp-session-id"];
-      if (!sessionId) throw new Error("Session ID is required");
+      const sessionId = await initializeMcpSession(
+        testServer.app,
+        accessToken,
+        { name: "cross-plugin-test", version: "1.0.0" }
+      );
 
       // Create DKG asset that references the blob
       const assetData = {

@@ -1,9 +1,11 @@
 import { Link } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StyleSheet, Text, View } from "react-native";
 
 import useColors from "@/hooks/useColors";
 
 export default function NotFoundScreen() {
+  SplashScreen.hide();
   const colors = useColors();
 
   return (

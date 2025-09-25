@@ -8,7 +8,7 @@ class ChatbotPage {
       '[d="M6 15.351V1.693m0 0L1.122 6.815M6 1.693l4.878 5.122"]',
     );
     this.btn_import = this.page.locator(".r-fontFamily-1j4l7u5");
-    this.btn_continue = this.page.locator(".r-fontFamily-1j4l7u5").first();
+    this.btn_continue = this.page.locator(".r-fontFamily-1j4l7u5").nth(1);
   }
 
   async sendMessage(message) {

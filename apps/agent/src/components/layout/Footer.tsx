@@ -12,7 +12,7 @@ export default function Footer({
       <PoweredBy
         style={[
           { flex: 1 },
-          mode === "default" && { marginRight: 32 },
+          mode === "default" && { marginLeft: 32 },
           mode === "login" && { justifyContent: "center" },
         ]}
       />

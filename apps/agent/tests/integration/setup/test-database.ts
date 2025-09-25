@@ -36,17 +36,17 @@ export async function createTestDatabase(): Promise<{
 
   await db.insert(users).values([
     {
-      username: "admin",
+      email: "admin@example.com",
       password: adminPasswordHash,
       scope: "mcp llm scope123 blob",
     },
     {
-      username: "user",
+      email: "user@example.com",
       password: userPasswordHash,
       scope: "mcp blob",
     },
     {
-      username: "limited",
+      email: "limited@example.com",
       password: await hash("limited123"),
       scope: "mcp",
     },
@@ -89,17 +89,17 @@ export async function createTestDatabase(): Promise<{
  */
 export const TEST_USERS = {
   admin: {
-    username: "admin",
+    email: "admin@example.com",
     password: "admin123",
     expectedScopes: ["mcp", "llm", "scope123", "blob"],
   },
   user: {
-    username: "user",
+    email: "user@example.com",
     password: "userpass",
     expectedScopes: ["mcp", "blob"],
   },
   limited: {
-    username: "limited",
+    email: "limited@example.com",
     password: "limited123",
     expectedScopes: ["mcp"],
   },

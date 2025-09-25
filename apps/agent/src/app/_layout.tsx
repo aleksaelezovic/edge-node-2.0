@@ -1,5 +1,4 @@
 import "../polyfills";
-import { PropsWithChildren, useCallback, useEffect } from "react";
 import { View } from "react-native";
 import {
   DarkTheme,
@@ -18,69 +17,18 @@ import {
   SpaceGrotesk_500Medium,
   SpaceGrotesk_700Bold,
 } from "@expo-google-fonts/space-grotesk";
-import { router, Slot, useGlobalSearchParams, usePathname } from "expo-router";
+import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Background from "@/components/layout/Background";
-import { McpContextProvider } from "@/client";
-import Alerts, { useAlerts } from "@/components/Alerts";
+import Alerts from "@/components/Alerts";
 import Container from "@/components/layout/Container";
+import Dialog from "@/components/Dialog";
 
 SplashScreen.preventAutoHideAsync();
-
-const McpProvider = ({ children }: PropsWithChildren) => {
-  const params = useGlobalSearchParams<{ code?: string; error?: string }>();
-  const isLogin = usePathname() === "/login";
-  const { showAlert } = useAlerts();
-
-  const callback = useCallback(
-    (error?: Error) => {
-      SplashScreen.hide();
-
-      if (!error) router.setParams({ code: undefined });
-      else
-        showAlert({
-          type: "error",
-          title: "MCP Error",
-          message: error.message,
-          timeout: 5000,
-        });
-    },
-    [showAlert],
-  );
-
-  const errorCode = params.error;
-  useEffect(() => {
-    if (errorCode)
-      callback(
-        new Error(
-          `Connection to the MCP Server failed with error code: "${errorCode}"\n` +
-            "Try cleaning localStorage and going to the login page.",
-        ),
-      );
-  }, [errorCode, callback]);
-
-  const disableAutoConnect = params.error || (isLogin && params.code);
-
-  return (
-    <McpContextProvider
-      autoconnect={
-        disableAutoConnect
-          ? false
-          : {
-              authorizationCode: params.code,
-              callback,
-            }
-      }
-      onMcpError={callback}
-    >
-      {children}
-    </McpContextProvider>
-  );
-};
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -101,8 +49,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Alerts.Provider>
-        <McpProvider>
+      <Dialog.Provider>
+        <Alerts.Provider>
+          <Dialog />
           <Background>
             <View
               style={{
@@ -126,8 +75,8 @@ export default function RootLayout() {
             <Slot />
           </Background>
           <StatusBar style="auto" />
-        </McpProvider>
-      </Alerts.Provider>
+        </Alerts.Provider>
+      </Dialog.Provider>
     </ThemeProvider>
   );
 }
