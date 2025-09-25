@@ -7,11 +7,11 @@ import {
   ASSERTIONS,
 } from "../setup/test-data";
 import { TEST_USERS } from "../setup/test-database";
-import { 
-  callMcpTool, 
-  initializeMcpSession, 
+import {
+  callMcpTool,
+  initializeMcpSession,
   uploadTestFile,
-  createDkgAssetWithBlob 
+  createDkgAssetWithBlob,
 } from "../setup/test-helpers";
 
 /**
@@ -113,7 +113,7 @@ describe("File Upload Workflow Integration", () => {
           jsonld: JSON.stringify(assetData),
           privacy: "private",
         },
-        2
+        2,
       );
 
       expect(responseData).to.have.property("result");
@@ -163,7 +163,7 @@ describe("File Upload Workflow Integration", () => {
           sessionId,
           "dkg-get",
           { ual: ual },
-          3
+          3,
         );
 
         const retrievedAsset = JSON.parse(getAssetData.result.content[0].text);

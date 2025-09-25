@@ -2,7 +2,11 @@ import { expect } from "chai";
 import request from "supertest";
 import { startTestServer } from "../setup/test-server";
 import { TEST_FILES } from "../setup/test-data";
-import { callMcpTool, initializeMcpSession, uploadTestFile } from "../setup/test-helpers";
+import {
+  callMcpTool,
+  initializeMcpSession,
+  uploadTestFile,
+} from "../setup/test-helpers";
 
 /**
  * Cross-plugin integration tests
@@ -35,7 +39,6 @@ describe("Cross-Plugin Integration", () => {
 
   describe("OAuth + Blob Storage Integration", () => {
     it("should properly protect blob endpoints with OAuth scopes", async () => {
-
       // First, verify access works with proper token
       const uploadResponse = await request(testServer.app)
         .post("/blob")
@@ -94,7 +97,7 @@ describe("Cross-Plugin Integration", () => {
       const sessionId = await initializeMcpSession(
         testServer.app,
         accessToken,
-        { name: "cross-plugin-test", version: "1.0.0" }
+        { name: "cross-plugin-test", version: "1.0.0" },
       );
 
       // Create DKG asset that references the blob

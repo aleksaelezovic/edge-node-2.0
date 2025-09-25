@@ -59,19 +59,23 @@ class ChatbotPage {
   "name": "Hello DKG",
   "description": "My first Knowledge Asset on the Decentralized Knowledge Graph!"
 }`);
-    
+
     // Wait for any success message about Knowledge Asset creation (much more flexible)
     await this.page.waitForSelector(
-      'text=/.*((Knowledge Asset|KA).*(created|published|generated|added|stored|uploaded)|(created|published|generated|added|stored|uploaded).*(Knowledge Asset|KA)|successfully.*(created|published)|UAL.*did:|Here.*UAL|Asset.*DKG|DKG.*Asset).*/i',
+      "text=/.*((Knowledge Asset|KA).*(created|published|generated|added|stored|uploaded)|(created|published|generated|added|stored|uploaded).*(Knowledge Asset|KA)|successfully.*(created|published)|UAL.*did:|Here.*UAL|Asset.*DKG|DKG.*Asset).*/i",
       { timeout: 300000 }, // 5 minutes
     );
-    
+
     // Use very flexible regex to match many possible AI success responses
-    const successMessageRegex = /(Knowledge Asset.*(?:created|published|generated|added|stored|uploaded)|(?:created|published|generated|added|stored|uploaded).*Knowledge Asset|successfully.*(?:created|published)|UAL.*did:|Here.*UAL|Asset.*DKG|DKG.*Asset|KA.*(?:created|published)|(?:created|published).*KA)/i;
+    const successMessageRegex =
+      /(Knowledge Asset.*(?:created|published|generated|added|stored|uploaded)|(?:created|published|generated|added|stored|uploaded).*Knowledge Asset|successfully.*(?:created|published)|UAL.*did:|Here.*UAL|Asset.*DKG|DKG.*Asset|KA.*(?:created|published)|(?:created|published).*KA)/i;
     await expect(
-      this.page.locator(".css-textHasAncestor-1jxf684").filter({ hasText: successMessageRegex }).first(),
+      this.page
+        .locator(".css-textHasAncestor-1jxf684")
+        .filter({ hasText: successMessageRegex })
+        .first(),
     ).toBeVisible();
-    
+
     const UAL = await this.page
       .locator(".css-textHasAncestor-1jxf684")
       .nth(4)
@@ -86,7 +90,7 @@ class ChatbotPage {
     await expect(
       this.page.locator(".css-textHasAncestor-1jxf684").nth(12),
     ).toHaveText(
-      /(Knowledge Asset|retrieved|summary|found|located|contains|information|data|asset|DKG|here|following|content|details|components)/i
+      /(Knowledge Asset|retrieved|summary|found|located|contains|information|data|asset|DKG|here|following|content|details|components)/i,
     );
   }
 }

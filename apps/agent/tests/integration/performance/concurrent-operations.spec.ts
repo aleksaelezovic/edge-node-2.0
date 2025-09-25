@@ -277,7 +277,7 @@ describe("Concurrent Operations Performance", () => {
           testServer.app,
           accessToken,
           `Sequential upload ${i}`,
-          `seq-${i}.txt`
+          `seq-${i}.txt`,
         );
 
         expect(uploadResponse.status).to.equal(201); // Blob creation returns 201 Created
@@ -289,7 +289,7 @@ describe("Concurrent Operations Performance", () => {
           sessionId,
           "protected__add",
           { a: i, b: 1 },
-          i + 2
+          i + 2,
         );
 
         expect(toolResponse).to.have.property("result");
