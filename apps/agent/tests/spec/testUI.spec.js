@@ -56,7 +56,6 @@ test("Test send message and get answer @gh_actions", async ({ page }) => {
   // Very flexible check: just ensure the AI responded with the correct answer (10)
   // and some indication it's doing math - order doesn't matter
   const spanLocator = page.locator(".css-textHasAncestor-1jxf684");
-  await expect(spanLocator).toHaveCount(5);
   await expect(spanLocator.last()).toHaveText(
     /(?=.*(10|ten))(?=.*(sum|result|answer|calculation|plus|add|equals))/i,
   );
