@@ -27,8 +27,10 @@ export default function LoginForm({
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const disabled = !email || !password || loading;
 
   const submit = useCallback(async () => {
+    if (disabled) return;
     setError("");
     setLoading(true);
     try {
@@ -40,7 +42,7 @@ export default function LoginForm({
       setError(toError(error).message);
     }
     setLoading(false);
-  }, [email, password, rememberMe, onSubmit]);
+  }, [disabled, email, password, rememberMe, onSubmit]);
 
   return (
     <View style={style}>
@@ -56,6 +58,11 @@ export default function LoginForm({
         keyboardType="email-address"
         textContentType="emailAddress"
         autoCapitalize="none"
+        onKeyPress={({ nativeEvent }) => {
+          if (nativeEvent.key === "Enter") {
+            if (!disabled) submit();
+          }
+        }}
       />
       <TextInput
         style={[
@@ -67,6 +74,11 @@ export default function LoginForm({
         placeholder="Password"
         placeholderTextColor={colors.placeholder}
         secureTextEntry
+        onKeyPress={({ nativeEvent }) => {
+          if (nativeEvent.key === "Enter") {
+            if (!disabled) submit();
+          }
+        }}
       />
       <Checkbox
         value={rememberMe}
@@ -88,7 +100,7 @@ export default function LoginForm({
         color="primary"
         text="Login"
         onPress={submit}
-        disabled={!email || !password || loading}
+        disabled={disabled}
       />
       <Link
         href="/password-reset"
