@@ -5,7 +5,7 @@ const { defineConfig, devices } = require("@playwright/test");
  * @see https://playwright.dev/docs/test-configuration
  */
 module.exports = defineConfig({
-  testDir: "./tests",
+  testDir: "./tests/e2e",
   testMatch: "**/*.spec.js",
   retries: 2,
   workers: 1,

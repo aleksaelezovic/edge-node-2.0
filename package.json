@@ -10,11 +10,14 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,json,md,yml}\"",
     "check-format": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,json,md,yml}\"",
     "check-types": "turbo run check-types",
-    "test": "turbo run test --force",
+    "test:mocha": "mocha",
+    "test": "npm run test:api && npm run test:integration && turbo run test --filter=@dkg/agent --force",
     "test:e2e": "turbo run test:e2e --filter=@dkg/agent --force",
     "test:api": "turbo run test --filter='@dkg/plugin-*' --force",
+    "test:integration": "cd apps/agent && npm run test:integration",
     "test:ui:report": "node report-UI-Tests-config.js",
-    "test:api:report": "node report-API-Tests-config.js"
+    "test:api:report": "node report-API-Tests-config.js",
+    "test:integration:report": "node report-Integration-Tests-config.js"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.5",
@@ -24,7 +27,7 @@
     "@types/node": "^22.9.0",
     "@types/sinon": "^17.0.4",
     "@types/supertest": "^6.0.3",
-    "chai": "^5.2.1",
+    "chai": "^6.0.1",
     "dotenv": "^17.2.1",
     "eslint": "^9.29.0",
     "mocha": "^11.7.1",
@@ -33,7 +36,7 @@
     "sinon": "^21.0.0",
     "supertest": "^7.1.4",
     "test-results-reporter": "^1.1.6",
-    "tsx": "^4.20.4",
+    "tsx": "^4.20.5",
     "turbo": "^2.5.5",
     "typescript": "^5.8.3"
   },
@@ -43,6 +46,7 @@
   "packageManager": "npm@10.9.2",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "apps/agent/tests/integration"
   ]
 }
