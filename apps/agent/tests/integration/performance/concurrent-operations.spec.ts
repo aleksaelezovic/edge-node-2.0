@@ -80,7 +80,7 @@ describe("Concurrent Operations Performance", () => {
     it("should handle concurrent large file uploads", async function () {
       this.timeout(60000);
 
-      const config = PERFORMANCE_CONFIGS.mediumLoad;
+      const config = PERFORMANCE_CONFIGS.heavyLoad;
       const largeFileData = generateLargeTestData(config.maxFileSize / 1024); // Convert to KB
 
       const uploadPromises = Array.from({ length: 5 }, (_, i) =>
